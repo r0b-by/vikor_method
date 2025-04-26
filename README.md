@@ -86,6 +86,9 @@ and
 npm run dev
 
 # Enjoy!
-# SPK_project
+# spk_project
 project
 >>>>>>> e56158a62249aacae08246271b304fa0f2b35f63
+
+# Pages
+![alt text](image.png)
