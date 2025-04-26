@@ -1,0 +1,57 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.15 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.15">
+  <diagram name="Page-1" id="fEDUe11IEb5eZLww3bF9">
+    <mxGraphModel dx="3476" dy="1671" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="HOVRk9ahs8TsSKfUPe1E-1" target="HOVRk9ahs8TsSKfUPe1E-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-1" value="START" style="shape=waypoint;sketch=0;fillStyle=solid;size=6;pointerEvents=1;points=[];fillColor=none;resizable=0;rotatable=0;perimeter=centerPerimeter;snapToPoint=1;labelPosition=left;verticalLabelPosition=top;align=right;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="-2308" y="-940.5" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="HOVRk9ahs8TsSKfUPe1E-2" target="HOVRk9ahs8TsSKfUPe1E-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-2140" y="-847" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-2" value="Kepala Sekolah Login" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2200" y="-950" width="120" height="39" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="HOVRk9ahs8TsSKfUPe1E-3" target="HOVRk9ahs8TsSKfUPe1E-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-3" value="Halaman&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;Dashboard&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Kepala Sekolah&lt;/span&gt;&lt;/div&gt;" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2368.5" y="-870" width="141" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="HOVRk9ahs8TsSKfUPe1E-4" target="HOVRk9ahs8TsSKfUPe1E-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-4" value="Menu Data Siswa dan Dokumen" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2358" y="-780" width="120" height="47" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="HOVRk9ahs8TsSKfUPe1E-5" target="HOVRk9ahs8TsSKfUPe1E-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-5" value="Menampilkan Data Persetujuan" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2358" y="-680" width="120" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="HOVRk9ahs8TsSKfUPe1E-6" target="HOVRk9ahs8TsSKfUPe1E-13">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-2125" y="-587" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-6" value="Simpan ke Database" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2190" y="-680" width="130" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="HOVRk9ahs8TsSKfUPe1E-13" value="&lt;font style=&quot;color: rgb(0, 0, 0);&quot;&gt;END&lt;/font&gt;" style="ellipse;shape=doubleEllipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;labelPosition=right;verticalLabelPosition=bottom;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="-2135" y="-590" width="20" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

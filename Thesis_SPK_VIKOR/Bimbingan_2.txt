@@ -1,0 +1,16 @@
+Bapak Dr. Pranoto, S.E., M.M, selaku ketua Yayasan Sasmita Jaya yang telah
+memberikan tempat untuk mencari ilmu. 
+Dr. E. Nurzaman A.M., Msi., M.M Rektor Unpam
+Yan Mitha Djaksana, S.Kom. M.Kom., Dekan Ilkom
+Dr. Eng. Ahmad Musyafa, S.Kom., M.Kom., Ketua Program Studi
+Mochamad Adhari Adiguna, S.ST., M.Kom. Pembimbing
+
+Perubahan :
+Metode Pengambangan : penjelasan RAD, Definisi, Model.
+Sumber UML : Cari sumber baru Definisi, Symbol UML.
+
+Noted Ubah :
+3.2 Analisa Data dan Perangkat Penelitian
+3.2.1 Analisa Data Penelitian
+3.2.2 Analisa Perangkat Lunak (Software) Penelitian
+3.2.3 Analisa Perangkat Keras (Hardware) Penelitian

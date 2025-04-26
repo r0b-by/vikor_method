@@ -1,0 +1,89 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.15 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.15">
+  <diagram name="Page-1" id="7lGg7cqMauvhF7u_fik7">
+    <mxGraphModel dx="1459" dy="526" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-3" value="Diagram Activity&amp;nbsp; Admin Input Alternatif" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="-5" y="50" width="430" height="650" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-5" target="UmD9GSgUlCEBcfPKkgbv-8" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-5" value="Tambah Alternatif" style="rounded=0;whiteSpace=wrap;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="200" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-8" target="UmD9GSgUlCEBcfPKkgbv-10" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="95" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-7" value="Submit" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="UmD9GSgUlCEBcfPKkgbv-6" vertex="1" connectable="0">
+          <mxGeometry x="0.0794" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-8" value="&lt;span style=&quot;text-align: left;&quot;&gt;Alternatif Baru :&lt;/span&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Kode Alternatif&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Nama Alternatif&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="35" y="210" width="120" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-10" target="UmD9GSgUlCEBcfPKkgbv-16" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="175" y="460" />
+              <mxPoint x="175" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-10" value="Simpan ke Database&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="35" y="430" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-13" target="UmD9GSgUlCEBcfPKkgbv-16" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="355" y="90" />
+              <mxPoint x="355" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-13" target="UmD9GSgUlCEBcfPKkgbv-19" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="395" y="75" />
+              <mxPoint x="395" y="620" />
+              <mxPoint x="95" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-13" value="Alternatif Siswa" style="rounded=0;whiteSpace=wrap;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="200" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-13" target="UmD9GSgUlCEBcfPKkgbv-5" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="245" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-16" target="UmD9GSgUlCEBcfPKkgbv-17" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-16" value="Edit Alternatif" style="rounded=0;whiteSpace=wrap;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="215" y="360" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-17" value="&lt;span style=&quot;text-align: left;&quot;&gt;Alternatif Siswa :&lt;/span&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Kode Alternatif&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Nama Alternatif&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="215" y="450" width="120" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-19" target="UmD9GSgUlCEBcfPKkgbv-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-19" value="Hapus Alternatif" style="rounded=0;whiteSpace=wrap;html=1;" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="35" y="530" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-2" value="&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp;START&lt;/div&gt;" style="ellipse;shape=doubleEllipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#33FF33,var(--ge-dark-color, #121212));" parent="UmD9GSgUlCEBcfPKkgbv-3" vertex="1">
+          <mxGeometry x="65" y="60" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="UmD9GSgUlCEBcfPKkgbv-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="UmD9GSgUlCEBcfPKkgbv-3" source="UmD9GSgUlCEBcfPKkgbv-2" target="UmD9GSgUlCEBcfPKkgbv-13" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

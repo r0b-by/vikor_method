@@ -1,0 +1,121 @@
+✅ Fitur Utama Sistem
+Manajemen Data Alternatif
+
+Manajemen Data Kriteria
+
+Manajemen Data Penilaian
+
+Perhitungan Metode VIKOR
+
+Autentikasi Pengguna (Login/Register)
+
+📘 3.3.1 Perancangan Unified Modelling Language (UML)
+A. Skenario Sistem
+Skenario utama sistem:
+
+Admin melakukan login ke sistem.
+
+Admin menginput data alternatif dan kriteria.
+
+Admin memberikan penilaian terhadap alternatif berdasarkan kriteria.
+
+Sistem melakukan perhitungan menggunakan metode VIKOR.
+
+Hasil ranking alternatif ditampilkan.
+
+B. Use Case Diagram
+Aktor: Admin
+Use Case:
+
+Login
+
+Kelola Alternatif
+
+Kelola Kriteria
+
+Kelola Penilaian
+
+Hitung VIKOR
+
+Lihat Ranking
+
+📌 Saya bisa bantu menggambar use case diagram-nya nanti kalau kamu butuh visualnya juga.
+
+📘 3.3.2 Activity Diagram
+Berikut alur aktivitas utama (perhitungan VIKOR):
+
+pgsql
+Copy code
+Start
+  ↓
+Login → [Berhasil?] → Tidak → End
+              ↓ Ya
+         Kelola Alternatif
+              ↓
+         Kelola Kriteria
+              ↓
+         Kelola Penilaian
+              ↓
+        Hitung VIKOR
+         ↙       ↘
+     Normalisasi   ↘
+    → Pembobotan   ↘
+    → Hitung S, R → Hitung Q
+              ↓
+         Tampilkan Ranking
+              ↓
+             End
+
+📘 3.3.3 Sequence Diagram
+Skenario: Hitung VIKOR
+
+yaml
+Copy code
+Admin → Web App: Klik "Hitung VIKOR"
+Web App → HitungController: index()
+HitungController → DB: ambil data kriteria, alternatif, dan penilaian
+HitungController → Hitung normalisasi dan pembobotan
+HitungController → Hitung nilai S_i, R_i, dan Q_i
+HitungController → Web App: return hasil ranking
+Web App → Admin: tampilkan hasil
+
+📘 3.3.4 Class Diagram
+Class utama berdasarkan struktur Laravel:
+
+Alternatif
+
+id
+
+nama
+
+relasi: penilaian
+
+Criteria
+
+id
+
+nama
+
+bobot
+
+tipe (Cost/Benefit)
+
+relasi: penilaian
+
+Penilaian
+
+id_alternatif
+
+id_criteria
+
+nilai
+
+relasi: alternatif, criteria
+
+HitungController
+
+Fungsi: index() (proses VIKOR)
+
+User
+
+login / register

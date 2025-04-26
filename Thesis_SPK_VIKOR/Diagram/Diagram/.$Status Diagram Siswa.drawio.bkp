@@ -1,0 +1,80 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.15 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.15">
+  <diagram name="Page-1" id="vfRUFYiNIRH5OvDl1YK6">
+    <mxGraphModel dx="2834" dy="1654" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="5ofCeYg3R9E_EVTivknx-1" value="END" style="ellipse;shape=doubleEllipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;labelPosition=right;verticalLabelPosition=bottom;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="-2125" y="-590" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5ofCeYg3R9E_EVTivknx-2" target="5ofCeYg3R9E_EVTivknx-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-2" value="START" style="shape=waypoint;sketch=0;fillStyle=solid;size=6;pointerEvents=1;points=[];fillColor=none;resizable=0;rotatable=0;perimeter=centerPerimeter;snapToPoint=1;labelPosition=left;verticalLabelPosition=top;align=right;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="-2308" y="-940.5" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5ofCeYg3R9E_EVTivknx-4" target="5ofCeYg3R9E_EVTivknx-5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-2120" y="-817" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-4" value="Siswa Login" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2190" y="-950" width="120" height="39" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5ofCeYg3R9E_EVTivknx-5" target="5ofCeYg3R9E_EVTivknx-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-2298" y="-770" />
+              <mxPoint x="-2130" y="-770" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-5" value="Halaman&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;Dashboard&lt;/span&gt;&lt;div&gt;Siswa&lt;/div&gt;" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2368.5" y="-840" width="141" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5ofCeYg3R9E_EVTivknx-7" target="5ofCeYg3R9E_EVTivknx-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-29" value="Data Valid" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="5ofCeYg3R9E_EVTivknx-28">
+          <mxGeometry x="-0.3509" y="-3" relative="1" as="geometry">
+            <mxPoint x="-4" y="44" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-7" value="Status Pendaftaran" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2190" y="-720" width="120" height="39" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="5ofCeYg3R9E_EVTivknx-8" target="5ofCeYg3R9E_EVTivknx-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-8" value="Status Seleksi" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2358" y="-720" width="120" height="39" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5ofCeYg3R9E_EVTivknx-9" target="5ofCeYg3R9E_EVTivknx-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-9" value="Unduh Surat Keputusan" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2358" y="-604.75" width="120" height="49.5" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-17" value="Pendaftaran" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-2040" y="-836.5" width="120" height="39" as="geometry" />
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-26" value="" style="endArrow=none;dashed=1;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="5ofCeYg3R9E_EVTivknx-7" target="5ofCeYg3R9E_EVTivknx-17">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-2230" y="-650" as="sourcePoint" />
+            <mxPoint x="-2180" y="-700" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-1980" y="-700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5ofCeYg3R9E_EVTivknx-27" value="Data Tidak Valid" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="5ofCeYg3R9E_EVTivknx-26">
+          <mxGeometry x="0.2216" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

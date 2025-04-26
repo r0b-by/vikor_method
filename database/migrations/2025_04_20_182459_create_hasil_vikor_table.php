@@ -1,35 +1,28 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 class CreateHasilVikorTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::create('hasil_vikor', function (Blueprint $table) {
-            $table->id(); // kolom id (primary key)
-            $table->unsignedBigInteger('id_alternatif')->nullable(); // relasi ke tabel alternatif
-            $table->double('nilai_s')->nullable(); // nilai S
-            $table->double('nilai_r')->nullable(); // nilai R
-            $table->double('nilai_q')->nullable(); // nilai Q
-            $table->integer('ranking')->nullable(); // urutan ranking
-            $table->enum('status', ['Lulus', 'Tidak Lulus'])->nullable(); // status kelulusan
-            $table->timestamps(); // created_at dan updated_at
-
-            // Foreign key constraint (opsional jika ada tabel alternatif)
-            $table->foreign('id_alternatif')->references('id')->on('alternatifs')->onDelete('cascade');
-        });
+        if (!Schema::hasTable('hasil_vikor')) {
+            Schema::create('hasil_vikor', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('id_alternatif')->nullable()->constrained();
+                $table->double('nilai_s')->nullable();
+                $table->double('nilai_r')->nullable();
+                $table->double('nilai_q')->nullable();
+                $table->integer('ranking')->nullable();
+                $table->enum('status', ['Lulus', 'Tidak Lulus'])->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('hasil_vikor');
     }

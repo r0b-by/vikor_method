@@ -1,0 +1,33 @@
+Bab II
+2.2.6 MCDM
+2.2.11 PHP (hypertext preprocessor)
+2.2.12 MySQL ( my Structur Query Language)
+2.2.13 UML (Unified Modeling Language)
+2.2.14 Pengujian Perangkat Lunak 
+2.2.15 Pengujian Kotak Putih (White Box Testing)
+2.2.16 Pengujian Kotak Hitam (Black Box Testing)
+
+Bab III
+3.1 Analisa Kebutuhan
+	3.1.1 Analisa Kebutuhan Sistem
+	3.1.2 Analisa Kebutuhan Software
+	3.1.3 Analisa Kebutuhan Hardware
+3.2 Analisa Perhitungan Vikor
+3.3 
+
+gambar :
+Perancangan Sistem Pendukung Keputusan Berbasis Web
+gambar PHP
+gambar MySQL
+gambar HTML
+gambar CSS
+gambar JS
+gambar JQuery
+gambar laravel
+(Septiansyah et al., 2023)
+
+Alat Pendukung  Perancangan Sistem Berbasis Web
+gambar halaman instalasi Draw.io
+gambar halaman instalasi DBDiagram
+gambar halaman instalasi Vscode
+gambar halaman instalasi Xampp

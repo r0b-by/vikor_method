@@ -1,0 +1,61 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.15 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.15">
+  <diagram name="Page-1" id="w33Kfzb9aN1Nry16jTj1">
+    <mxGraphModel dx="444" dy="1560" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-1" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="-40" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-2" value="Diagram Use Case Admin" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="-300" width="330" height="630" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-3" value="Login" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="ZzNywg_wxl7LvhokqI4K-2">
+          <mxGeometry x="120" y="60" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-8" value="Kelola Data Alternatif" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="ZzNywg_wxl7LvhokqI4K-2">
+          <mxGeometry x="110" y="160" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-7" value="Kelola Data&amp;nbsp;&lt;div&gt;Kriteria&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="ZzNywg_wxl7LvhokqI4K-2">
+          <mxGeometry x="110" y="270" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-6" value="Kelola Hitung&amp;nbsp;&lt;div&gt;Data&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="ZzNywg_wxl7LvhokqI4K-2">
+          <mxGeometry x="110" y="390" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-5" value="Kelola Hasil Perhitungan" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="ZzNywg_wxl7LvhokqI4K-2">
+          <mxGeometry x="110" y="510" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-11" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="ZzNywg_wxl7LvhokqI4K-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="-10" as="sourcePoint" />
+            <mxPoint x="260" y="-110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-12" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="ZzNywg_wxl7LvhokqI4K-8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="-10" as="sourcePoint" />
+            <mxPoint x="290" y="-200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-13" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ZzNywg_wxl7LvhokqI4K-1" target="ZzNywg_wxl7LvhokqI4K-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="90" y="-3" as="sourcePoint" />
+            <mxPoint x="300" y="-190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-14" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="ZzNywg_wxl7LvhokqI4K-6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="-10" as="sourcePoint" />
+            <mxPoint x="260" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZzNywg_wxl7LvhokqI4K-15" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="ZzNywg_wxl7LvhokqI4K-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="-10" as="sourcePoint" />
+            <mxPoint x="320" y="-170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,78 @@
+Tugas Admin
+Login: Admin masuk ke sistem menggunakan kredensial.
+Mengelola Data Calon Penerima Beasiswa: Melihat, menambah, mengubah, dan menghapus data calon penerima beasiswa.
+Mengelola Data Alternatif: Mengelola pilihan beasiswa, termasuk menambah, mengubah, atau menghapus data alternatif.
+Mengelola Data Kriteria: Mengelola kriteria penilaian beasiswa yang mencakup faktor akademik, ekonomi, dan potensi.
+Mengelola Data Sub-Kriteria: Mengatur sub-kriteria dalam setiap faktor penilaian (misalnya, nilai rata-rata rapor atau penghasilan orang tua).
+Mengelola Data Penilaian: Data penilaian calon penerima beasiswa diinput otomatis berdasarkan faktor dan kriteria yang telah ditentukan, dan admin dapat melihat, memverifikasi, atau menyesuaikan data ini jika diperlukan.
+Mengelola Data Laporan Hasil Akhir: Menyusun dan melihat laporan akhir penerima beasiswa berdasarkan perhitungan metode VIKOR.
+Mengirimkan Notifikasi Hasil Penilaian: Mengirim notifikasi email kepada calon penerima beasiswa, baik yang lolos maupun yang tidak lolos.
+Logout: Keluar dari sistem.
+Tugas User
+Registrasi: Mengisi formulir pendaftaran akun sebagai calon penerima beasiswa.
+Login: Masuk ke sistem menggunakan akun yang sudah terdaftar.
+Mengisi Form Pemberkasan: Melengkapi formulir dengan data yang diperlukan untuk pengajuan beasiswa, termasuk data pribadi dan akademik.
+Upload Bukti Berkas: Mengunggah dokumen pendukung seperti nilai rapor, bukti ekonomi, dan dokumen lainnya sesuai dengan persyaratan.
+Logout: Keluar dari sistem.
+Skenario Admin
+Login Admin:
+
+Admin masuk ke halaman login, mengisi No. Petugas, Nama, dan Kata Sandi.
+Jika berhasil, sistem menampilkan halaman Dashboard.
+Navigasi Dashboard:
+
+Dashboard menampilkan menu navigasi, notifikasi (ikon lonceng), notifikasi email, grafik pengguna terdaftar, serta statistik jumlah penerima beasiswa yang lolos.
+Menu Akun User:
+
+Admin dapat mengakses data akun pengguna, mengubah data pengguna, atau menghapus akun pengguna yang tidak aktif atau tidak relevan.
+Menu Registrasi Akun User:
+
+Menampilkan daftar permohonan registrasi akun dari pengguna.
+Admin dapat memverifikasi data registrasi pengguna. Jika data lengkap, admin menekan tombol Terima; jika data tidak lengkap, admin menekan tombol Tolak dan mengisi form keterangan sebelum menekan tombol Kirim untuk memberi tahu pengguna.
+Menu Data Berkas User:
+
+Menampilkan data berkas dan bukti berkas yang telah diunggah oleh pengguna.
+Admin memverifikasi data berkas dan bukti berkas. Jika valid, admin menekan tombol Kirim Ke Penilaian untuk memulai proses penilaian otomatis.
+Menu Penilaian:
+
+Data penilaian setiap pengguna dihasilkan secara otomatis berdasarkan faktor-faktor yang telah ditentukan:
+Akademik: Nilai rata-rata rapor, nilai UAS/UN, dan prestasi akademik lainnya.
+Ekonomi: Penghasilan orang tua, jumlah tanggungan keluarga, status pekerjaan orang tua, dan kepemilikan rumah.
+Potensi: Keterlibatan dalam kegiatan ekstrakurikuler, kemampuan kepemimpinan, dan bakat tertentu.
+Admin dapat melihat data penilaian pengguna yang dihasilkan melalui metode VIKOR.
+Hasil akhir untuk pengguna yang Lolos atau Tidak Lolos disiapkan dalam bentuk laporan akhir.
+Admin mengirimkan notifikasi hasil akhir melalui email kepada pengguna yang lolos maupun yang tidak lolos.
+Skenario User
+Registrasi Akun:
+
+User membuka halaman registrasi dan mengisi formulir pendaftaran akun dengan data pribadi (seperti nama lengkap, alamat email, dan informasi lainnya).
+Setelah registrasi berhasil, user mendapatkan notifikasi bahwa akun akan diverifikasi oleh admin.
+Login User:
+
+Setelah akun diverifikasi, user masuk ke halaman login dan mengisi Nama Pengguna dan Kata Sandi.
+Jika login berhasil, sistem menampilkan halaman Dashboard pengguna.
+Mengisi Form Pemberkasan:
+
+User mengakses menu pemberkasan dan melengkapi formulir dengan data akademik, ekonomi, dan potensi, sesuai dengan kriteria yang dibutuhkan untuk pengajuan beasiswa.
+Data yang dimasukkan mencakup informasi seperti nilai rata-rata rapor, penghasilan orang tua, jumlah tanggungan, keterlibatan dalam kegiatan ekstrakurikuler, dan lainnya.
+Upload Bukti Berkas:
+
+User mengunggah dokumen pendukung, seperti:
+Transkrip nilai atau rapor untuk bukti akademik.
+Bukti penghasilan orang tua untuk bukti ekonomi.
+Sertifikat atau dokumen lain yang membuktikan potensi atau prestasi non-akademik.
+Setelah bukti berkas lengkap, user menekan tombol Submit untuk mengajukan berkas kepada admin.
+Menunggu Hasil Penilaian:
+
+Setelah mengajukan berkas, user menunggu hasil penilaian dari admin.
+User akan menerima notifikasi email hasil akhir, apakah Lolos atau Tidak Lolos menerima beasiswa.
+Logout:
+
+User keluar dari sistem setelah selesai.
+Sistem Penilaian Otomatis Berdasarkan Faktor dan Kriteria
+Sistem akan secara otomatis mengumpulkan dan mengolah data pemberkasan pengguna menggunakan metode VIKOR yang mempertimbangkan faktor berikut:
+
+Akademik: Penilaian atas rata-rata nilai rapor, nilai ujian akhir, dan prestasi akademik lain.
+Ekonomi: Penilaian atas penghasilan orang tua, jumlah tanggungan, pekerjaan orang tua, dan status kepemilikan rumah.
+Potensi: Penilaian atas keterlibatan dalam kegiatan ekstrakurikuler, kemampuan kepemimpinan, dan bakat di bidang tertentu.
+Data dari setiap faktor akan diproses secara otomatis menggunakan metode VIKOR untuk menentukan pengguna yang lolos atau tidak lolos. Admin kemudian dapat mengakses hasil ini dan melakukan verifikasi akhir serta mengirimkan hasil kepada pengguna melalui email.

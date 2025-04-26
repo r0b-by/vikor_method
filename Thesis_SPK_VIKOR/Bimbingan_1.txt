@@ -1,0 +1,27 @@
+Bimbingan_1 :
+For Page Title 
+* Judul 	: * Judul
+		  - Tahoma
+	  	  - Pola Segitiga/Kapal
+	    	  - Ukuran 17
+		  * Program Studi : Ukuran 15
+		  * Fakultas : Ukuran 16
+		  * Universitas : Ukuran 17
+		  * Tangerang Selatan : Ukuran 16
+		  * Tahun : Ukuran 16
+		  * Line Spacing : Single
+* Gambar 	: Besarkan Sedikit
+* Nama Nim 	: Tidak Bold
+
+For Lampiran
+* Rapikan Rata
+* Single Spacing
+
+For Page Sub Title
+* Line Spacing 	: Paragraf double spacing
+* Number Page 	: Bab (tengah bawah), halaman biasa (diatas kanan)
+* Latar 	: paragraf Judul jangan bold
+* Latar 	: Ubah Identfikasi, (jangan kata manual : tidak adanya sistem aplikasi penerima beasiswa)
+* Bab I 	: Tambahan
+		  1.7 Metodologi Penelitian
+		  1.8 Sistematika Penulisan

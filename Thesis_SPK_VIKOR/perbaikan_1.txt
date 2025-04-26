@@ -1,0 +1,29 @@
+Penelitian ini menggunakan metode kuantitatif dengan mengumpulkan 
+dan menganalisis data dalam bentuk numerik untuk menerangkan kejelasan 
+dari angka-angka dan jumlah yang akan memperoleh hasil baru, kemudian 
+dijelaskan kembali melalui uraian kalimat. Adapun metode pengumpulan
+data laporan tugas akhir ini adalah sebagai berikut:
+
+wawancara :
+Wawancara adalah teknik pengumpulan data dengan cara bertanya langsung 
+kepada pihak sekolah SMK PRIMA UNGGUL untuk memperoleh alternatif, 
+bobot kriteria, dan sub kriteria yang akan dikelola dengan perhitungan
+yang tepat melalui sistem pendukung keputusan berbasis web.
+
+Observasi :
+Observasi adalah teknik pengumpulan data dengan melakukan cara melakukan
+pengamatan langsung ke lokasi SMK PRIMA UNGGUL yang berlokasi di Jl. Raden
+Fatah No.98, RT.002/RW.010, Parung Serab, Kec. Ciledug, Kota Tangerang, 
+Banten 15153. Namun, perolehan dalam pemilihan penerima beasiswa di SMK
+tersebut kurang optimal. Melalui penerapan sistem pendukung keputusan hasil
+diharapkan dapat memaksimalkan sistem penerimaan beasiswa unggulan dengan
+menggunakan metode VIKOR.
+
+Studi Pustaka :
+Studi Pustaka merupakan teknik pengumpulan data dengan cara
+mencari dan mempelajari buku-buku, jurnal ataupun data-data 
+yang berhubungan dengan objek penelitian, alat bantu pencarian data 
+mengggunakan aplikasi Publish or Perish. Adapun referensi yang akan 
+diperoleh nantinya dan digunakan dalam pembuatan sistem berbasis web, 
+yaitu mengenai implementasi metode VIKOR pada sistem pendukung keputusan
+untuk mengoptimalkan sistem penerimaan beasiswa ungggulan di SMK PRIMA UNGGUL.
