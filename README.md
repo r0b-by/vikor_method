@@ -90,5 +90,47 @@ npm run dev
 project
 >>>>>>> e56158a62249aacae08246271b304fa0f2b35f63
 
-# Pages
+# PAGE VIEWS
 ![alt text](image.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
+
+# DARK MODE
+![alt text](image-1.png)
+
+# PAGE LOGIN
+![alt text](image-6.png)
+
+# PAGE REGISTER
+![alt text](image-7.png)
+
+# DASHBOARD
+![alt text](image-8.png)
+
+# DARK MODE DASHBOARD
+![alt text](image-9.png)
+
+# Alternative Page
+![alt text](image-10.png)
+![alt text](image-11.png)
+![alt text](image-12.png)
+
+# Criteria Page
+![alt text](image-13.png)
+![alt text](image-14.png)
+![alt text](image-15.png)
+
+# Matriks Score Page
+![alt text](image-16.png)
+![alt text](image-17.png)
+
+# CALCULATE PAGE
+![alt text](image-18.png)
+
+# RANK PAGE
+![alt text](image-19.png)
+
+# PRINT RANK
+![alt text](image-20.png)
