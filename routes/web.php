@@ -53,8 +53,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('penilaian', PenilaianController::class);
 
     // ⚙️ Proses VIKOR
-    Route::get('/hitung', [HitungController::class, 'index'])->name('hitung.index');
-    Route::post('/hitung/simpan', [HitungController::class, 'simpan'])->name('hitung.simpan');
+    Route::prefix('hitung')->group(function () {
+    Route::get('/', [HitungController::class, 'index'])->name('hitung.index');
+    Route::post('/simpan', [HitungController::class, 'simpan'])->name('hitung.simpan');
+
+    Route::get('/hitung/normalisasi', [HitungController::class, 'tampilNormalisasi'])->name('hitung.normalisasi');
+    Route::get('/hitung/normalisasiterbobot', [HitungController::class, 'tampilNormalisasiTerbobot'])->name('hitung.normalisasiterbobot');
+    Route::get('/hitung/selisihideal', [HitungController::class, 'tampilSelisihIdeal'])->name('hitung.selisihideal');
+    Route::get('/hitung/matriks', [HitungController::class, 'tampilMatriks'])->name('hitung.matriks');
+    Route::get('/hitung/utility', [HitungController::class, 'tampilUtility'])->name('hitung.utility');
+    Route::get('/hitung/kompromi', [HitungController::class, 'tampilKompromi'])->name('hitung.kompromi');
+
+    Route::get('/ranking', [HitungController::class, 'tampilRanking'])->name('hitung.ranking');
+});
+
 
     // 📈 Hasil VIKOR
     Route::get('/hasil', [HasilController::class, 'index'])->name('hasil.index');
