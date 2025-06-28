@@ -9,7 +9,18 @@ use App\Http\Requests\CriteriaRequest;
 class criteria_controller extends Controller
 {
     /**
+     * Konstruktor untuk menerapkan middleware otorisasi.
+     * Hanya 'admin' yang dapat mengakses metode-metode di controller ini.
+     */
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:admin']); // Memastikan hanya admin
+    }
+
+    /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
@@ -19,6 +30,8 @@ class criteria_controller extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function create()
     {
@@ -27,16 +40,22 @@ class criteria_controller extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\CriteriaRequest  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(CriteriaRequest $request)
     {
         $data = $request->validated();
         criteria::create($data);
-        return redirect()-> back();
+        return redirect()->back()->with('success', 'Kriteria berhasil ditambahkan!');
     }
 
     /**
      * Display the specified resource.
+     *
+     * @param  \App\Models\criteria  $criteria
+     * @return \Illuminate\Http\Response
      */
     public function show(criteria $criteria)
     {
@@ -45,6 +64,9 @@ class criteria_controller extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\criteria  $criteria
+     * @return \Illuminate\Http\Response
      */
     public function edit(criteria $criteria)
     {
@@ -53,22 +75,28 @@ class criteria_controller extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \App\Http\Requests\CriteriaRequest  $request
+     * @param  \App\Models\criteria  $criteria
+     * @return \Illuminate\Http\Response
      */
     public function update(CriteriaRequest $request, criteria $criteria)
     {
-        $criteria = criteria::findOrFail($request->id);
+        $criteria = criteria::findOrFail($request->id); // Pastikan mengambil instance yang benar
         $data = $request->validated();
-        $criteria -> update($data);
-        return redirect()-> back();
+        $criteria->update($data);
+        return redirect()->back()->with('success', 'Kriteria berhasil diperbarui!');
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  string  $criteria
+     * @return \Illuminate\Http\Response
      */
     public function destroy(string $criteria)
     {
-        criteria::find($criteria)->delete();
-        // $criteria->delete();
-        return redirect()-> back();
+        criteria::findOrFail($criteria)->delete();
+        return redirect()->back()->with('success', 'Kriteria berhasil dihapus!');
     }
 }

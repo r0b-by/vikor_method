@@ -3,19 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\penilaian;
-use App\Http\Requests\PenilaianRequest;
+use App\Http\Requests\PenilaianRequest; // Asumsi PenilaianRequest ada
 use App\Models\alternatif;
 use App\Models\criteria;
-use \Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; // Pastikan ini diimpor
 
 class PenilaianController extends Controller
 {
     /**
+     * Konstruktor untuk menerapkan middleware otorisasi.
+     * Hanya 'admin' dan 'guru' yang dapat mengakses metode-metode di controller ini.
+     */
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:admin|guru']); // Memastikan hanya admin atau guru
+    }
+
+    /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-
         $alternatif = alternatif::all();
         $criteria = criteria::all();
         $penilaian = Penilaian::with(['criteria', 'alternatif'])->get();
@@ -23,21 +33,19 @@ class PenilaianController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Store or update penilaian data.
+     * Metode ini akan menggantikan metode `store` dan `update` Resource Controller yang biasa,
+     * karena Anda melakukan updateOrCreate berdasarkan alternatif dan kriteria.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(PenilaianRequest $request)
+    public function storeOrUpdate(Request $request)
     {
         $request->validate([
             'id_alternatif' => 'required|exists:alternatifs,id',
-            'nilai.*' => 'required|numeric|min:0', // HAPUS batas between 0–99.99
+            'nilai' => 'required|array',
+            'nilai.*' => 'required|numeric|min:0', // Validasi setiap nilai dalam array
         ]);
 
         $idAlternatif = $request->input('id_alternatif');
@@ -50,38 +58,17 @@ class PenilaianController extends Controller
             );
         }
 
-        return redirect()->back()->with('success', 'Penilaian added successfully');
+        return redirect()->back()->with('success', 'Penilaian berhasil disimpan/diperbarui!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(penilaian $penilaian)
-    {
-        //
-    }
+    // Metode 'create', 'show', 'edit', 'update', 'destroy' standar Resource Controller
+    // tidak perlu diimplementasikan secara terpisah jika semua CRUD dilakukan melalui modal di halaman index
+    // atau jika Anda tidak menggunakannya untuk fungsionalitas ini.
+    // Jika ada kebutuhan spesifik, Anda bisa menambahkan kembali dan menerapkan otorisasi di sini.
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(penilaian $penilaian)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update($request, penilaian $penilaian)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(penilaian $penilaian)
-    {
-        //
-    }
+    public function create() { /* ... */ }
+    public function show(penilaian $penilaian) { /* ... */ }
+    public function edit(penilaian $penilaian) { /* ... */ }
+    public function update(Request $request, penilaian $penilaian) { /* ... */ } // Sesuaikan parameter jika tidak melalui route model binding
+    public function destroy(penilaian $penilaian) { /* ... */ }
 }

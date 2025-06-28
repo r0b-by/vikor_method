@@ -12,6 +12,7 @@ class alternatif extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'user_id', // Tambahkan ini untuk menghubungkan dengan User
         'no_alternatif',
         'alternatif_code',
         'alternatif_name',
@@ -20,5 +21,13 @@ class alternatif extends Model
     public function penilaian()
     {
         return $this->hasMany(penilaian::class, 'id_alternatif');
+    }
+
+    /**
+     * Relasi ke model User.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -3,23 +3,23 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Run the database seeds.
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'robby',
-            'email' => 'robby@example.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'), // password = password
-            'remember_token' => Str::random(10),
+        $this->call([
+            // Seeder untuk peran dan izin (dari Spatie)
+            RolesAndPermissionsSeeder::class,
+            // Seeder untuk contoh user
+            UserSeeder::class,
+            // Seeder untuk data kriteria (harus sebelum AlternatifPenilaianSeeder)
+            CriteriaSeeder::class,
+            // Seeder untuk data alternatif dan penilaian (matriks)
+            AlternatifPenilaianSeeder::class,
         ]);
     }
 }

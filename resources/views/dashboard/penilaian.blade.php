@@ -6,7 +6,7 @@
             <div
                 class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
                 <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                    <h6 class="dark:text-white">Authors table</h6>
+                    <h6 class="dark:text-white">Tabel Penilaian</h6>
                 </div>
                 <div class="flex-auto px-0 pt-0 pb-2">
                     <div class="p-6 overflow-x-auto">
@@ -22,9 +22,11 @@
                                             class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
                                             {{ $c->criteria_code }}</th>
                                     @endforeach
+                                    @role(['admin', 'guru']) {{-- Hanya admin dan guru yang melihat kolom aksi --}}
                                     <th
                                         class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
-                                        Action</th>
+                                        Aksi</th>
+                                    @endrole
                                 </tr>
                             </thead>
                             <tbody>
@@ -54,23 +56,25 @@
                                             </td>
                                         @endforeach
 
-                                        {{-- Add a button --}}
+                                        @role(['admin', 'guru']) {{-- Hanya admin dan guru yang melihat tombol edit --}}
                                         <td
                                             class="flex p-2 align-middle bg-transparent border-b just dark:border-white/40 whitespace-nowrap shadow-transparent">
                                             <button type="button" data-modal-target="add-criterias-{{$a->id}}" data-modal-toggle="add-criterias-{{$a->id}}"
                                                 class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mx-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Edit</button>
                                         </td>
-                                        <!-- Main modal -->
+                                        @endrole
+                                        <!-- Main modal untuk mengedit penilaian -->
+                                        @role(['admin', 'guru']) {{-- Modal hanya relevan jika user bisa mengedit --}}
                                         <div id="add-criterias-{{ $a->id }}" tabindex="-1" aria-hidden="true"
                                             class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                                             <div class="relative w-full max-w-md max-h-full p-4">
-                                                <!-- Modal content -->
+                                                <!-- Konten modal -->
                                                 <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                                                    <!-- Modal header -->
+                                                    <!-- Header modal -->
                                                     <div
                                                         class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600">
                                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                                            {{ $a->alternatif_code }}
+                                                            Penilaian untuk {{ $a->alternatif_code }}
                                                         </h3>
                                                         <button type="button"
                                                             class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
@@ -82,11 +86,12 @@
                                                                     stroke-linejoin="round" stroke-width="2"
                                                                     d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                                             </svg>
-                                                            <span class="sr-only">Close modal</span>
+                                                            <span class="sr-only">Tutup modal</span>
                                                         </button>
                                                     </div>
-                                                    <!-- Modal body -->
-                                                    <form class="p-4 mx-3 md:p-5" id="add-criterias-{{ $a->id }}" action="{{ route('penilaian.store') }}" method="POST">
+                                                    <!-- Body modal -->
+                                                    {{-- Form ini akan selalu terlihat di modal jika modalnya dibuka oleh admin/guru --}}
+                                                    <form class="p-4 mx-3 md:p-5" id="add-criterias-{{ $a->id }}" action="{{ route('penilaian.storeOrUpdate', $a->id) }}" method="POST">
                                                         @csrf
                                                         <div class="grid grid-cols-2 gap-4 mx-2 mb-4">
                                                             <input type="text" name="id_alternatif" hidden value="{{ $a->id }}">
@@ -111,13 +116,13 @@
                                                                     d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
                                                                     clip-rule="evenodd"></path>
                                                             </svg>
-                                                            Add new product
+                                                            Simpan Penilaian
                                                         </button>
                                                     </form>
-
                                                 </div>
                                             </div>
                                         </div>
+                                        @endrole
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -129,7 +134,9 @@
     </div>
 
     <script>
-        setTwoNumberDecimal = myHTMLNumberInput.onchange ;
+        setTwoNumberDecimal = myHTMLNumberInput.onchange ; // Pastikan myHTMLNumberInput terdefinisi atau ganti dengan input spesifik
+        // Jika myHTMLNumberInput adalah placeholder, Anda mungkin perlu mencari elemen input dengan ID yang sesuai
+        // Contoh: document.getElementById('someNumberInputId').onchange = setTwoNumberDecimal;
 
         function setTwoNumberDecimal(event) {
             this.value = parseFloat(this.value).toFixed(2);

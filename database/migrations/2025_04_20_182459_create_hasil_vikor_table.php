@@ -11,7 +11,8 @@ class CreateHasilVikorTable extends Migration
         if (!Schema::hasTable('hasil_vikor')) {
             Schema::create('hasil_vikor', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('id_alternatif')->nullable()->constrained();
+                // Perbaikan di sini: Menentukan tabel 'alternatifs' secara eksplisit
+                $table->foreignId('id_alternatif')->nullable()->constrained('alternatifs');
                 $table->double('nilai_s')->nullable();
                 $table->double('nilai_r')->nullable();
                 $table->double('nilai_q')->nullable();

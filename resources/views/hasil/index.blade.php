@@ -10,9 +10,11 @@
             
             <div class="flex justify-between items-center p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                 <h6 class="dark:text-white">Hasil Akhir Perhitungan VIKOR</h6>
+                @role('admin') {{-- Hanya admin yang bisa mencetak PDF hasil --}}
                 <a href="{{ route('hasil.cetak') }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
                     <i class="fas fa-file-pdf mr-1"></i> Cetak PDF
                 </a>
+                @endrole
             </div>
 
             <div class="flex-auto px-0 pt-0 pb-2">

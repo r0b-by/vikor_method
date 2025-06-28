@@ -1,57 +1,108 @@
-<br>
 <!-- Navbar -->
-<nav 
-id="navbar-main"
-class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-md duration-250 rounded-2xl lg:flex-nowrap lg:justify-start bg-white dark:bg-slate-800 text-slate-700 dark:text-white"
-    navbar-main navbar-scroll="false">
+<nav
+    id="navbar-main"
+    class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-md duration-250 rounded-2xl lg:flex-nowrap lg:justify-start bg-white dark:bg-slate-800 text-slate-700 dark:text-white"
+    navbar-main
+    navbar-scroll="false"
+>
     <div class="flex items-center justify-between w-full px-4 py-1 mx-auto flex-wrap-inherit">
         <nav>
             <!-- breadcrumb -->
             <ol class="flex flex-wrap pt-1 mr-12 bg-transparent rounded-lg sm:mr-16">
                 <li class="text-sm leading-normal">
-                <a class="text-slate-500 dark:text-slate-300 opacity-70" href="{{route('dashboard')}}">Pages</a>
+                    <a class="text-slate-500 dark:text-slate-300 opacity-70" href="{{route('dashboard')}}">Pages</a>
                 </li>
-                <li class="text-sm pl-2 capitalize leading-normal text-slate-700 dark:text-white">Dashboard</li>
+                <li class="text-sm pl-2 capitalize leading-normal text-slate-700 dark:text-white">{{ Request::segment(1) }}</li>
             </ol>
-            <h6 class="mb-0 font-bold capitalize text-slate-700 dark:text-white">Dashboard</h6>
+            <h6 class="mb-0 font-bold capitalize text-slate-700 dark:text-white">{{ Request::segment(1) }}</h6>
         </nav>
-            <ul class="flex flex-row justify-end pl-0 mb-0 list-none md-max:w-full">
-                <!-- online builder btn  -->
-                <!-- <li class="flex items-center">
-            <a class="inline-block px-8 py-2 mb-0 mr-4 text-xs font-bold text-center text-blue-500 uppercase align-middle transition-all ease-in bg-transparent border border-blue-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro hover:-translate-y-px active:shadow-xs hover:border-blue-500 active:bg-blue-500 active:hover:text-blue-500 hover:text-blue-500 tracking-tight-rem hover:bg-transparent hover:opacity-75 hover:shadow-none active:text-white active:hover:bg-transparent" target="_blank" href="https://www.creative-tim.com/builder/soft-ui?ref=navbar-dashboard&amp;_ga=2.76518741.1192788655.1647724933-1242940210.1644448053">Online Builder</a>
-          </li> -->
-                <li class="flex items-center">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                    class="block px-0 py-2 text-sm font-semibold text-slate-700 dark:text-white transition-all ease-nav-brand">
-                            <i class="fas fa-sign-out-alt"></i>            
-                            <span class="hidden sm:inline">Logout</span>
-                    </button>
-                </form>
-                </li>
-                <li class="flex items-center pl-4 xl:hidden">
-                    <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand"
-                        sidenav-trigger>
-                        <div class="w-4.5 overflow-hidden">
-                            <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-slate-700 dark:bg-white transition-all"></i>
-                            <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-slate-700 dark:bg-white transition-all"></i>
-                            <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-slate-700 dark:bg-white transition-all"></i>
-                        </div>
+        <ul class="flex flex-row justify-end pl-0 mb-0 list-none md-max:w-full">
+            <!-- Profile Dropdown -->
+            <li class="relative flex items-center pr-2">
+                @auth
+                    <a href="#" class="block px-0 py-2 text-sm font-semibold text-slate-700 dark:text-white transition-all ease-nav-brand cursor-pointer" id="profileDropdownToggle">
+                        <i class="fa fa-user sm:mr-1"></i>
+                        <span class="hidden sm:inline">{{ Auth::user()->name }}</span>
                     </a>
-                </li>
-                <li class="flex items-center px-4">
-                    <a href="javascript:;" class="block p-0 text-sm text-slate-700 dark:text-white transition-all ease-nav-brand">
-                        
-                        <!-- fixed-plugin-button-nav  -->
-                    </a>
-                </li>
 
-                <!-- notifications -->
+                    <!-- Dropdown Menu -->
+                    <div id="profileDropdownMenu" class="hidden absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-lg shadow-lg z-10 py-2">
+                        {{-- Link to user profile edit page --}}
+                        <a href="{{ route('users.edit', Auth::user()->id) }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">
+                            Profile
+                        </a>
+                        {{-- Link to settings page --}}
+                        <a href="{{ route('setting') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">
+                            Settings
+                        </a>
+                        <div class="border-t border-gray-100 dark:border-slate-600 my-1"></div>
+                        {{-- Logout form --}}
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                @endauth
+            </li>
 
-            </ul>
-        </div>
+            {{-- Mobile sidebar toggle button (visible on smaller screens) --}}
+            <li class="flex items-center pl-4 xl:hidden">
+                <a href="javascript:;" class="block p-0 text-sm text-white transition-all ease-nav-brand" sidenav-trigger>
+                    <div class="w-4.5 overflow-hidden">
+                        <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-slate-700 dark:bg-white transition-all"></i>
+                        <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-slate-700 dark:bg-white transition-all"></i>
+                        <i class="ease mb-0.75 relative block h-0.5 rounded-sm bg-slate-700 dark:bg-white transition-all"></i>
+                    </div>
+                </a>
+            </li>
+            {{-- Placeholder for fixed-plugin-button-nav --}}
+            <li class="flex items-center px-4">
+                <a href="javascript:;" class="block p-0 text-sm text-slate-700 dark:text-white transition-all ease-nav-brand">
+                    <!-- fixed-plugin-button-nav -->
+                </a>
+            </li>
+            <!-- Notifications for Admin -->
+            @role('admin') {{-- Only show notifications if the user is an admin --}}
+            <li class="relative flex items-center px-4">
+                {{-- Link to pending registrations page --}}
+                <a href="{{ route('admin.pending-registrations') }}" class="block p-0 text-sm text-slate-700 dark:text-white transition-all ease-nav-brand">
+                    <i class="fa fa-bell cursor-pointer"></i>
+                    {{-- Display notification badge if there are pending registrations --}}
+                    @if (isset($pendingRegistrationsCount) && $pendingRegistrationsCount > 0)
+                        <span class="absolute top-0 right-0 -mt-1 -mr-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                            {{ $pendingRegistrationsCount }}
+                        </span>
+                    @endif
+                </a>
+            </li>
+            @endrole
+        </ul>
     </div>
 </nav>
 
 <!-- end Navbar -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleButton = document.getElementById('profileDropdownToggle');
+        const dropdownMenu = document.getElementById('profileDropdownMenu');
+
+        if (toggleButton && dropdownMenu) {
+            toggleButton.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent default navigation
+                dropdownMenu.classList.toggle('hidden');
+            });
+
+            // Close dropdown if clicking outside the dropdown area
+            document.addEventListener('click', function (event) {
+                if (!toggleButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    if (!dropdownMenu.classList.contains('hidden')) {
+                        dropdownMenu.classList.add('hidden');
+                    }
+                }
+            });
+        }
+    });
+</script>
