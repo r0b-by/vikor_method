@@ -1,0 +1,380 @@
+/* custom-styles.css */
+
+/* Pengaturan Umum Body & Konten Utama */
+body {
+    font-family: 'Poppins', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Default light mode colors */
+    background-color: #f8f9fa;
+    color: #4a5568;
+}
+
+/* Base Dark Mode styles - applied when html has 'dark' class */
+html.dark {
+    --color-primary: #FC6600; /* Define primary color for easier use */
+    --color-text-light: #e2e8f0; /* Light text on dark background */
+    --color-text-dark: #cbd5e0; /* Slightly darker text on dark background for contrast */
+    --color-bg-dark: #1a202c; /* Dark primary background */
+    --color-card-bg-dark: #2d3748; /* Darker card background */
+    --color-border-dark: #4a5568; /* Dark border color */
+    --color-shadow-dark: rgba(0, 0, 0, 0.4); /* Darker shadow */
+}
+
+/* Apply dark mode base styles to body when html has 'dark' class */
+html.dark body {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+}
+
+/* Peningkatan Sidebar (Sidenav) */
+#sidenav-main {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+}
+#sidenav-main a {
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+#sidenav-main a:hover {
+    background-color: rgba(252, 102, 0, 0.1);
+    color: #FC6600; /* Primary color on hover */
+}
+/* Gaya untuk status aktif pada menu sidebar */
+#sidenav-main .rounded-lg.bg-blue-500\/13 {
+    background-color: rgba(252, 102, 0, 0.2); /* Active background with primary color */
+    color: #FC6600;
+}
+#sidenav-main .rounded-lg.bg-blue-500\/13 i {
+    color: #FC6600 !important; /* Ensure icon also changes color */
+}
+
+/* Dark mode for sidenav */
+html.dark #sidenav-main {
+    background-color: #1a202c; /* Darker background for sidenav */
+    box-shadow: 0 10px 15px -3px var(--color-shadow-dark), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+    border-color: var(--color-border-dark); /* Ensure border is also dark */
+}
+html.dark #sidenav-main a {
+    color: var(--color-text-dark); /* Lighter text for dark mode */
+}
+html.dark #sidenav-main a:hover {
+    background-color: rgba(252, 102, 0, 0.2); /* Darker hover effect */
+    color: #FC6600;
+}
+html.dark #sidenav-main .rounded-lg.bg-blue-500\/13 {
+    background-color: rgba(252, 102, 0, 0.3); /* Darker active background */
+    color: #FC6600;
+}
+html.dark #sidenav-main .rounded-lg.bg-blue-500\/13 i {
+    color: #FC6600 !important;
+}
+html.dark #sidenav-main .text-slate-700 { /* For the "MASTER DATA & PERHITUNGAN" headers */
+    color: var(--color-text-dark) !important;
+}
+
+
+/* Peningkatan Navbar */
+#navbar-main {
+    /* Navbar fixed positioning */
+    position: fixed; /* Membuat navbar selalu di atas viewport */
+    top: 0;
+    left: 272px; /* Sesuaikan dengan xl:ml-68 (272px) dari main */
+    width: calc(100% - 272px - 48px); /* 100% - sidebar width - horizontal margin (24px kiri + 24px kanan) */
+    z-index: 1000; /* Memastikan navbar di atas elemen lain */
+    margin-top: 16px; /* Margin atas yang konsisten dengan desain Tailwind */
+    margin-right: 24px; /* Margin kanan yang konsisten */
+
+    box-shadow: 0 5px 10px -3px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 0.75rem; /* rounded-2xl */
+}
+/* Untuk responsif, sesuaikan lebar navbar di breakpoint yang lebih kecil */
+@media (max-width: 1280px) { /* xl breakpoint */
+    #navbar-main {
+        left: 0; /* Navbar akan menempati seluruh lebar pada layar kecil */
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 0; /* Hapus border-radius jika menempati seluruh lebar */
+        margin-top: 0;
+    }
+}
+
+/* Efek hover untuk toggle dropdown profil */
+#navbar-main #profileDropdownToggle:hover {
+    color: #FC6600;
+}
+/* Gaya untuk menu dropdown profil */
+#profileDropdownMenu {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    position: absolute; /* Pastikan posisi absolut */
+    right: 0; /* Sejajarkan dengan ujung kanan parent */
+    top: 100%; /* Muncul tepat di bawah tombol toggle */
+    min-width: 160px; /* Lebar minimum agar konten terlihat */
+    background-color: white; /* Latar belakang dropdown */
+    z-index: 1001; /* Pastikan di atas navbar */
+    overflow: visible; /* Memastikan dropdown tidak terpotong */
+}
+/* Efek hover untuk item dalam dropdown */
+#profileDropdownMenu a:hover, #profileDropdownMenu button:hover {
+    background-color: #f3f4f6;
+    color: #FC6600;
+}
+
+/* Dark mode for navbar */
+html.dark #navbar-main {
+    background-color: rgba(23, 31, 46, 0.9); /* Dark semi-transparent background */
+    box-shadow: 0 5px 10px -3px var(--color-shadow-dark);
+}
+html.dark #navbar-main #profileDropdownToggle {
+    color: var(--color-text-light); /* Lighter text for toggle */
+}
+html.dark #navbar-main #profileDropdownToggle:hover {
+    color: #FC6600; /* Primary color on hover */
+}
+html.dark #profileDropdownMenu {
+    background-color: var(--color-card-bg-dark); /* Darker dropdown background */
+    border-color: var(--color-border-dark);
+    box-shadow: 0 5px 15px -3px var(--color-shadow-dark);
+}
+html.dark #profileDropdownMenu a, html.dark #profileDropdownMenu button {
+    color: var(--color-text-light);
+}
+html.dark #profileDropdownMenu a:hover, html.dark #profileDropdownMenu button:hover {
+    background-color: rgba(252, 102, 0, 0.2); /* Darker hover for dropdown items */
+    color: #FC6600;
+}
+
+
+/* Peningkatan Kartu/Kontainer Umum (misal: untuk tabel, info dashboard) */
+/* Selector ini menargetkan kelas umum yang Anda gunakan untuk kontainer utama seperti di alternatif.blade.php */
+.relative.flex.flex-col.min-w-0.mb-6.break-words.bg-white.border-0.border-transparent.border-solid.shadow-xl.rounded-2xl.bg-clip-border {
+    border: 1px solid rgba(252, 102, 0, 0.2);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+/* Efek hover pada kartu */
+.relative.flex.flex-col.min-w-0.mb-6.break-words.bg-white.border-0.border-transparent.border-solid.shadow-xl.rounded-2xl.bg-clip-border:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.1), 0 6px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode for general cards/containers */
+html.dark .relative.flex.flex-col.min-w-0.mb-6.break-words.bg-white.border-0.border-transparent.border-solid.shadow-xl.rounded-2xl.bg-clip-border {
+    background-color: var(--color-card-bg-dark);
+    border-color: rgba(252, 102, 0, 0.3);
+    box-shadow: 0 8px 24px -4px var(--color-shadow-dark), 0 4px 8px -2px rgba(0, 0, 0, 0.25);
+}
+html.dark .relative.flex.flex-col.min-w-0.mb-6.break-words.bg-white.border-0.border-transparent.border-solid.shadow-xl.rounded-2xl.bg-clip-border:hover {
+    box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5), 0 6px 15px -3px rgba(0, 0, 0, 0.4);
+}
+/* Specific targeting for elements inside these cards to ensure dark mode colors */
+html.dark .relative.flex.flex-col.min-w-0.mb-6.break-words.bg-white.border-0.border-transparent.border-solid.shadow-xl.rounded-2xl.bg-clip-border h6,
+html.dark .relative.flex.flex-col.min-w-0.mb-6.break-words.bg-white.border-0.border-transparent.border-solid.shadow-xl.rounded-2xl.bg-clip-border p,
+html.dark .relative.flex.flex-col.min-w-0.mb-6.break-words.bg-white.border-0.border-transparent.border-solid.shadow-xl.rounded-2xl.bg-clip-border span {
+    color: var(--color-text-light); /* Ensure text within cards is light */
+}
+/* Adjusting specific Tailwind dark mode classes that might be applied directly */
+html.dark .dark\:bg-slate-850 {
+    background-color: var(--color-card-bg-dark) !important;
+}
+html.dark .dark\:shadow-dark-xl {
+    box-shadow: 0 8px 24px -4px var(--color-shadow-dark), 0 4px 8px -2px rgba(0, 0, 0, 0.25) !important;
+}
+html.dark .dark\:text-white {
+    color: var(--color-text-light) !important;
+}
+
+
+/* Peningkatan Tabel */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+table thead th {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+    color: #4a5568;
+    padding: 12px 24px;
+}
+table tbody tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
+table tbody td {
+    padding: 12px 24px;
+    border-bottom: 1px solid #eee;
+}
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+table tbody tr:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+/* Dark mode for tables */
+html.dark table thead th {
+    background-color: #3b4252;
+    color: var(--color-text-light);
+    border-bottom-color: #4f5b66;
+}
+html.dark table tbody tr:nth-child(even) {
+    background-color: #2d313a;
+}
+html.dark table tbody td {
+    border-bottom-color: #3e4453;
+    color: var(--color-text-dark); /* Ensure text is visible */
+}
+html.dark table tbody tr:hover {
+    background-color: #353a47;
+}
+html.dark table tbody td span {
+    color: var(--color-text-dark); /* Ensure text within cells is visible */
+}
+html.dark table .text-slate-500 {
+    color: var(--color-text-dark) !important;
+}
+html.dark table .opacity-70 {
+    opacity: 1 !important; /* Make headers fully opaque in dark mode */
+}
+
+
+/* Peningkatan Tombol */
+button.bg-green-700, button.bg-red-700, button.bg-blue-700,
+.inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-green-600.rounded-lg,
+.inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-blue-600.rounded-lg,
+.inline-block.w-full.px-8.py-2.text-xs.font-bold.text-center.text-white.uppercase.align-middle.transition-all.ease-in.bg-gradient-to-tl.from-blue-500.to-violet-500.shadow-md.rounded-lg.break-words.cursor-pointer.hover\:shadow-xs.leading-pro {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+button.bg-green-700:hover, button.bg-red-700:hover, button.bg-blue-700:hover,
+.inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-green-600.rounded-lg:hover,
+.inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-blue-600.rounded-lg:hover,
+.inline-block.w-full.px-8.py-2.text-xs.font-bold.text-center.text-white.uppercase.align-middle.transition-all.ease-in.bg-gradient-to-tl.from-blue-500.to-violet-500.shadow-md.rounded-lg.break-words.cursor-pointer.hover\:shadow-xs.leading-pro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode for buttons */
+html.dark button.bg-green-700, html.dark button.bg-green-700:hover,
+html.dark .inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-green-600.rounded-lg,
+html.dark .inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-green-600.rounded-lg:hover {
+    background-color: #28a745 !important; /* Lighter green for dark mode */
+}
+html.dark button.bg-red-700, html.dark button.bg-red-700:hover {
+    background-color: #dc3545 !important; /* Lighter red for dark mode */
+}
+html.dark button.bg-blue-700, html.dark button.bg-blue-700:hover,
+html.dark .inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-blue-600.rounded-lg,
+html.dark .inline-block.px-6.py-2.text-sm.font-medium.text-white.bg-blue-600.rounded-lg:hover {
+    background-color: #007bff !important; /* Standard blue for dark mode */
+}
+html.dark .inline-block.w-full.px-8.py-2.text-xs.font-bold.text-center.text-white.uppercase.align-middle.transition-all.ease-in.bg-gradient-to-tl.from-blue-500.to-violet-500.shadow-md.rounded-lg.break-words.cursor-pointer.hover\:shadow-xs.leading-pro {
+    background-image: linear-gradient(to top left, #3a53a0, #6742b0) !important; /* Adjust gradient for dark mode */
+}
+html.dark .inline-block.w-full.px-8.py-2.text-xs.font-bold.text-center.text-white.uppercase.align-middle.transition-all.ease-in.bg-gradient-to-tl.from-blue-500.to-violet-500.shadow-md.rounded-lg.break-words.cursor-pointer.hover\:shadow-xs.leading-pro:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+
+/* Khusus Modal (untuk konsistensi) */
+/* Gaya untuk backdrop/wrapper modal */
+.fixed.overflow-y-auto.overflow-x-hidden.z-50 { /* Menargetkan wrapper modal yang Flowbite gunakan */
+    transition: opacity 0.3s ease-in-out;
+    opacity: 1; /* Default visible state */
+}
+
+/* Saat modal disembunyikan (oleh Flowbite dengan class 'hidden') */
+/* Perhatikan: Transisi CSS tidak bekerja pada display: none.
+   Untuk transisi fade-out yang mulus, diperlukan JavaScript untuk menunda
+   penambahan `display: none` hingga transisi opacity selesai. */
+.fixed.overflow-y-auto.overflow-x-hidden.z-50.hidden {
+    opacity: 0;
+    pointer-events: none; /* Mencegah interaksi saat fading out */
+}
+
+.relative.bg-white.rounded-lg.shadow { /* Menghapus dark:bg-gray-700 dari selector agar bisa menimpa */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 6px 12px -6px rgba(0, 0, 0, 0.1);
+    background-color: white; /* Default light mode */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Tambah transisi ke konten modal */
+}
+.relative.bg-white.rounded-lg.shadow input[type="text"],
+.relative.bg-white.rounded-lg.shadow input[type="number"],
+.relative.bg-white.rounded-lg.shadow select {
+    border: 1px solid #cbd5e0;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.relative.bg-white.rounded-lg.shadow input[type="text"]:focus,
+.relative.bg-white.rounded-lg.shadow input[type="number"]:focus,
+.relative.bg-white.rounded-lg.shadow select:focus {
+    border-color: #FC6600;
+    box-shadow: 0 0 0 2px rgba(252, 102, 0, 0.3);
+}
+
+/* Dark mode for modals */
+html.dark .relative.bg-white.rounded-lg.shadow {
+    background-color: var(--color-card-bg-dark) !important; /* Darker background for modals */
+    box-shadow: 0 10px 25px -5px var(--color-shadow-dark), 0 6px 12px -6px rgba(0, 0, 0, 0.35);
+}
+html.dark .relative.bg-white.rounded-lg.shadow .dark\:bg-gray-700 {
+    background-color: var(--color-card-bg-dark) !important; /* Override if this class is still present on modal body */
+}
+html.dark .relative.bg-white.rounded-lg.shadow input[type="text"],
+html.dark .relative.bg-white.rounded-lg.shadow input[type="number"],
+html.dark .relative.bg-white.rounded-lg.shadow select {
+    background-color: #2d3748; /* Darker input background */
+    border-color: #4a5568;
+    color: var(--color-text-light);
+}
+html.dark .relative.bg-white.rounded-lg.shadow input::placeholder {
+    color: #9da9bb; /* Lighter placeholder text */
+}
+html.dark .relative.bg-white.rounded-lg.shadow label {
+    color: var(--color-text-light);
+}
+html.dark .relative.bg-white.rounded-lg.shadow h3 {
+    color: var(--color-text-light) !important; /* Ensure modal header text is light */
+}
+html.dark .relative.bg-white.rounded-lg.shadow button svg {
+    color: var(--color-text-light); /* Ensure SVG icons in modal buttons are visible */
+}
+html.dark .relative.bg-white.rounded-lg.shadow button.text-gray-400:hover {
+    background-color: #3e4453 !important; /* Darker hover for close button */
+    color: var(--color-text-light) !important;
+}
+
+html.dark .text-gray-700 { /* General light mode text */
+    color: var(--color-text-light) !important;
+}
+
+html.dark .dark\:text-slate-300 {
+    color: #a0aec0 !important; /* Adjust if needed */
+}
+
+/* Global H6 for headers in dark mode */
+html.dark h6.dark\:text-white {
+    color: var(--color-text-light) !important;
+}
+html.dark h5.dark\:text-white {
+    color: var(--color-text-light) !important;
+}
+html.dark p.dark\:opacity-80 {
+    color: var(--color-text-dark) !important;
+    opacity: 1 !important;
+}
+html.dark .text-gray-800 {
+    color: var(--color-text-light) !important;
+}
+html.dark .text-gray-600 {
+    color: #a0aec0 !important; /* For lighter gray text in cards */
+}
+html.dark .dark\:border-slate-600 {
+    border-color: var(--color-border-dark) !important;
+}

@@ -6,8 +6,10 @@ use App\Models\alternatif;
 use App\Models\criteria;
 use App\Models\User; // Import the User model
 use App\Models\PendingProfileUpdate; // Import the PendingProfileUpdate model
-use Illuminate\Http\Request; // Pastikan ini diimpor dengan benar
-use Illuminate\Support\Facades\View; // Import View facade
+use App\Models\penilaian; // Import the Penilaian model
+use App\Models\HasilVikor; // Import the HasilVikor model
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 
 class HomeController extends Controller
 {
@@ -20,22 +22,14 @@ class HomeController extends Controller
     {
         $this->middleware('auth');
 
-        // Menggunakan View Composer untuk meneruskan data ke semua view
-        // yang menggunakan layout dashboardmain
         View::composer('dashboard.layouts.dashboardmain', function ($view) {
-            // Memastikan pengguna terautentikasi dan memiliki peran 'admin'
-            // Pastikan model User menggunakan trait HasRoles dari Spatie
             if (auth()->check() && auth()->user()->hasRole('admin')) {
-                // Menghitung jumlah pengguna dengan status 'pending'
                 $pendingRegistrationsCount = User::where('status', 'pending')->count();
-                // Menghitung jumlah perubahan profil dengan status 'pending'
                 $pendingProfileUpdatesCount = PendingProfileUpdate::where('status', 'pending')->count();
 
-                // Meneruskan jumlah ke view
                 $view->with('pendingRegistrationsCount', $pendingRegistrationsCount);
                 $view->with('pendingProfileUpdatesCount', $pendingProfileUpdatesCount);
             } else {
-                // Default ke 0 untuk pengguna non-admin
                 $view->with('pendingRegistrationsCount', 0);
                 $view->with('pendingProfileUpdatesCount', 0);
             }
@@ -49,9 +43,27 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // Fetch counts for all relevant data
+        $alternatifCount = Alternatif::count();
+        $criteriaCount = Criteria::count();
+        $penilaianCount = Penilaian::count();
+        $hasilVikorCount = HasilVikor::count();
+        $userCount = User::count();
+
+        // The existing latestAlternatif and latestCriteria are for displaying specific details,
+        // but for total counts, use the count() method as above.
+        // If you still need 'latest' instances for other purposes on the dashboard:
         $latestAlternatif = Alternatif::orderBy('id', 'desc')->first();
         $latestCriteria = Criteria::orderBy('id', 'desc')->first();
 
-        return view('dashboard.home', compact('latestAlternatif','latestCriteria'));
+        return view('dashboard.home', compact(
+            'alternatifCount',
+            'criteriaCount',
+            'penilaianCount',
+            'hasilVikorCount',
+            'userCount',
+            'latestAlternatif', // Keep if still needed for other displays
+            'latestCriteria'    // Keep if still needed for other displays
+        ));
     }
 }

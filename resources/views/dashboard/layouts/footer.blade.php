@@ -1,4 +1,3 @@
-<!-- Footer -->
 <footer class="text-center py-4" style="background-color: #FC6600; color: white;">
   <div class="container">
     <small>
@@ -6,4 +5,3 @@
     </small>
   </div>
 </footer>
-<!-- End Footer -->

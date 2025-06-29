@@ -1,7 +1,15 @@
 @extends('dashboard.layouts.dashboardmain')
 @section('title', 'Penilaian')
 @section('content')
-    <div class="flex flex-wrap -mx-3">
+    <div class="flex flex-wrap -mx-3"  data-aos="fade-zoom-in"
+     data-aos-easing="ease-in-back"
+     data-aos-delay="300"
+     data-aos-offset="0">
+     <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Matriks Decision
+        </h2>
+    </div>
         <div class="flex-none w-full max-w-full px-3 overflow-x-hidden">
             <div
                 class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">

@@ -2,8 +2,15 @@
 @section('title', 'Hitung')
 @section('content')
 
-<!-- ========== Perangkingan ========== -->
-<div id="kompromi" class="flex flex-wrap -mx-3">
+<div id="kompromi" class="flex flex-wrap -mx-3"  data-aos="fade-zoom-in"
+     data-aos-easing="ease-in-back"
+     data-aos-delay="300"
+     data-aos-offset="0">
+     <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl xl:text-3xl font-bold text-slate-900 dark:text-white">
+            Visekriterijumsko Kompromisno Rangiranje | Calculation
+        </h2>
+    </div>
     <div class="flex-none w-full max-w-full px-3 overflow-x-hidden">
         <div
             class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
@@ -13,12 +20,27 @@
                     <h6 class="dark:text-white">Menghitung Nilai Kompromi (Q<sub>i</sub>) dan Peringkat Akhir</h6>
 
                     {{-- 🔗 Navigasi --}}
-                    <div class="mt-2 text-sm space-x-3">
-                        <a href="{{ route('hitung.matriks') }}" class="text-blue-600 hover:underline">Matriks</a>
-                        <a href="{{ route('hitung.normalisasi') }}" class="text-blue-600 hover:underline">Normalisasi</a>
-                        <a href="{{ route('hitung.normalisasiterbobot') }}" class="text-blue-600 hover:underline">Normalisasi Terbobot</a>
-                        <a href="{{ route('hitung.selisihideal') }}" class="text-blue-600 hover:underline">Selisih Ideal</a>
-                        <a href="{{ route('hitung.utility') }}" class="text-blue-600 hover:underline">Nilai S & R</a>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <a href="{{ route('hitung.matriks') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium text-xs hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Matriks
+                        </a>
+                        <a href="{{ route('hitung.normalisasi') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium text-xs hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Normalisasi
+                        </a>
+                        <a href="{{ route('hitung.normalisasiterbobot') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium text-xs hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Normalisasi Terbobot
+                        </a>
+                        <a href="{{ route('hitung.selisihideal') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium text-xs hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Selisih Ideal
+                        </a>
+                        <a href="{{ route('hitung.utility') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium text-xs hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Nilai S & R
+                        </a>
                     </div>
                 </div>
             </div>

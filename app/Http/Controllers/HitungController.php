@@ -13,16 +13,16 @@ use Illuminate\Http\Request;
 class HitungController extends Controller
 {
     /**
-     * Konstruktor untuk menerapkan middleware otorisasi.
-     * Hanya 'admin' dan 'guru' yang dapat mengakses metode-metode di controller ini.
+     * Constructor to apply authorization middleware.
+     * Only 'admin' and 'guru' can access methods in this controller.
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin|guru']); // Memastikan hanya admin atau guru
+        $this->middleware(['auth', 'role:admin|guru']); // Ensures only admin or guru
     }
 
     /**
-     * Menampilkan halaman perhitungan dan melakukan perhitungan VIKOR.
+     * Displays the calculation page and performs VIKOR calculations.
      *
      * @return \Illuminate\Http\Response
      */
@@ -32,43 +32,58 @@ class HitungController extends Controller
         $alternatifs = alternatif::all();
         $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
 
-        // Validasi awal: jika tidak ada data kriteria, alternatif, atau penilaian
-        if ($criterias->isEmpty() || $alternatifs->isEmpty() || $penilaians->isEmpty()) {
-            return redirect()->back()->with('error', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Pastikan semua data tersedia.');
-        }
+        // Initialize variables for VIKOR calculation results
+        $normalizedValues = [];
+        $weightedNormalization = [];
+        $ideal = [];
+        $Si = [];
+        $Ri = [];
+        $finalValues = [];
+        $ranking = [];
+        $calculationPerformed = false; // Flag to check if calculation was performed
 
-        // Melakukan perhitungan VIKOR
-        $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-        $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-        $ideal = $this->getIdeal($weightedNormalization);
-        $SiRi = $this->getSiRi($criterias, $alternatifs, $weightedNormalization, $ideal);
-        $finalValues = $this->getQi($SiRi['Si'], $SiRi['Ri']);
-        $ranking = $this->getRanking($finalValues);
+        // Perform VIKOR calculation only if all necessary data is available
+        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty()) {
+            // Perform VIKOR calculations
+            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
+            $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
+            $ideal = $this->getIdeal($weightedNormalization);
+            $SiRi = $this->getSiRi($criterias, $alternatifs, $weightedNormalization, $ideal);
+            $Si = $SiRi['Si'];
+            $Ri = $SiRi['Ri'];
+            $finalValues = $this->getQi($Si, $Ri);
+            $ranking = $this->getRanking($finalValues);
+            $calculationPerformed = true;
 
-        // Hapus data lama HasilVikor dan simpan data baru
-        DB::beginTransaction();
-        try {
-            HasilVikor::truncate(); // Hapus semua data lama
-            foreach ($alternatifs as $key => $alt) {
-                // Pastikan indeks $key ada di $SiRi['Si'], $SiRi['Ri'], $finalValues, dan $ranking
-                $nilaiS = $SiRi['Si'][$key] ?? 0;
-                $nilaiR = $SiRi['Ri'][$key] ?? 0;
-                $nilaiQ = $finalValues[$key] ?? 0;
-                $rankingAlt = $ranking[$key] ?? null;
+            // Save new VIKOR results
+            DB::beginTransaction();
+            try {
+                HasilVikor::truncate(); // Clear all old data
+                foreach ($alternatifs as $key => $alt) {
+                    // Ensure indexes $key exist in $Si, $Ri, $finalValues, and $ranking
+                    $nilaiS = $Si[$key] ?? 0;
+                    $nilaiR = $Ri[$key] ?? 0;
+                    $nilaiQ = $finalValues[$key] ?? 0;
+                    $rankingAlt = $ranking[$key] ?? null;
 
-                HasilVikor::create([
-                    'id_alternatif' => $alt->id,
-                    'nilai_s' => $nilaiS,
-                    'nilai_r' => $nilaiR,
-                    'nilai_q' => $nilaiQ,
-                    'ranking' => $rankingAlt,
-                    'status' => ($rankingAlt !== null && $rankingAlt <= 10) ? 'Lulus' : 'Tidak Lulus', // Logika status bisa disesuaikan
-                ]);
+                    HasilVikor::create([
+                        'id_alternatif' => $alt->id,
+                        'nilai_s' => $nilaiS,
+                        'nilai_r' => $nilaiR,
+                        'nilai_q' => $nilaiQ,
+                        'ranking' => $rankingAlt,
+                        'status' => ($rankingAlt !== null && $rankingAlt <= 10) ? 'Lulus' : 'Tidak Lulus', // Status logic can be adjusted
+                    ]);
+                }
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                // Instead of redirecting, set a session error message
+                session()->flash('error', 'Gagal menyimpan hasil perhitungan: ' . $e->getMessage());
             }
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menyimpan hasil perhitungan: ' . $e->getMessage());
+        } else {
+            // Set a session warning if data is incomplete but still display the page
+            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Perhitungan VIKOR tidak dapat dilakukan.');
         }
 
 
@@ -79,15 +94,16 @@ class HitungController extends Controller
             'normalisasi' => $normalizedValues,
             'weightedNormalization' => $weightedNormalization,
             'ideal' => $ideal,
-            'Si' => $SiRi['Si'],
-            'Ri' => $SiRi['Ri'],
+            'Si' => $Si,
+            'Ri' => $Ri,
             'finalValues' => $finalValues,
             'ranking' => $ranking,
+            'calculationPerformed' => $calculationPerformed, // Pass the flag to the view
         ]);
     }
 
     /**
-     * Menghitung nilai normalisasi.
+     * Calculates normalized values.
      *
      * @param \Illuminate\Database\Eloquent\Collection $criterias
      * @param \Illuminate\Database\Eloquent\Collection $alternatifs
@@ -130,7 +146,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menghitung normalisasi terbobot.
+     * Calculates weighted normalization.
      *
      * @param \Illuminate\Database\Eloquent\Collection $criterias
      * @param array $normalized
@@ -153,7 +169,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menghitung nilai solusi ideal.
+     * Calculates ideal solution values.
      *
      * @param array $weightedNormalization
      * @return array
@@ -174,7 +190,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menghitung nilai Si dan Ri.
+     * Calculates Si and Ri values.
      *
      * @param \Illuminate\Database\Eloquent\Collection $criterias
      * @param \Illuminate\Database\Eloquent\Collection $alternatifs
@@ -203,7 +219,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menghitung nilai Qi.
+     * Calculates Qi values.
      *
      * @param array $Si
      * @param array $Ri
@@ -232,7 +248,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Mendapatkan ranking berdasarkan nilai Qi.
+     * Gets ranking based on Qi values.
      *
      * @param array $finalValues
      * @return array
@@ -252,7 +268,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menampilkan normalisasi matriks keputusan.
+     * Displays normalized decision matrix.
      *
      * @return \Illuminate\Http\Response
      */
@@ -262,11 +278,13 @@ class HitungController extends Controller
         $alternatifs = alternatif::all();
         $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
 
-        if ($criterias->isEmpty() || $alternatifs->isEmpty() || $penilaians->isEmpty()) {
-            return redirect()->back()->with('error', 'Data kriteria, alternatif, atau penilaian tidak lengkap.');
+        // Perform calculation only if data is available
+        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty()) {
+            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
+        } else {
+            $normalizedValues = []; // Set empty if no data
+            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
         }
-
-        $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
 
         return view('dashboard.hitung.normalisasi', [
             'criteria' => $criterias,
@@ -276,7 +294,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menampilkan normalisasi perkalian matriks terbobot.
+     * Displays weighted normalized matrix.
      *
      * @return \Illuminate\Http\Response
      */
@@ -286,12 +304,15 @@ class HitungController extends Controller
         $alternatifs = alternatif::all();
         $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
 
-        if ($criterias->isEmpty() || $alternatifs->isEmpty() || $penilaians->isEmpty()) {
-            return redirect()->back()->with('error', 'Data kriteria, alternatif, atau penilaian tidak lengkap.');
+        // Perform calculation only if data is available
+        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty()) {
+            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
+            $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
+        } else {
+            $normalizedValues = [];
+            $weightedNormalization = []; // Set empty if no data
+            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
         }
-
-        $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-        $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
 
         return view('dashboard.hitung.normalisasiterbobot', [
             'criteria' => $criterias,
@@ -301,7 +322,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menampilkan selisih ideal.
+     * Displays ideal difference.
      *
      * @return \Illuminate\Http\Response
      */
@@ -311,13 +332,17 @@ class HitungController extends Controller
         $alternatifs = alternatif::all();
         $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
 
-        if ($criterias->isEmpty() || $alternatifs->isEmpty() || $penilaians->isEmpty()) {
-            return redirect()->back()->with('error', 'Data kriteria, alternatif, atau penilaian tidak lengkap.');
+        // Perform calculation only if data is available
+        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty()) {
+            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
+            $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
+            $ideal = $this->getIdeal($weightedNormalization);
+        } else {
+            $normalizedValues = [];
+            $weightedNormalization = [];
+            $ideal = []; // Set empty if no data
+            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
         }
-
-        $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-        $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-        $ideal = $this->getIdeal($weightedNormalization);
 
         return view('dashboard.hitung.selisihideal', [
             'criteria' => $criterias,
@@ -328,7 +353,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menampilkan matriks keputusan.
+     * Displays decision matrix.
      *
      * @return \Illuminate\Http\Response
      */
@@ -339,7 +364,8 @@ class HitungController extends Controller
         $penilaians = penilaian::all();
 
         if ($criterias->isEmpty() || $alternatifs->isEmpty() || $penilaians->isEmpty()) {
-            return redirect()->back()->with('error', 'Data kriteria, alternatif, atau penilaian tidak lengkap.');
+            // No calculation needed, just display empty table or a warning
+            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
         }
 
         return view('dashboard.hitung.matriks', [
@@ -350,7 +376,7 @@ class HitungController extends Controller
     }
 
     /**
-     * Menampilkan utility (Si dan Ri).
+     * Displays utility (Si and Ri).
      *
      * @return \Illuminate\Http\Response
      */
@@ -360,66 +386,62 @@ class HitungController extends Controller
         $alternatifs = Alternatif::all();
         $penilaian = Penilaian::with(['alternatif', 'criteria'])->get();
 
-        if ($criterias->isEmpty() || $alternatifs->isEmpty() || $penilaian->isEmpty()) {
-            return redirect()->back()->with('error', 'Data kriteria, alternatif, atau penilaian tidak ditemukan.');
-        }
+        $Si = [];
+        $Ri = [];
 
-        $bobot = $criterias->pluck('weight')->toArray();
-        if (empty($bobot) || array_sum($bobot) == 0) {
-            return redirect()->back()->with('error', 'Bobot kriteria tidak valid atau nol semua.');
-        }
-
-        $matriks = [];
-        foreach ($alternatifs as $i => $alt) {
-            foreach ($criterias as $j => $c) {
-                $item = $penilaian->where('id_alternatif', $alt->id)
-                    ->where('id_criteria', $c->id)
-                    ->first();
-                $nilai = $item ? $item->nilai : 0;
-
-                $matriks[$i][$j] = $nilai;
+        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaian->isEmpty()) {
+            $bobot = $criterias->pluck('weight')->toArray();
+            if (empty($bobot) || array_sum($bobot) == 0) {
+                session()->flash('warning', 'Bobot kriteria tidak valid atau nol semua. Perhitungan tidak dapat dilakukan.');
+            } else {
+                $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaian);
+                $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
+                $ideal = $this->getIdeal($weightedNormalization);
+                $SiRi = $this->getSiRi($criterias, $alternatifs, $weightedNormalization, $ideal);
+                $Si = $SiRi['Si'];
+                $Ri = $SiRi['Ri'];
             }
+        } else {
+            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak ditemukan. Tabel ini mungkin kosong.');
         }
         
-        $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaian);
-        $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-        $ideal = $this->getIdeal($weightedNormalization);
-        $SiRi = $this->getSiRi($criterias, $alternatifs, $weightedNormalization, $ideal);
-        $Si = $SiRi['Si'];
-        $Ri = $SiRi['Ri'];
-
         return view('dashboard.hitung.utility', [
             'criteria' => $criterias,
             'alternatif' => $alternatifs,
             'Si' => $Si,
             'Ri' => $Ri,
-            'matriks' => $matriks,
-            'normal' => $normalizedValues,
-            'terbobot' => $weightedNormalization,
-            'ideal' => $ideal
+            // Pass empty arrays if calculation not performed, or the actual data
+            'matriks' => [], // You might need to pass actual matriks if it's used in the view
+            'normal' => [],
+            'terbobot' => [],
+            'ideal' => []
         ]);
     }
 
     /**
-     * Menampilkan kompromi (nilai Qi dan ranking).
+     * Displays compromise (Qi values and ranking).
      *
      * @return \Illuminate\Http\Response
      */
     public function tampilKompromi()
     {
         $alternatif = Alternatif::all();
-        $hasil = HasilVikor::with('alternatif')->orderBy('ranking')->get(); // Ambil hasil dengan ranking
+        $hasil = HasilVikor::with('alternatif')->orderBy('ranking')->get(); // Get results with ranking
 
         $finalValues = [];
         $ranking = [];
 
-        foreach ($alternatif as $key => $alt) {
-            $data = $hasil->where('id_alternatif', $alt->id)->first(); // Cari data hasil untuk alternatif ini
+        if (!$alternatif->isEmpty() && !$hasil->isEmpty()) {
+            foreach ($alternatif as $key => $alt) {
+                $data = $hasil->where('id_alternatif', $alt->id)->first(); // Find result data for this alternative
 
-            $finalValues[$key] = $data ? $data->nilai_q : null;
-            $ranking[$key] = $data ? $data->ranking : null;
+                $finalValues[$key] = $data ? $data->nilai_q : null;
+                $ranking[$key] = $data ? $data->ranking : null;
 
-            $alt->alternatif_code = $alt->alternatif_code ?? 'A' . ($key + 1); // Menggunakan properti model alternatif
+                $alt->alternatif_code = $alt->alternatif_code ?? 'A' . ($key + 1); // Use alternative code property
+            }
+        } else {
+             session()->flash('warning', 'Data alternatif atau hasil perhitungan tidak ditemukan. Tabel ini mungkin kosong.');
         }
 
         return view('dashboard.hitung.kompromi', [
@@ -430,22 +452,22 @@ class HitungController extends Controller
     }
 
     /**
-     * Menyimpan hasil perhitungan VIKOR.
+     * Saves VIKOR calculation results.
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function simpan(Request $request)
     {
-        // Validasi dan cegah error array null
+        // Validate and prevent null array errors
         $request->validate([
             'finalValues' => 'required|array',
-            'finalValues.*' => 'nullable|numeric', // Nullable karena bisa 0 jika tidak ada data
+            'finalValues.*' => 'nullable|numeric', // Nullable because it can be 0 if no data
             'alternatif' => 'required|array',
             'alternatif.*' => 'required|exists:alternatifs,id',
             'ranking' => 'required|array',
-            'ranking.*' => 'nullable|integer', // Nullable karena bisa 0 jika tidak ada data
-            'Si' => 'nullable|array', // Tambahkan validasi jika Anda mengirim Si/Ri dari frontend
+            'ranking.*' => 'nullable|integer', // Nullable because it can be 0 if no data
+            'Si' => 'nullable|array', // Add validation if you send Si/Ri from frontend
             'Si.*' => 'nullable|numeric',
             'Ri' => 'nullable|array',
             'Ri.*' => 'nullable|numeric',
@@ -454,14 +476,14 @@ class HitungController extends Controller
 
         DB::beginTransaction();
         try {
-            // Hapus data lama, atau Anda bisa menggunakan updateOrCreate yang sudah di index()
+            // Clear old data, or you can use updateOrCreate as already in index()
             // HasilVikor::truncate();
 
             foreach ($request->finalValues as $key => $value) {
                 $alternatifId = $request->alternatif[$key] ?? null;
                 $rankingValue = $request->ranking[$key] ?? null;
-                $nilaiS = $request->Si[$key] ?? null; // Ambil nilai S jika dikirim
-                $nilaiR = $request->Ri[$key] ?? null; // Ambil nilai R jika dikirim
+                $nilaiS = $request->Si[$key] ?? null; // Get S value if sent
+                $nilaiR = $request->Ri[$key] ?? null; // Get R value if sent
 
                 if ($alternatifId !== null) {
                     HasilVikor::updateOrCreate(
@@ -469,8 +491,8 @@ class HitungController extends Controller
                         [
                             'nilai_q' => $value,
                             'ranking' => $rankingValue,
-                            'nilai_s' => $nilaiS, // Simpan nilai S
-                            'nilai_r' => $nilaiR, // Simpan nilai R
+                            'nilai_s' => $nilaiS, // Save S value
+                            'nilai_r' => $nilaiR, // Save R value
                             'status' => ($rankingValue !== null && $rankingValue <= 10) ? 'Lulus' : 'Tidak Lulus',
                             'created_at' => now(),
                             'updated_at' => now()
@@ -481,12 +503,12 @@ class HitungController extends Controller
 
             DB::commit();
 
-            // Buat PDF
-            // Ambil data terbaru setelah penyimpanan
+            // Create PDF
+            // Get latest data after saving
             $hasilPdf = HasilVikor::with('alternatif')->orderBy('ranking', 'asc')->get();
             $dataPdf = [
                 'hasilLengkap' => $hasilPdf,
-                // Anda bisa meneruskan data lain yang diperlukan oleh view PDF di sini
+                // You can pass other data needed by the PDF view here
             ];
 
             $pdf = Pdf::loadView('pdf.hasil-vikor', $dataPdf);

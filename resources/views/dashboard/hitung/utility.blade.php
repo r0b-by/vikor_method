@@ -3,7 +3,15 @@
 @section('content')
 
 <!-- ========== SI dan RI ========== -->
-<div id="utility" class="flex flex-wrap -mx-3">
+<div id="utility" class="flex flex-wrap -mx-3"  data-aos="fade-zoom-in"
+     data-aos-easing="ease-in-back"
+     data-aos-delay="300"
+     data-aos-offset="0">
+     <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl xl:text-3xl font-bold text-slate-900 dark:text-white">
+            Visekriterijumsko Kompromisno Rangiranje | Calculation
+        </h2>
+    </div>
     <div class="flex-none w-full max-w-full px-3 overflow-x-hidden">
         <div
             class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
@@ -13,12 +21,27 @@
                     <h6 class="dark:text-white">Menghitung Nilai Utility Measure (S) dan Regret Measure (R)</h6>
 
                     {{-- 🔗 Navigasi ke bagian lain --}}
-                    <div class="mt-2 text-sm space-x-3">
-                        <a href="{{ route('hitung.matriks') }}" class="text-blue-600 hover:underline">Ke Matriks Keputusan</a>
-                        <a href="{{ route('hitung.normalisasi') }}" class="text-blue-600 hover:underline">Ke Normalisasi</a>
-                        <a href="{{ route('hitung.normalisasiterbobot') }}" class="text-blue-600 hover:underline">Ke Normalisasi Terbobot</a>
-                        <a href="{{ route('hitung.selisihideal') }}" class="text-blue-600 hover:underline">Ke Selisih Nilai Ideal</a>
-                        <a href="{{ route('hitung.kompromi') }}" class="text-blue-600 hover:underline">Ke Nilai Qi</a>
+                    <div class="mt-4 flex flex-wrap gap-2 text-sm">
+                        <a href="{{ route('hitung.matriks') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Ke Matriks Keputusan
+                        </a>
+                        <a href="{{ route('hitung.normalisasi') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Ke Normalisasi Matriks
+                        </a>
+                        <a href="{{ route('hitung.normalisasiterbobot') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Ke Normalisasi Terbobot
+                        </a>
+                        <a href="{{ route('hitung.selisihideal') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Ke Selisih Nilai Ideal
+                        </a>
+                        <a href="{{ route('hitung.kompromi') }}"
+                        class="px-4 py-1.5 rounded-md bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition">
+                            Ke Nilai Ranking Qi
+                        </a>
                     </div>
                 </div>
             </div>
@@ -37,17 +60,17 @@
                             @foreach ($alternatif as $key => $a)
                                 <tr>
                                     <td class="px-6 py-3">
-                                        <span class="text-xs font-semibold dark:text-white dark:opacity-80">
+                                        <span class="text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
                                             {{ $a->alternatif_code }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-3">
-                                        <span class="text-xs font-semibold dark:text-white dark:opacity-80">
+                                        <span class="text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
                                             {{ isset($Si[$key]) ? number_format($Si[$key], 4) : 'N/A' }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-3">
-                                        <span class="text-xs font-semibold dark:text-white dark:opacity-80">
+                                        <span class="text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
                                             {{ isset($Ri[$key]) ? number_format($Ri[$key], 4) : 'N/A' }}
                                         </span>
                                     </td>
