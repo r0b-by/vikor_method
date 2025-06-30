@@ -1,61 +1,205 @@
 @extends('dashboard.layouts.dashboardmain')
 
 @section('content')
-<div class="container mx-auto p-4 sm:p-6 lg:p-8"  data-aos="fade-zoom-in"
-     data-aos-easing="ease-in-back"
-     data-aos-delay="300"
-     data-aos-offset="0">
-    <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">Edit Pengguna: {{ $user->name }}</h2>
+<div class="container mx-auto p-4 sm:p-6 lg:p-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg">
+    <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Edit Pengguna</h2>
 
-    @if ($errors->any())
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 dark:bg-red-900 dark:border-red-700 dark:text-red-300" role="alert">
-            <strong class="font-bold">Oops!</strong>
-            <span class="block sm:inline">Ada beberapa masalah dengan masukan Anda.</span>
-            <ul class="mt-3 list-disc list-inside">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+    {{-- Success Message --}}
+    @if (session('success'))
+        <div class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Sukses!</strong>
+            <span class="block sm:inline">{{ session('success') }}</span>
         </div>
     @endif
 
-    <div class="bg-white shadow-md rounded-lg p-6 dark:bg-slate-800">
-        <form action="{{ route('users.updateProfile', $user->id) }}" method="POST">
-            @csrf
-            @method('PUT')
+    <form action="{{ route('user.update', $user->id) }}" method="POST">
+        @csrf
+        @method('PATCH') {{-- PENTING: Gunakan metode PATCH untuk update --}}
 
-            <div class="mb-4">
-                <label for="name" class="block text-gray-700 text-sm font-bold mb-2 dark:text-white">Nama:</label>
-                <input type="text" name="name" id="name" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600" value="{{ old('name', $user->name) }}" required>
-            </div>
+        {{-- ID (Usually read-only) --}}
+        <div class="mb-4">
+            <label for="id" class="block text-sm font-medium text-gray-700 dark:text-slate-300">ID Pengguna</label>
+            <input type="text" id="id" value="{{ $user->id }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 cursor-not-allowed"
+                   readonly disabled> {{-- ID is typically not editable --}}
+        </div>
 
-            <div class="mb-4">
-                <label for="email" class="block text-gray-700 text-sm font-bold mb-2 dark:text-white">Email:</label>
-                <input type="email" name="email" id="email" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-600" value="{{ old('email', $user->email) }}" required>
-            </div>
+        {{-- Nama --}}
+        <div class="mb-4">
+            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Nama</label>
+            <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                          focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                          dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+                   required>
+            @error('name')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
 
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2 dark:text-white">Peran:</label>
-                <div class="flex flex-wrap gap-4">
-                    @foreach ($roles as $role)
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="roles[]" value="{{ $role->name }}" class="form-checkbox h-5 w-5 text-blue-600 rounded-md focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-transparent"
-                                {{ $user->hasRole($role->name) ? 'checked' : '' }}>
-                            <span class="ml-2 text-gray-700 dark:text-white">{{ ucfirst($role->name) }}</span>
-                        </label>
-                    @endforeach
-                </div>
-            </div>
+        {{-- Email --}}
+        <div class="mb-4">
+            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Email</label>
+            <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                          focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                          dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+                   required>
+            @error('email')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
 
-            <div class="flex items-center justify-between">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline shadow-md transition duration-300 ease-in-out">
-                    Perbarui Pengguna
-                </button>
-                <a href="{{ route('user.management') }}" class="inline-block align-baseline font-bold text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-                    Batal
-                </a>
-            </div>
-        </form>
-    </div>
+        {{-- NIS --}}
+        <div class="mb-4">
+            <label for="nis" class="block text-sm font-medium text-gray-700 dark:text-slate-300">NIS</label>
+            <input type="text" name="nis" id="nis" value="{{ old('nis', $user->nis) }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                          focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                          dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+            @error('nis')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Kelas --}}
+        <div class="mb-4">
+            <label for="kelas" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Kelas</label>
+            <input type="text" name="kelas" id="kelas" value="{{ old('kelas', $user->kelas) }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                          focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                          dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+            @error('kelas')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Jurusan --}}
+        <div class="mb-4">
+            <label for="jurusan" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Jurusan</label>
+            <input type="text" name="jurusan" id="jurusan" value="{{ old('jurusan', $user->jurusan) }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                          focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                          dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+            @error('jurusan')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Alamat --}}
+        <div class="mb-4">
+            <label for="alamat" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Alamat</label>
+            <textarea name="alamat" id="alamat" rows="3"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                             focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                             dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">{{ old('alamat', $user->alamat) }}</textarea>
+            @error('alamat')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Status --}}
+        <div class="mb-4">
+            <label for="status" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Status</label>
+            <select name="status" id="status"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                           focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                           dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+                    required>
+                <option value="active" {{ old('status', $user->status) == 'active' ? 'selected' : '' }}>Aktif</option>
+                <option value="pending" {{ old('status', $user->status) == 'pending' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
+                <option value="inactive" {{ old('status', $user->status) == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
+                <option value="rejected" {{ old('status', $user->status) == 'rejected' ? 'selected' : '' }}>Ditolak</option>
+            </select>
+            @error('status')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Peran (Roles) --}}
+        <div class="mb-6">
+            <label for="roles" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Peran (Roles)</label>
+            <select name="roles[]" id="roles"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                           focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                           dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+                    multiple>
+                @foreach(Spatie\Permission\Models\Role::all() as $role)
+                    <option value="{{ $role->name }}"
+                            {{ in_array($role->name, old('roles', $user->getRoleNames()->toArray())) ? 'selected' : '' }}>
+                        {{ ucfirst($role->name) }}
+                    </option>
+                @endforeach
+            </select>
+            <p class="mt-2 text-xs text-gray-500 dark:text-slate-400">Pilih satu atau lebih peran untuk pengguna ini. Gunakan CTRL/CMD + klik untuk memilih beberapa peran.</p>
+            @error('roles')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Password (Optional - for changing password) --}}
+        <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Password Baru (opsional)</label>
+            <input type="password" name="password" id="password"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                          focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50
+                          dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+            <p class="mt-2 text-xs text-gray-500 dark:text-slate-400">Biarkan kosong jika tidak ingin mengubah password.</p>
+            @error('password')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Email Verified At (Read-only for info) --}}
+        <div class="mb-4">
+            <label for="email_verified_at" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Email Diverifikasi Pada</label>
+            <input type="text" id="email_verified_at" value="{{ $user->email_verified_at ? \Carbon\Carbon::parse($user->email_verified_at)->format('d M Y, H:i') : 'Belum Diverifikasi' }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 cursor-not-allowed"
+                   readonly disabled>
+        </div>
+
+        {{-- Created At (Read-only for info) --}}
+        <div class="mb-4">
+            <label for="created_at" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Dibuat Pada</label>
+            <input type="text" id="created_at" value="{{ \Carbon\Carbon::parse($user->created_at)->format('d M Y, H:i') }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 cursor-not-allowed"
+                   readonly disabled>
+        </div>
+
+        {{-- Updated At (Read-only for info) --}}
+        <div class="mb-4">
+            <label for="updated_at" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Terakhir Diperbarui</label>
+            <input type="text" id="updated_at" value="{{ \Carbon\Carbon::parse($user->updated_at)->format('d M Y, H:i') }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 cursor-not-allowed"
+                   readonly disabled>
+        </div>
+
+        {{-- Approved By (Read-only for info) --}}
+        <div class="mb-4">
+            <label for="approved_by" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Disetujui Oleh</label>
+            <input type="text" id="approved_by" value="{{ $user->approved_by ? $user->approved_by : 'Belum Disetujui' }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 cursor-not-allowed"
+                   readonly disabled>
+        </div>
+
+        {{-- Approved At (Read-only for info) --}}
+        <div class="mb-6">
+            <label for="approved_at" class="block text-sm font-medium text-gray-700 dark:text-slate-300">Disetujui Pada</label>
+            <input type="text" id="approved_at" value="{{ $user->approved_at ? \Carbon\Carbon::parse($user->approved_at)->format('d M Y, H:i') : 'Belum Disetujui' }}"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 cursor-not-allowed"
+                   readonly disabled>
+        </div>
+
+        {{-- Tombol Update --}}
+        <div class="flex justify-end">
+            <button type="submit"
+                    class="inline-flex items-center px-6 py-3 bg-blue-600 border border-transparent rounded-md
+                           font-semibold text-sm text-white uppercase tracking-wider
+                           hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-900 focus:ring
+                           ring-blue-300 disabled:opacity-50 transition ease-in-out duration-150">
+                Update Pengguna
+            </button>
+        </div>
+    </form>
 </div>
 @endsection

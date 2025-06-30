@@ -14,15 +14,15 @@
                 <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                     <h6 class="dark:text-white">Tabel Kriteria</h6>
                     @role('admin') {{-- Hanya admin yang bisa menambah kriteria --}}
-                    <button type="button" data-modal-target="add-criteria" data-modal-toggle="add-criteria"
-                        class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Tambah
-                        Kriteria</button>
+                    <button type="button" onclick="openModal('add-criteria')"
+                        class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                        Tambah Kriteria</button>
                     @endrole
                 </div>
                 <!-- Main modal untuk menambah kriteria -->
                 @role('admin') {{-- Modal hanya relevan jika user bisa menambah --}}
                 <div id="add-criteria" tabindex="-1" aria-hidden="true"
-                    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                    class="hidden fixed inset-0 z-50 flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center backdrop-blur-sm items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                     <div class="relative w-full max-w-md max-h-full p-4">
                         <!-- Konten modal -->
                         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
@@ -32,9 +32,8 @@
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                                     Buat Kriteria Baru
                                 </h3>
-                                <button type="button"
-                                    class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
-                                    data-modal-toggle="add-criteria">
+                                <button type="button" onclick="closeModal('add-criteria')"
+                                    class="focus:outline-none text-white bg-warning-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
                                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 14 14">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -163,8 +162,7 @@
                                             class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                             <div class="flex flex-wrap items-center justify-center">
                                                 <button type="button"
-                                                    data-modal-target="edit-criteria-{{ $c->id }}"
-                                                    data-modal-toggle="edit-criteria-{{ $c->id }}"
+                                                    onclick="openModal('edit-criteria-{{ $c->id }}')"
                                                     class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Edit</button>
                                                 <form id="{{ $c->id }}"
                                                     action="{{ route('criteria.destroy', $c->id) }}" method="POST">
@@ -175,9 +173,8 @@
                                                 </form>
                                             </div>
                                             <!-- Main modal untuk mengedit kriteria -->
-                                            <div id="edit-criteria-{{ $c->id }}" tabindex="-1"
-                                                aria-hidden="true"
-                                                class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                                            <div id="edit-criteria-{{ $c->id }}" tabindex="-1" aria-hidden="true"
+                                                class="hidden flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center backdrop-blur-sm items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                                                 <div class="relative w-full max-w-md max-h-full p-4">
                                                     <!-- Konten modal -->
                                                     <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
@@ -188,15 +185,12 @@
                                                                 class="text-lg font-semibold text-gray-900 dark:text-white">
                                                                 Edit Kriteria
                                                             </h3>
-                                                            <button type="button"
-                                                                class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
-                                                                data-modal-toggle="edit-criteria-{{ $c->id }}">
-                                                                <svg class="w-3 h-3" aria-hidden="true"
-                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                    viewBox="0 0 14 14">
-                                                                    <path stroke="currentColor" stroke-linecap="round"
-                                                                        stroke-linejoin="round" stroke-width="2"
-                                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                            <button type="button" onclick="closeModal('edit-criteria-{{ $c->id }}')"
+                                                                class="focus:outline-none text-white bg-warning-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                                                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                                    fill="none" viewBox="0 0 14 14">
+                                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                                                 </svg>
                                                                 <span class="sr-only">Tutup modal</span>
                                                             </button>

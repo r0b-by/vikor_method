@@ -46,14 +46,12 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            // Tambahkan validasi untuk kolom baru
-            'nis' => ['required', 'string', 'max:20', 'unique:users'], // Pastikan NIS unik
-            'kelas' => ['required', 'string', 'max:50'],
-            'jurusan' => ['required', 'string', 'max:50'],
-            'alamat' => ['required', 'string', 'max:255'],
+            'nis' => ['required', 'string', 'max:20', 'unique:users'], // <<< Ini required
+            'kelas' => ['required', 'string', 'max:255'], // <<< Ini required
+            'jurusan' => ['required', 'string', 'max:255'], // <<< Ini required
+            'alamat' => ['required', 'string', 'max:255'], // <<< Ini required
         ]);
     }
-
     /**
      * Create a new user instance after a valid registration.
      *
@@ -62,16 +60,18 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        // ... di dalam protected function create(array $data)
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'status' => 'pending', // Set status ke 'pending' secara default untuk konfirmasi admin
-            'nis' => $data['nis'], // Tambahkan ini
-            'kelas' => $data['kelas'], // Tambahkan ini
-            'jurusan' => $data['jurusan'], // Tambahkan ini
-            'alamat' => $data['alamat'], // Tambahkan ini
+            'nis' => $data['nis'],
+            'kelas' => $data['kelas'],
+            'jurusan' => $data['jurusan'],
+            'alamat' => $data['alamat'],
+            'status' => 'pending', // <<< Pastikan ini ada dan benar
         ]);
+// ...
 
         // Tetapkan peran 'siswa' secara default
         $user->assignRole('siswa'); // Ini akan menetapkan peran 'siswa' ke pengguna baru

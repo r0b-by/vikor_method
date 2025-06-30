@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark">
     <title>@yield('title') - SPK VIKOR BEASISWA SMK PRIMA UNGGUL</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -21,7 +22,7 @@
 
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="{{ asset('assets/css/custom-styles.cs') }}">
+    <link rel="stylesheet" href="{{ asset('assets/js/app.css') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -95,8 +96,6 @@
     </div>
 
     <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
     {{-- Ini adalah JS utama Argon Dashboard. Cukup gunakan versi minified-nya --}}
     <script src="{{ asset('assets/js/argon-dashboard-tailwind.min.js') }}"></script> 
 
@@ -107,17 +106,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     {{-- Ini kemungkinan ekstensi untuk Chart.js, biarkan jika ada fungsionalitas tambahan --}}
     <script src="{{ asset('assets/js/plugins/Chart.extension.js') }}"></script> 
-
-    <script>
-        var win = navigator.platform.indexOf('Win') > -1;
-        if (win && document.querySelector('#sidenav-scrollbar')) {
-            var options = {
-                damping: '0.5'
-            }
-            // Inisialisasi Perfect Scrollbar (pastikan elemen sidenav Anda memiliki ID 'sidenav-scrollbar')
-            Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-        }
-    </script>
+    <script src="https://unpkg.com/flowbite@1.6.5/dist/flowbite.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -211,5 +200,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+<script>
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
 
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+</script>
 </html>

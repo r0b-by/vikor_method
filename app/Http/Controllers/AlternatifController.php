@@ -73,7 +73,9 @@ class AlternatifController extends Controller
      */
     public function edit(alternatif $alternatif)
     {
-        //
+        
+        // Variabel $alternatif seharusnya sudah berisi data dari database
+        return view('dashboard.alternatif', compact('alternatif')); // Pastikan nama view benar
     }
 
     /**

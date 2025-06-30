@@ -4,7 +4,7 @@
     class="sticky top-0 z-10 w-full 
            flex items-center justify-between px-4 py-3
            shadow-md rounded-lg
-           bg-white dark:bg-slate-800 text-slate-700 dark:text-white"
+           bg-white dark:bg-slate-850 "
 >
     <div class="flex items-center justify-between w-full px-4 py-1 mx-auto flex-wrap-inherit">
         <nav>

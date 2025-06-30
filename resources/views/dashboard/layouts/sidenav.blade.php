@@ -26,6 +26,7 @@
                     </a>
                 </li>
                 {{-- User Manual --}}
+                @role('admin')
                 <li x-data="{ open: {{ json_encode(Request::is('user-management')) }} }" x-cloak>
                     <div class="mt-6 mb-2 px-4" data-aos="fade-right" data-aos-delay="200">
                         <button @click="open = !open" class="w-full flex items-center justify-between py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-white/70 hover:text-blue-600 transition">
@@ -51,7 +52,7 @@
                         </li>
                     </ul>
                 </li>
-
+                @endrole
                 {{-- Dropdown: Data Management --}}
                 @role(['admin', 'guru'])
                 <li x-data="{ open: {{ json_encode(Request::is('criteria') || Request::is('alternatif') || Request::is('penilaian') || Request::is('hitung')) }} }" x-cloak>
@@ -80,6 +81,7 @@
                                 <i class="mr-2 text-sm text-orange-500 ni ni-circle-08"></i> Data Kriteria
                             </a>
                         </li>
+                        @endrole
                         <li data-aos="fade-right" data-aos-delay="250">
                             <a class="{{ Request::is('alternatif') ? 'rounded-lg bg-blue-500/13 font-semibold' : '' }} dark:text-white py-2.7 text-sm mx-2 flex items-center px-4 transition-colors"
                             href="{{ route('alternatif.index') }}">
@@ -98,7 +100,6 @@
                                 <i class="mr-2 text-sm text-orange-500 ni ni-single-copy-04"></i> Calculate
                             </a>
                         </li>
-                        @endrole
                     </ul>
                 </li>
                 @endrole
