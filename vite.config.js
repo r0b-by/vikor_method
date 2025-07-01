@@ -5,7 +5,7 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/app.css',  // Ganti dari .scss ke .css jika pakai Tailwind/Bootstrap biasa
+                'resources/css/app.css',
                 'resources/js/app.js',
             ],
             refresh: true,
@@ -13,12 +13,13 @@ export default defineConfig({
     ],
     build: {
         manifest: true,
-        outDir: 'public/build',
+        outDir: 'public/build', // Laravel akan mencari manifest di sini
         rollupOptions: {
-            input: [
-                'resources/css/app.css',
-                'resources/js/app.js',
-            ],
+            input: {
+                app: 'resources/js/app.js',
+                style: 'resources/css/app.css',
+            },
         },
+        emptyOutDir: true,
     },
 });
