@@ -8,19 +8,19 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        value: base64:Zdehf/hGFZ8HjK0ZpcjulDewCUklS4m0wQUTL9d3ZPo=
+        value: base64:...
       - key: APP_DEBUG
         value: false
       - key: APP_URL
         value: https://vikor-method.onrender.com
 
-      # ✅ Database
+      # ✅ Database SQLite
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
         value: /var/www/html/database/database.sqlite
 
-      # ✅ Laravel file-based session/cache
+      # ✅ File-based session/cache/log
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_DRIVER
@@ -30,6 +30,8 @@ services:
       - key: LOG_CHANNEL
         value: stack
 
-      # ✅ (Opsional tapi disarankan)
+      # ✅ Timezone
       - key: APP_TIMEZONE
         value: Asia/Jakarta
+      - key: VITE_APP_URL
+        value: https://vikor-method.onrender.com
