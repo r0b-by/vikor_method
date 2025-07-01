@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -12,8 +11,6 @@ class UserSeeder extends Seeder
     
     public function run()
     {
-        User::factory()->create();
-        
         $students = [
             ['Ahmad Fauzan', 'ahmad.fauzan@example.com', 'S1A'],
             ['Budi Santoso', 'budi.santoso@example.com', 'S1B'],

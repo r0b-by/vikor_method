@@ -4,7 +4,6 @@ services:
     env: docker
     plan: free
     branch: main
-    # ⛔️ Jangan pakai buildCommand/startCommand karena Dockerfile sudah mengatur semua
     envVars:
       - key: APP_ENV
         value: production
@@ -14,10 +13,14 @@ services:
         value: false
       - key: APP_URL
         value: https://vikor-method.onrender.com
+
+      # ✅ Database
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
         value: /var/www/html/database/database.sqlite
+
+      # ✅ Laravel file-based session/cache
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_DRIVER
@@ -26,3 +29,7 @@ services:
         value: sync
       - key: LOG_CHANNEL
         value: stack
+
+      # ✅ (Opsional tapi disarankan)
+      - key: APP_TIMEZONE
+        value: Asia/Jakarta
