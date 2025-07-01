@@ -5,10 +5,6 @@ services:
     region: oregon
     plan: free
     dockerfilePath: Dockerfile
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan config:cache
-      php artisan migrate --force
     envVars:
       - key: APP_ENV
         value: production
