@@ -24,7 +24,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/js/app.css') }}">
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="{{ mix('css/app.css') }}">
     
 
     <style>

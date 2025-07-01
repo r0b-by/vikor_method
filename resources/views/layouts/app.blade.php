@@ -15,7 +15,7 @@
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
     <!-- Vite Scripts -->
-      @vite(['resources/css/app.css', 'resources/js/app.js'])
+      <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 </head>
 <body>
 
@@ -34,6 +34,6 @@
             @yield('content')
         </main>
     </div>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="{{ mix('js/app.js') }}" defer></script>
 </body>
 </html>

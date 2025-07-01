@@ -45,8 +45,8 @@ RUN php artisan config:clear && \
     php artisan view:cache
 
 # ✅ Migrasi DB dan Jalankan Seeder
-RUN php artisan migrate --force && \
-    php artisan db:seed --class=DatabaseSeeder --force
+RUN php artisan migrate --force || true
+RUN php artisan db:seed --class=DatabaseSeeder --force || true
 
 # ✅ Atur permission
 RUN chmod -R 755 /var/www/html && \
