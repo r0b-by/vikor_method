@@ -7,34 +7,42 @@ RUN apt-get update && apt-get install -y \
     libpng-dev libonig-dev libxml2-dev curl git \
     && docker-php-ext-install pdo pdo_sqlite zip
 
-# Install Composer
+# Install Composer dari image resmi Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Atur direktori kerja
+# Atur direktori kerja ke Laravel root
 WORKDIR /var/www/html
 
-# Salin semua file ke dalam container
+# Salin semua file proyek Laravel ke container
 COPY . .
 
-# Install dependensi Laravel
+# Install dependensi Laravel tanpa dev
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate APP_KEY jika belum diset
-# NOTE: Jika Render sudah set APP_KEY via ENV, ini bisa di-skip
-RUN if [ ! -f .env ]; then cp .env.example .env; fi \
-    && php artisan config:clear \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Salin file .env jika belum ada
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# Jalankan migrasi (pastikan file database.sqlite sudah ada!)
+# Jalankan cache konfigurasi Laravel
+RUN php artisan config:clear && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
+
+# Jalankan migrasi database (opsional, biarkan gagal jika belum siap)
 RUN php artisan migrate --force || true
 
-# Permission untuk Laravel
-RUN chown -R www-data:www-data storage bootstrap/cache
+# ✅ Atur permission agar Apache bisa akses Laravel
+RUN chmod -R 755 /var/www/html && \
+    chown -R www-data:www-data /var/www/html
 
-# Aktifkan rewrite module di Apache
+# ✅ Aktifkan modul rewrite Apache (wajib untuk routing Laravel)
 RUN a2enmod rewrite
 
-# Laravel berjalan di port Apache default (80)
+# ✅ Ubah DocumentRoot Apache agar mengarah ke /public
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+
+# ✅ Izinkan Apache untuk memproses .htaccess
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Buka port 80
 EXPOSE 80
