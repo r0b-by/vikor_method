@@ -1,54 +1,36 @@
 services:
   - type: web
-    name: laravel-app
+    name: vikor-method
     env: docker
-    region: oregon
     plan: free
-    dockerfilePath: Dockerfile
+    branch: main
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      php artisan config:clear
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+      npm install
+      npm run prod
+    startCommand: php artisan serve --host 0.0.0.0 --port 8080
     envVars:
       - key: APP_ENV
         value: production
-
       - key: APP_KEY
-        generateValue: true
-
+        value: base64:Zdehf/hGFZ8HjK0ZpcjulDewCUklS4m0wQUTL9d3ZPo=
       - key: APP_DEBUG
         value: false
-
-      - key: APP_NAME
-        value: Laravel App
-
       - key: APP_URL
         value: https://vikor-method.onrender.com
-
-      # Database: gunakan SQLite
       - key: DB_CONNECTION
         value: sqlite
-
       - key: DB_DATABASE
         value: /var/www/html/database/database.sqlite
-
-      # Optional (untuk queue/email/dll, bisa disesuaikan)
-      - key: CACHE_DRIVER
-        value: file
-
       - key: SESSION_DRIVER
         value: file
-
+      - key: CACHE_DRIVER
+        value: file
       - key: QUEUE_CONNECTION
         value: sync
-
-      - key: MAIL_MAILER
-        value: smtp
-
-      - key: MAIL_HOST
-        value: 127.0.0.1
-
-      - key: MAIL_PORT
-        value: 1025
-
-      - key: MAIL_FROM_ADDRESS
-        value: robbyadiyasaputra@gmail.com
-
-      - key: MAIL_FROM_NAME
-        value: Laravel App
+      - key: LOG_CHANNEL
+        value: stack

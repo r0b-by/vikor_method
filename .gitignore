@@ -1,6 +1,5 @@
 /.phpunit.cache
 /node_modules
-/public/build
 /public/hot
 /public/storage
 /storage/*.key
@@ -17,3 +16,13 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# ✅ JANGAN abaikan mix-manifest dan hasil build!
+# ❌ Dihapus dari ignore agar ikut ke Git repo
+# ❌ file ini penting untuk Laravel Mix di production
+!public/mix-manifest.json
+!public/js/app.js
+!public/css/app.css
+
+# Jika kamu pakai SQLite
+!database/database.sqlite

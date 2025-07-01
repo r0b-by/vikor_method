@@ -182,6 +182,7 @@
         });
     });
     </script>
+    <script src="{{ mix('js/app.js') }}" defer></script>
 </body>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
