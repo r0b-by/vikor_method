@@ -16,39 +16,42 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # ✅ Set working directory
 WORKDIR /var/www/html
 
-# ✅ Salin semua source code awal agar `.env` tersedia sebelum install
+# ✅ Salin semua file project
 COPY . .
 
-# ✅ Pastikan .env tersedia (hindari error artisan package:discover)
+# ✅ Pastikan file .env tersedia sebelum artisan command
 RUN cp .env.example .env || true
 
-# ✅ Buat database SQLite
+# ✅ Buat database SQLite sesuai path di .env
 RUN mkdir -p database && touch database/database.sqlite
 
-# ✅ Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+# ✅ Install PHP dependencies (tanpa artisan script auto-run)
+RUN composer install --no-dev --no-scripts --optimize-autoloader --no-interaction --prefer-dist
 
-# ✅ Install dan build frontend (Vite)
+# ✅ Install frontend dependencies dan build asset dengan Vite
 RUN npm install && npm run build
 
-# ✅ Laravel cache
+# ✅ Artisan discover (manual agar error bisa ditangani)
+RUN php artisan package:discover --ansi || true
+
+# ✅ Cache Laravel configuration
 RUN php artisan config:clear && \
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache
 
-# ✅ Migrasi & seeder (lewati error jika DB belum siap)
-RUN php artisan migrate --force || true
-RUN php artisan db:seed --class=DatabaseSeeder --force || true
+# ✅ Migrasi & seeder (skip error agar build tetap lanjut)
+RUN php artisan migrate --force || echo "migrate gagal (tidak fatal)"
+RUN php artisan db:seed --class=DatabaseSeeder --force || echo "seeder gagal (tidak fatal)"
 
-# ✅ Set permission untuk Laravel
+# ✅ Set permission agar Laravel dapat menulis ke storage dan database
 RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 755 /var/www/html
 
-# ✅ Aktifkan rewrite & arahkan root ke public/
+# ✅ Aktifkan rewrite dan ubah root ke public
 RUN a2enmod rewrite && \
     sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf && \
     sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-# ✅ Expose port Apache
+# ✅ Buka port 80
 EXPOSE 80
