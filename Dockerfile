@@ -35,14 +35,18 @@ RUN npm run build
 # ✅ Salin .env jika belum ada
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
+# ✅ Pastikan file database SQLite ada
+RUN mkdir -p database && touch database/database.sqlite
+
 # ✅ Cache konfigurasi Laravel
 RUN php artisan config:clear && \
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache
 
-# ✅ Migrasi DB (skip error jika DB kosong)
-RUN php artisan migrate --force || true
+# ✅ Migrasi DB dan Jalankan Seeder
+RUN php artisan migrate --force && \
+    php artisan db:seed --class=DatabaseSeeder --force
 
 # ✅ Atur permission
 RUN chmod -R 755 /var/www/html && \

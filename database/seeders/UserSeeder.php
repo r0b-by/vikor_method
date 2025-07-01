@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
         // Create admin user
         DB::table('users')->insert([
             'name' => 'Admin',
-            'email' => 'admin@example.com',
+            'email' => 'robby.admin@vikor.com',
             'password' => Hash::make('password'),
             'status' => 'active',
             'nis' => 'ADM001',
