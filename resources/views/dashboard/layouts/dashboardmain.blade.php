@@ -24,7 +24,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/js/app.css') }}">
 
-    <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     
 
     <style>
@@ -182,7 +182,6 @@
         });
     });
     </script>
-    <script src="{{ mix('js/app.js') }}" defer></script>
 </body>
 <script>
 document.addEventListener("DOMContentLoaded", function () {

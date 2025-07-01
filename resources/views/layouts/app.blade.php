@@ -15,7 +15,7 @@
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
     <!-- Vite Scripts -->
-      <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+      @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
 

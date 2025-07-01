@@ -4,15 +4,7 @@ services:
     env: docker
     plan: free
     branch: main
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan config:clear
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
-      npm install
-      npm run prod
-    startCommand: php artisan serve --host 0.0.0.0 --port 8080
+    # ⛔️ Jangan pakai buildCommand/startCommand karena Dockerfile sudah mengatur semua
     envVars:
       - key: APP_ENV
         value: production
