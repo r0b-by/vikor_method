@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('penilaians', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_alternatif');
-            $table->foreign('id_alternatif')->references('id')->on('alternatifs');
-
             $table->unsignedBigInteger('id_criteria');
-            $table->foreign('id_criteria')->references('id')->on('criterias');
-
             $table->double('nilai');
+            $table->json('certificate_details')->nullable(); // Untuk menyimpan detail sertifikat
+            $table->timestamps();
+
+            $table->foreign('id_alternatif')->references('id')->on('alternatifs')->onDelete('cascade');
+            $table->foreign('id_criteria')->references('id')->on('criterias')->onDelete('cascade');
         });
     }
 

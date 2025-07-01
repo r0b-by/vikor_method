@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\alternatif;
 use App\Models\criteria;
-use App\Models\User; // Import the User model
-use App\Models\PendingProfileUpdate; // Import the PendingProfileUpdate model
-use App\Models\penilaian; // Import the Penilaian model
-use App\Models\HasilVikor; // Import the HasilVikor model
+use App\Models\User;
+use App\Models\PendingProfileUpdate; 
+use App\Models\penilaian; 
+use App\Models\HasilVikor; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 
@@ -65,5 +66,17 @@ class HomeController extends Controller
             'latestAlternatif', // Keep if still needed for other displays
             'latestCriteria'    // Keep if still needed for other displays
         ));
+    }
+    public function showSiswaDashboard()
+    {
+        $user = Auth::user();
+        $alternatif = $user->alternatif; // Pastikan relasi ini ada di model User
+
+        $hasilVikor = null;
+        if ($alternatif) {
+            $hasilVikor = HasilVikor::where('id_alternatif', $alternatif->id)->first();
+        }
+
+        return view('siswa.dashboard', compact('alternatif', 'hasilVikor'));
     }
 }

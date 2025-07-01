@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\criteria;
 use Illuminate\Http\Request;
 use App\Http\Requests\CriteriaRequest;
+use Illuminate\Contracts\View\View;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 class criteria_controller extends Controller
 {
@@ -14,7 +18,7 @@ class criteria_controller extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin']); // Memastikan hanya admin
+        $this->middleware(middleware: ['auth', 'role:admin']); // Memastikan hanya admin
     }
 
     /**
@@ -22,7 +26,7 @@ class criteria_controller extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): Factory|View
     {
         $criteria = criteria::orderByRaw('LENGTH(criteria_code), criteria_code')->get();
         return view('dashboard.criteria ', compact('criteria'));
@@ -33,7 +37,7 @@ class criteria_controller extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): void
     {
         //
     }
@@ -44,7 +48,7 @@ class criteria_controller extends Controller
      * @param  \App\Http\Requests\CriteriaRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CriteriaRequest $request)
+    public function store(CriteriaRequest $request): RedirectResponse
     {
         $data = $request->validated();
         criteria::create($data);
@@ -54,10 +58,10 @@ class criteria_controller extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\criteria  $criteria
+     * @param  \App\Models\criteria 
      * @return \Illuminate\Http\Response
      */
-    public function show(criteria $criteria)
+    public function show(criteria $criteria): void
     {
         //
     }
@@ -68,7 +72,7 @@ class criteria_controller extends Controller
      * @param  \App\Models\criteria  $criteria
      * @return \Illuminate\Http\Response
      */
-    public function edit(criteria $criteria)
+    public function edit(criteria $criteria): void
     {
         //
     }
@@ -80,9 +84,9 @@ class criteria_controller extends Controller
      * @param  \App\Models\criteria  $criteria
      * @return \Illuminate\Http\Response
      */
-    public function update(CriteriaRequest $request, criteria $criteria)
+    public function update(CriteriaRequest $request, criteria $criteria): RedirectResponse
     {
-        $criteria = criteria::findOrFail($request->id); // Pastikan mengambil instance yang benar
+        $criteria = criteria::findOrFail($request->id); 
         $data = $request->validated();
         $criteria->update($data);
         return redirect()->back()->with('success', 'Kriteria berhasil diperbarui!');
@@ -94,7 +98,7 @@ class criteria_controller extends Controller
      * @param  string  $criteria
      * @return \Illuminate\Http\Response
      */
-    public function destroy(string $criteria)
+    public function destroy(string $criteria): RedirectResponse
     {
         criteria::findOrFail($criteria)->delete();
         return redirect()->back()->with('success', 'Kriteria berhasil dihapus!');

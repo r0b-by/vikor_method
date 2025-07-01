@@ -13,8 +13,16 @@ return new class extends Migration
     {
         Schema::create('alternatifs', function (Blueprint $table) {
             $table->id();
-            $table->string('alternatif_code');
+            $table->unsignedBigInteger('user_id');
+            $table->string('alternatif_code')->unique();
             $table->string('alternatif_name');
+            $table->enum('status_perhitungan', ['pending', 'calculated'])->default('pending');
+            $table->timestamps();
+
+            $table->foreign('user_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('cascade');
         });
     }
 

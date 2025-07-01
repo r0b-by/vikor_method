@@ -133,8 +133,9 @@
                 {{-- Permintaan (Admin Only) --}}
                 @role('admin')
                 <li class="mt-0.5 w-full" data-aos="fade-right" data-aos-delay="400">
-                    <a href="{{ route('admin.pending-registrations') }}"
-                    class="{{ Request::is('admin/pending-registrations') ? 'rounded-lg bg-blue-500/13 font-semibold' : '' }} dark:text-white py-2.7 text-sm mx-2 flex items-center px-4 relative transition-colors">
+                    {{-- MODIFIKASI: Mengubah nama rute --}}
+                    <a href="{{ route('admin.users.pending-registrations') }}"
+                    class="{{ Request::is('admin/users/pending-registrations') ? 'rounded-lg bg-blue-500/13 font-semibold' : '' }} dark:text-white py-2.7 text-sm mx-2 flex items-center px-4 relative transition-colors">
                         <i class="mr-2 text-sm text-purple-500 fa fa-bell"></i>
                         Permintaan
                         @if (isset($pendingRegistrationsCount) && $pendingRegistrationsCount > 0)
@@ -145,18 +146,52 @@
                     </a>
                 </li>
                 @endrole
+                {{-- Profile (All Authenticated Users) --}}
+                @role('admin')
                 <li data-aos="fade-right" data-aos-delay="450">
-                    <a class="{{ Request::is('users/profile') ? 'bg-blue-500/13 font-semibold rounded-lg' : '' }} dark:text-white py-2.7 text-sm flex items-center px-4 transition-colors"
-                    href="{{ route('users.edit', Auth::user()->id) }}">
+                    <a class="{{ Request::is('profile/edit') ? 'bg-blue-500/13 font-semibold rounded-lg' : '' }} dark:text-white py-2.7 text-sm flex items-center px-4 transition-colors"
+                    href="{{ route('profile.edit') }}"> {{-- Menggunakan rute 'profile.edit' --}}
                         <i class="mr-2 text-sm text-slate-700 ni ni-single-02"></i> Profile
                     </a>
-                    </li>
-                    <li data-aos="fade-right" data-aos-delay="500">
+                </li>
+                @endrole
+                {{-- Setting (All Authenticated Users) --}}
+                <li data-aos="fade-right" data-aos-delay="500">
                     <a class="{{ Request::is('setting') ? 'bg-blue-500/13 font-semibold rounded-lg' : '' }} dark:text-white py-2.7 text-sm flex items-center px-4 transition-colors"
                         href="{{ route('setting') }}">
                         <i class="mr-2 text-sm text-slate-700 ni ni-settings-gear-65"></i> Setting
                     </a>
                 </li>
+                {{-- Siswa Specific Links --}}
+                @role('siswa')
+                <li class="mt-0.5 w-full" data-aos="fade-right" data-aos-delay="550">
+                    <a class="{{ Request::is('siswa/dashboard') ? 'rounded-lg bg-blue-500/13 font-semibold' : '' }} dark:text-white py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors"
+                    href="{{ route('siswa.dashboard') }}">
+                        <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-center xl:p-2.5">
+                            <i class="text-sm leading-normal text-blue-500 fa fa-chalkboard-teacher"></i>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100">Siswa Dashboard</span>
+                    </a>
+                </li>
+                <li class="mt-0.5 w-full" data-aos="fade-right" data-aos-delay="550">
+                    <a class="{{ Request::is('siswa/profile/show') ? 'rounded-lg bg-blue-500/13 font-semibold' : '' }} dark:text-white py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors"
+                    href="{{ route('siswa.profile.show') }}">
+                        <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-center xl:p-2.5">
+                            <i class="text-sm leading-normal text-blue-500 fa fa-chalkboard-teacher"></i>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100">Siswa Profile</span>
+                    </a>
+                </li>
+                <li class="mt-0.5 w-full" data-aos="fade-right" data-aos-delay="600">
+                    <a class="{{ Request::is('siswa/penilaian') ? 'rounded-lg bg-blue-500/13 font-semibold' : '' }} dark:text-white py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors"
+                    href="{{ route('siswa.penilaian.index') }}">
+                        <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-center xl:p-2.5">
+                            <i class="text-sm leading-normal text-green-500 fa fa-clipboard-list"></i>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100">Isi Penilaian</span>
+                    </a>
+                </li>
+                @endrole
             </ul>
         </div>
     </div>
@@ -165,7 +200,7 @@
     <div class="absolute bottom-4 left-0 right-0 px-6">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" 
+            <button type="submit"
                 class="w-full py-2 px-4 text-center text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all">
                 <i class="fas fa-sign-out-alt mr-2"></i> Logout
             </button>

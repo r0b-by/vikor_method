@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Gate;
+use App\Policies\HasilVikorPolicy;
+use App\Models\HasilVikor;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -13,7 +15,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        HasilVikor::class => HasilVikorPolicy::class,
     ];
 
     /**

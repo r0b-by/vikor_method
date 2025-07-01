@@ -3,27 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\PendingProfileUpdate; // Import model baru
+use App\Models\Alternatif;
+use Illuminate\Support\Facades\DB;
+use App\Models\PendingProfileUpdate;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // Import Auth Facade
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role; 
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\RegistrationApprovedNotification;
 use App\Notifications\RegistrationRejectedNotification;
-use App\Notifications\ProfileUpdateSubmittedNotification; // Notifikasi baru untuk admin
-use App\Notifications\ProfileUpdateApprovedNotification; // Notifikasi baru untuk user
-use App\Notifications\ProfileUpdateRejectedNotification; // Notifikasi baru untuk user
+use App\Notifications\ProfileUpdateSubmittedNotification;
+use App\Notifications\ProfileUpdateApprovedNotification;
+use App\Notifications\ProfileUpdateRejectedNotification;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Contracts\View\View;
+use Illuminate\Contracts\View\Factory;
 
 class UserController extends Controller
-{
-    public function __construct()
+{    public function __construct()
     {
-        // Hanya admin yang bisa mengakses fungsi manajemen user umum (index, destroy, pendingRegistrations, approve/reject registration)
-        $this->middleware(['auth', 'role:admin'])->except(['edit', 'updateProfile']);
+        $this->middleware('auth');
 
-        // Guru dan siswa bisa mengakses 'edit' dan 'updateProfile' untuk profil mereka sendiri
-        // Admin juga bisa mengakses 'edit' dan 'updateProfile' karena mereka 'admin' dan kondisi pertama sudah mencakup Auth::user()->hasRole('admin')
-        $this->middleware(['auth'])->only(['edit', 'updateProfile']);
+        $this->middleware('role:admin')->only([
+            'index', 
+            'update', 
+            'destroy', 
+            'pendingRegistrations',
+            'approveRegistration',
+            'rejectRegistration',
+            'pendingProfileUpdates',
+            'approveProfileUpdate',
+            'rejectProfileUpdate',
+        ]);
     }
 
     /**
@@ -32,121 +43,97 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): Factory|View
     {
-        $users = User::where('status', '!=', 'pending')->get();
+        // Hanya tampilkan user yang statusnya 'active' atau 'rejected'
+        $users = User::whereIn('status', ['active', 'rejected'])->get();
         return view('dashboard.user-management', compact('users'));
+    }
+
+    /**
+     * Display the profile of the currently authenticated user.
+     * Menampilkan profil pengguna yang sedang login.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function show(User $user): View|Factory
+    {
+        $this->authorize('view', $user); // Requires admin role
+        
+        // For students, show with their alternatif data
+        if ($user->hasRole('siswa')) {
+            return view('siswa.profile.show', [
+                'user' => $user,
+                'alternatif' => $user->alternatif
+            ]);
+        }
+        
+        // For other users (admin/guru)
+        return view('users.show', compact('user'));
     }
 
     /**
      * Show the form for editing the specified user (for admin, guru, and siswa).
      *
-     * @param  \App\Models\User  $user
+     * @param   \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function edit(User $user)
-    {
-        // Admin bisa mengedit user mana pun.
-        // Guru dan siswa hanya bisa mengedit profil mereka sendiri.
-        if (Auth::user()->hasRole('admin') || Auth::id() === $user->id) {
-            $roles = Role::all();
-            return view('users.edit', compact('user', 'roles'));
-        }
+{
+    $this->authorize('update', $user); // Add authorization
+    $roles = Role::all();
+    return view('users.edit', compact('user', 'roles'));
+}
 
-        abort(403, 'Unauthorized action.'); // Akses ditolak jika tidak memenuhi kriteria
-    }
 
-    /**
-     * Update the specified user in storage.
-     * Memperbarui pengguna yang ditentukan di penyimpanan.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, User $user)
-    {
-        // Validasi data
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'nis' => 'nullable|string|max:20|unique:users,nis,' . $user->id,
-            'kelas' => 'nullable|string|max:255',
-            'jurusan' => 'nullable|string|max:255',
-            'alamat' => 'nullable|string|max:255',
-            'status' => 'nullable|string|in:active,inactive', // Hanya admin yang bisa mengubah status
-            'roles' => 'nullable|array',
-            'roles.*' => 'exists:roles,name',
-        ]);
+/**
+ * Show the form for editing the specified user.
+ *
+ * @param  \App\Models\User  $user
+ * @return \Illuminate\Http\Response
+ */
+public function update(Request $request, User $user)
+{
+    $this->authorize('update', $user);
+    
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,'.$user->id,
+        'nis' => 'nullable|string|max:20|unique:users,nis,'.$user->id,
+        'kelas' => 'nullable|string|max:255',
+        'jurusan' => 'nullable|string|max:255',
+        'alamat' => 'nullable|string',
+        'status' => 'required|in:pending,active,inactive,rejected',
+        'roles' => 'required|array',
+    ]);
 
-        // Jika user adalah admin, biarkan dia mengubah semua field termasuk peran dan status
-        if (Auth::user()->hasRole('admin')) {
-            $user->update($request->only('name', 'email', 'nis', 'kelas', 'jurusan', 'alamat', 'status'));
+    $user->update($validated);
+    $user->syncRoles($request->roles);
 
-            if ($request->has('roles')) {
-                $user->syncRoles($request->input('roles'));
-            }
-
-            return redirect()->route('user.management')->with('success', 'User updated successfully.');
-        } else {
-            // Jika bukan admin, hanya izinkan update data tertentu (selain status dan peran)
-            $user->update($request->only('name', 'email', 'nis', 'kelas', 'jurusan', 'alamat'));
-            return redirect()->route('users.edit', $user->id)->with('success', 'Profil Anda berhasil diperbarui.');
-        }
-    }
+    return redirect()->route('admin.users.index')
+           ->with('success', 'User updated successfully');
+}
 
 
     /**
-     * Handle profile update requests from non-admin users.
-     * Menangani permintaan pembaruan profil dari pengguna non-admin.
+     * Update the profile of the currently authenticated user.
+     * Menangani permintaan pembaruan profil dari pengguna non-admin (atau admin untuk profilnya sendiri).
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param   \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function updateProfile(Request $request)
-    {
-        $user = Auth::user();
-
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'nis' => 'nullable|string|max:20|unique:users,nis,' . $user->id,
-            'kelas' => 'nullable|string|max:255',
-            'jurusan' => 'nullable|string|max:255',
-            'alamat' => 'nullable|string|max:255',
-        ]);
-
-        // Filter hanya data yang berubah
-        $originalData = $user->only(['name', 'email', 'nis', 'kelas', 'jurusan', 'alamat']);
-        $proposedData = array_filter($validatedData, function ($value, $key) use ($originalData) {
-            return $value !== $originalData[$key];
-        }, ARRAY_FILTER_USE_BOTH);
-
-
-        if (empty($proposedData)) {
-            return back()->with('info', 'Tidak ada perubahan yang diajukan.');
-        }
-
-        // Buat atau perbarui entri PendingProfileUpdate
-        $pendingUpdate = PendingProfileUpdate::updateOrCreate(
-            ['user_id' => $user->id, 'status' => 'pending'],
-            [
-                'original_data' => $originalData,
-                'proposed_data' => $proposedData,
-                'reason' => $request->input('reason', 'Perubahan profil oleh pengguna.'),
-                'status' => 'pending',
-            ]
-        );
-
-        // Kirim notifikasi ke admin
-        $adminUsers = User::whereHas('roles', function ($query) {
-            $query->where('name', 'admin');
-        })->get();
-
-        Notification::send($adminUsers, new ProfileUpdateSubmittedNotification($user, $pendingUpdate));
-
-        return back()->with('success', 'Perubahan profil Anda telah diajukan dan menunggu persetujuan administrator.');
+   public function editProfile()
+{
+    $user = auth()->user(); // Get the currently authenticated user
+    $roles = Role::all(); // Only if you need roles for the form
+    
+    // Make sure the user exists
+    if (!$user) {
+        abort(404, 'User not found');
     }
+    
+    return view('users.edit', compact('user', 'roles'));
+}
 
     /**
      * Display a listing of pending user registrations (for admin).
@@ -154,60 +141,87 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-   public function pendingRegistrations()
+    public function pendingRegistrations(): Factory|View
     {
-        $pendingUsers = User::where('status', 'pending')->get();
-        return view('auth.registration-pending', compact('pendingUsers'));
+       $pendingUsers = User::role('siswa')->where('status', 'pending')->get();
+       return view('admin.pending-users', compact('pendingUsers'));
     }
 
     /**
      * Approve a pending user registration.
      * Menyetujui pendaftaran pengguna yang tertunda.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
+     * @param   int   $userId
      */
-    public function approveRegistration(Request $request, User $user)
+    public function approveRegistration($userId): RedirectResponse
     {
-        if ($user->status === 'pending') {
-            $user->status = 'active';
-            $user->approved_by = Auth::id(); // Menggunakan Auth::id() untuk user yang sedang login
-            $user->approved_at = now();
-            $user->save();
+        $this->authorize('approve registrations');
 
-            // Kirim notifikasi persetujuan ke pengguna
-            Notification::send($user, new RegistrationApprovedNotification($user));
+        $user = User::find($userId);
 
-            return redirect()->route('admin.pending-registrations')->with('success', 'Pendaftaran pengguna berhasil disetujui.');
+        if (!$user) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
         }
 
-        return redirect()->route('admin.pending-registrations')->with('error', 'Pendaftaran tidak dalam status menunggu konfirmasi.');
+        if ($user->status === 'pending' && $user->hasRole('siswa')) {
+            DB::beginTransaction();
+            try {
+                $user->status = 'active'; // Ubah status menjadi 'active'
+                $user->approved_by = Auth::id(); // Menggunakan Auth::id() untuk user yang sedang login
+                $user->approved_at = now();
+                $user->save();
+
+                if (!Alternatif::where('user_id', $user->id)->exists()) {
+                    Alternatif::create([
+                        'user_id' => $user->id, // Kolom user_id sudah disertakan di sini
+                        'alternatif_code' => 'ALT-' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                        'alternatif_name' => $user->name,
+                        'status_perhitungan' => 'pending',
+                    ]);
+                }
+
+                DB::commit();
+                Notification::send($user, new RegistrationApprovedNotification($user));
+
+                return redirect()->back()->with('success', 'Siswa berhasil disetujui dan alternatif telah dibuat.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Terjadi kesalahan saat menyetujui siswa: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->back()->with('info', 'Pengguna ini sudah disetujui atau bukan siswa pending.');
     }
 
     /**
      * Reject a pending user registration.
      * Menolak pendaftaran pengguna yang tertunda.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $user
+     * @param   int   $userId
      * @return \Illuminate\Http\Response
      */
-    public function rejectRegistration(Request $request, User $user)
+    public function rejectRegistration($userId): RedirectResponse
     {
-        if ($user->status === 'pending') {
-            $user->status = 'rejected'; // Ubah status menjadi 'rejected'
-            $user->approved_by = Auth::id(); // Menggunakan Auth::id() untuk user yang sedang login
+        $this->authorize('reject registrations');
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
+        }
+
+        if ($user->status === 'pending' && $user->hasRole('siswa')) {
+            $user->status = 'rejected'; 
+            $user->approved_by = Auth::id(); 
             $user->approved_at = now();
             $user->save();
 
-            // Kirim notifikasi penolakan ke pengguna
             Notification::send($user, new RegistrationRejectedNotification($user));
 
-            return redirect()->route('admin.pending-registrations')->with('success', 'Pendaftaran pengguna berhasil ditolak.');
+            return redirect()->back()->with('success', 'Pendaftaran siswa berhasil ditolak.');
         }
 
-        return redirect()->route('admin.pending-registrations')->with('error', 'Pendaftaran tidak dalam status menunggu konfirmasi.');
+        return redirect()->back()->with('info', 'Pengguna ini tidak dalam status pending pendaftaran.');
     }
 
     /**
@@ -216,12 +230,12 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function pendingProfileUpdates()
+    public function pendingProfileUpdates(): Factory|View
     {
-        $pendingUpdates = PendingProfileUpdate::with('user', 'approver')
-                                        ->where('status', 'pending')
-                                        ->orderBy('created_at', 'desc')
-                                        ->get();
+        $this->authorize('approve registrations');
+        $pendingUpdates = PendingProfileUpdate::where('status', 'pending')->with('user', 'approver')
+                                             ->orderBy('created_at', 'desc')
+                                             ->get();
         return view('admin.pending-profile-updates', compact('pendingUpdates'));
     }
 
@@ -229,68 +243,78 @@ class UserController extends Controller
      * Approve a pending profile update.
      * Menyetujui pembaruan profil yang tertunda.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\PendingProfileUpdate  $pendingUpdate
+     * @param   \Illuminate\Http\Request  $request
+     * @param   \App\Models\PendingProfileUpdate  $pendingUpdate
      * @return \Illuminate\Http\Response
      */
-    public function approveProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate)
+    public function approveProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate): RedirectResponse
     {
         if ($pendingUpdate->status === 'pending') {
-            // Perbarui data pengguna dengan data yang diajukan
+
+            // Mendapatkan instance User terkait dari pending update
+            // Laravel secara otomatis me-load User di sini karena ini adalah relasi Eloquent
             $user = $pendingUpdate->user;
-            $user->fill($pendingUpdate->proposed_data);
+
+            // Karena 'proposed_data' sudah di-cast ke 'array' di model PendingProfileUpdate,
+            // Anda tidak perlu lagi memanggil json_decode().
+            // Variabel $proposedData sudah akan berupa array.
+            $proposedData = $pendingUpdate->proposed_data; // <--- INI PERBAIKANNYA
+
+            // Mengisi data profil user dengan data yang diusulkan
+            $user->fill($proposedData);
             $user->save();
 
             // Ubah status pending update menjadi 'approved'
             $pendingUpdate->status = 'approved';
-            $pendingUpdate->approved_by = Auth::id(); // Menggunakan Auth::id() untuk user yang sedang login
+            $pendingUpdate->approved_by = Auth::id();
             $pendingUpdate->approved_at = now();
             $pendingUpdate->save();
 
-            // Kirim notifikasi ke pengguna bahwa perubahan profil mereka telah disetujui
+            // Kirim notifikasi ke user
+            // Pastikan konstruktor ProfileUpdateApprovedNotification($user) menerima instance App\Models\User
             Notification::send($user, new ProfileUpdateApprovedNotification($user));
 
-            return redirect()->route('admin.pending-profile-updates')->with('success', 'Perubahan profil berhasil disetujui.');
+            return redirect()->route('admin.users.pending-profile-updates')->with('success', 'Perubahan profil berhasil disetujui.');
         }
 
-        return redirect()->route('admin.pending-profile-updates')->with('error', 'Pembaruan profil tidak dalam status menunggu konfirmasi.');
+        return redirect()->route('admin.users.pending-profile-updates')->with('error', 'Pembaruan profil tidak dalam status menunggu konfirmasi.');
     }
+
 
     /**
      * Reject a pending profile update.
      * Menolak pembaruan profil yang tertunda.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\PendingProfileUpdate  $pendingUpdate
+     * @param   \Illuminate\Http\Request  $request
+     * @param   \App\Models\PendingProfileUpdate  $pendingUpdate
      * @return \Illuminate\Http\Response
      */
-    public function rejectProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate)
+    public function rejectProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate): RedirectResponse
     {
         if ($pendingUpdate->status === 'pending') {
-            // Ubah status pending update menjadi 'rejected'
             $pendingUpdate->status = 'rejected';
-            $pendingUpdate->approved_by = Auth::id(); // Menggunakan Auth::id() untuk user yang sedang login
+            $pendingUpdate->approved_by = Auth::id();
             $pendingUpdate->approved_at = now();
             $pendingUpdate->save();
 
-            // Kirim notifikasi ke pengguna bahwa perubahan profil mereka ditolak
             Notification::send($pendingUpdate->user, new ProfileUpdateRejectedNotification($pendingUpdate->user));
 
-            return redirect()->route('admin.pending-profile-updates')->with('success', 'Perubahan profil berhasil ditolak.');
+            return redirect()->route('admin.users.pending-profile-updates')->with('success', 'Perubahan profil berhasil ditolak.');
         }
 
-        return redirect()->route('admin.pending-profile-updates')->with('error', 'Pembaruan profil tidak dalam status menunggu konfirmasi.');
+        return redirect()->route('admin.users.pending-profile-updates')->with('error', 'Pembaruan profil tidak dalam status menunggu konfirmasi.');
     }
 
     /**
      * Remove the specified user from storage.
      * Menghapus pengguna dari penyimpanan.
      *
-     * @param  \App\Models\User  $user
+     * @param   \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $user)
+    public function destroy(User $user): RedirectResponse
     {
+        $this->authorize('manage users'); 
         $user->delete();
         return redirect()->route('user.management')->with('success', 'User deleted successfully.');
     }

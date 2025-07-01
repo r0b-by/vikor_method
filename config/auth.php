@@ -40,6 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+            'siswa' => [
+            'driver' => 'session',
+            'provider' => 'siswa', // You'd need to create this provider
+        ],
     ],
 
     /*

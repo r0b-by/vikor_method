@@ -75,12 +75,14 @@
                                     </td>
                                     <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent text-center">
                                         {{-- Form to approve registration --}}
-                                        <form action="{{ route('admin.approve-registration', $user) }}" method="POST" class="inline-block">
+                                        {{-- MODIFIKASI: Mengubah nama rute --}}
+                                        <form action="{{ route('admin.users.approve-registration', $user->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             <button type="submit" class="focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 me-2 mb-2">Konfirmasi</button>
                                         </form>
                                         {{-- Form to reject registration --}}
-                                        <form action="{{ route('admin.reject-registration', $user) }}" method="POST" class="inline-block">
+                                        {{-- MODIFIKASI: Mengubah nama rute --}}
+                                        <form action="{{ route('admin.users.reject-registration', $user->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             <button type="submit" class="focus:outline-none text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 mb-2">Tolak</button>
                                         </form>

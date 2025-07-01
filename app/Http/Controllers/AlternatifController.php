@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\alternatif;
 use Illuminate\Http\Request;
 use App\Http\Requests\AlternatifRequest;
+use Illuminate\Contracts\View\View;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 class AlternatifController extends Controller
 {
@@ -14,7 +18,7 @@ class AlternatifController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth', 'role:admin|guru']); // Memastikan hanya admin atau guru
+        $this->middleware(['auth', 'role:admin|guru']); 
     }
 
     /**
@@ -22,7 +26,7 @@ class AlternatifController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): Factory|View
     {
         $alternatif = alternatif::orderByRaw('LENGTH(alternatif_code), alternatif_code')->get();
         return view('dashboard.alternatif', compact('alternatif'));
@@ -34,7 +38,7 @@ class AlternatifController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): void
     {
         //
     }
@@ -45,7 +49,7 @@ class AlternatifController extends Controller
      * @param  \App\Http\Requests\AlternatifRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(AlternatifRequest $request)
+    public function store(AlternatifRequest $request): RedirectResponse
     {
         $data = $request->validated();
         alternatif::create($data);
@@ -59,7 +63,7 @@ class AlternatifController extends Controller
      * @param  \App\Models\alternatif  $alternatif
      * @return \Illuminate\Http\Response
      */
-    public function show(alternatif $alternatif)
+    public function show(alternatif $alternatif): void
     {
         //
     }
@@ -71,11 +75,9 @@ class AlternatifController extends Controller
      * @param  \App\Models\alternatif  $alternatif
      * @return \Illuminate\Http\Response
      */
-    public function edit(alternatif $alternatif)
+    public function edit(alternatif $alternatif): Factory|View
     {
-        
-        // Variabel $alternatif seharusnya sudah berisi data dari database
-        return view('dashboard.alternatif', compact('alternatif')); // Pastikan nama view benar
+        return view('dashboard.alternatif', compact('alternatif')); 
     }
 
     /**
@@ -85,7 +87,7 @@ class AlternatifController extends Controller
      * @param  \App\Models\alternatif  $alternatif
      * @return \Illuminate\Http\Response
      */
-    public function update(AlternatifRequest $request, alternatif $alternatif)
+    public function update(AlternatifRequest $request, alternatif $alternatif): RedirectResponse
     {
         $alternatif = alternatif::findOrFail($request->id); // Pastikan mengambil instance yang benar
         $data = $request->validated();
@@ -99,7 +101,7 @@ class AlternatifController extends Controller
      * @param  string  $alternatif
      * @return \Illuminate\Http\Response
      */
-    public function destroy(string $alternatif)
+    public function destroy(string $alternatif): RedirectResponse
     {
         // Menggunakan findOrFail untuk memastikan alternatif ada sebelum dihapus
         alternatif::findOrFail($alternatif)->delete();

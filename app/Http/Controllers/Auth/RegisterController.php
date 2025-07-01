@@ -8,9 +8,9 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
-use Illuminate\Http\Request; // Import Request
-use Illuminate\Auth\Events\Registered; // Import Registered event
-use Illuminate\Http\JsonResponse; // Import JsonResponse
+use Illuminate\Http\Request; 
+use Illuminate\Auth\Events\Registered; 
+use Illuminate\Http\JsonResponse; 
 
 class RegisterController extends Controller
 {
@@ -46,10 +46,10 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'nis' => ['required', 'string', 'max:20', 'unique:users'], // <<< Ini required
-            'kelas' => ['required', 'string', 'max:255'], // <<< Ini required
-            'jurusan' => ['required', 'string', 'max:255'], // <<< Ini required
-            'alamat' => ['required', 'string', 'max:255'], // <<< Ini required
+            'nis' => ['required', 'string', 'max:20', 'unique:users'], 
+            'kelas' => ['required', 'string', 'max:255'], 
+            'jurusan' => ['required', 'string', 'max:255'], 
+            'alamat' => ['required', 'string', 'max:255'], 
         ]);
     }
     /**
@@ -60,7 +60,6 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        // ... di dalam protected function create(array $data)
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -69,12 +68,11 @@ class RegisterController extends Controller
             'kelas' => $data['kelas'],
             'jurusan' => $data['jurusan'],
             'alamat' => $data['alamat'],
-            'status' => 'pending', // <<< Pastikan ini ada dan benar
+            'status' => 'pending', 
         ]);
-// ...
 
         // Tetapkan peran 'siswa' secara default
-        $user->assignRole('siswa'); // Ini akan menetapkan peran 'siswa' ke pengguna baru
+        $user->assignRole('siswa'); 
 
         return $user;
     }
@@ -98,10 +96,9 @@ class RegisterController extends Controller
             // Arahkan ke halaman tunggu konfirmasi
             return $request->wantsJson()
                         ? new JsonResponse([], 201)
-                        : redirect('/registration-pending'); // Buat route dan view ini
+                        : redirect('/registration-pending'); 
         }
 
-        // Jika status bukan 'pending' (misalnya admin yang mendaftar atau status default 'active'),
         // lanjutkan ke redirect default RegistersUsers (ke /home atau dashboard)
         return $request->wantsJson()
                     ? new JsonResponse([], 201)

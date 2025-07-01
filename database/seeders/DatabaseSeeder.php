@@ -12,14 +12,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // Seeder untuk peran dan izin (dari Spatie)
-            RolesAndPermissionsSeeder::class,
-            // Seeder untuk contoh user
             UserSeeder::class,
-            // Seeder untuk data kriteria (harus sebelum AlternatifPenilaianSeeder)
             CriteriaSeeder::class,
-            // Seeder untuk data alternatif dan penilaian (matriks)
-            AlternatifPenilaianSeeder::class,
+            AlternatifSeeder::class,
+            PenilaianSeeder::class,
+            HasilVikorSeeder::class,
+            PermissionsSeeder::class,
         ]);
+
     }
 }

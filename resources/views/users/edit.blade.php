@@ -12,9 +12,9 @@
         </div>
     @endif
 
-    <form action="{{ route('user.update', $user->id) }}" method="POST">
-        @csrf
-        @method('PATCH') {{-- PENTING: Gunakan metode PATCH untuk update --}}
+    <form action="{{ route('admin.users.update', ['user' => $user]) }}" method="POST">
+    @csrf
+    @method('PUT')
 
         {{-- ID (Usually read-only) --}}
         <div class="mb-4">

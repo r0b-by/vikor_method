@@ -1,58 +1,106 @@
 @extends('dashboard.layouts.dashboardmain')
-@section('title', 'User Management')
+@section('title', 'Manajemen Pengguna')
 
 @section('content')
-    <div class="container mx-auto p-6 bg-white dark:bg-slate-900 shadow rounded-lg">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">User Management</h1>
-        <p class="text-gray-700 dark:text-gray-300">This is the user management page. You can list, add, edit, and delete users here.</p>
-
-        @isset($users)
-            <div class="overflow-x-auto"> {{-- Add this div for horizontal scrolling on small screens --}}
-                <table class="min-w-full bg-white dark:bg-gray-800">
-                    <thead>
-                        <tr>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">ID</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Name</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Email</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">NIS</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Kelas</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Jurusan</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Alamat</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Status</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Role</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Email Verified At</th>
-                            <th class="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($users as $user)
-                        <tr>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->id }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->name }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->email }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->nis }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->kelas }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->jurusan }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->alamat }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->status }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->getRoleNames()->implode(', ') }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">{{ $user->email_verified_at ? $user->email_verified_at->format('Y-m-d H:i:s') : 'N/A' }}</td>
-                            <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-700">
-                                <a href="{{ route('users.edit', $user->id) }}" class="text-blue-500 hover:text-blue-700">Edit</a>
-                                {{-- Add delete button with form if needed --}}
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700 ml-2">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @else
-            <p class="text-gray-700 dark:text-gray-300">No users found.</p>
-        @endisset
+<div class="flex flex-wrap -mx-3" data-aos="fade-zoom-in"
+     data-aos-easing="ease-in-back"
+     data-aos-delay="300"
+     data-aos-offset="0">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl xl:text-3xl font-bold text-slate-900 dark:text-white">
+            Manajemen Pengguna
+        </h2>
     </div>
+    <div class="flex-none w-full max-w-full px-3 overflow-x-hidden">
+        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+            <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                <h6 class="dark:text-white">Daftar Pengguna</h6>
+            </div>
+            <div class="flex-auto px-0 pt-0 pb-2">
+                <div class="p-6 overflow-x-auto">
+                    {{-- Session messages for success or error --}}
+                    @if (session('success'))
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <span class="block sm:inline">{{ session('success') }}</span>
+                        </div>
+                    @endif
+                    @if (session('error'))
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <span class="block sm:inline">{{ session('error') }}</span>
+                        </div>
+                    @endif
+
+                    <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+                        <thead class="align-bottom">
+                            <tr>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    No
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Nama
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Email
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Role
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Status
+                                </th>
+                                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($users as $user)
+                                <tr>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $loop->iteration }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->name }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->email }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->getRoleNames()->first() ?: 'Tidak Ada' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ ucfirst($user->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent text-center">
+                                        {{-- MODIFIKASI: Mengubah nama rute menjadi admin.users.edit --}}
+                                        <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-500 hover:text-blue-700 font-medium">Edit</a>
+                                        <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline-block ml-2">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-500 hover:text-red-700 font-medium" onclick="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?');">Hapus</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-3 text-sm text-gray-500 dark:text-white">Tidak ada pengguna yang terdaftar.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

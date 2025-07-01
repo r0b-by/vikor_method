@@ -9,10 +9,8 @@ class PendingProfileUpdate extends Model
 {
     use HasFactory;
 
-    // Nama tabel di database
     protected $table = 'pending_profile_updates';
 
-    // Kolom yang dapat diisi secara massal
     protected $fillable = [
         'user_id',
         'original_data',
@@ -26,7 +24,7 @@ class PendingProfileUpdate extends Model
     // Mengubah atribut tertentu menjadi array/JSON secara otomatis
     protected $casts = [
         'original_data' => 'array',
-        'proposed_data' => 'array',
+        'proposed_data' => 'array', // <--- INI PENTING!
         'approved_at' => 'datetime',
     ];
 

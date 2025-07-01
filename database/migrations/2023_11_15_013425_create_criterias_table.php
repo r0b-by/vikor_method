@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('criteria_name');
             $table->string('criteria_type');
             $table->double('weight');
+            $table->timestamps();
         });
     }
 

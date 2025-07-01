@@ -2,11 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Http\Request;
-
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\HasilController; // Make sure HasilController is imported
+use App\Http\Controllers\HasilController;
 use App\Http\Controllers\criteria_controller;
 use App\Http\Controllers\AlternatifController;
 use App\Http\Controllers\PenilaianController;
@@ -14,108 +12,106 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\HitungController;
 use App\Http\Controllers\UserController;
 
+
+
+// ============================================================
+// Halaman Utama / Welcome Page (Tidak memerlukan autentikasi)
+// ============================================================
+Route::get('/', function () {
+    return view('welcome'); 
+})->name('welcome');
 // ============================================================
 // Autentikasi Laravel (termasuk verifikasi email)
 // ============================================================
 Auth::routes(['verify' => true]);
 
 // ============================================================
-// Rute Umum
+// Rute Setelah Autentikasi (Dilindungi oleh middleware 'auth' dan 'check.user.status')
+// Middleware 'check.user.status' akan memastikan user dengan status 'pending' tidak bisa mengakses rute ini
 // ============================================================
-
-// Akses root diarahkan ke halaman welcome
-Route::get('/', function () {
-    return view('welcome');
-});
-
-// /home dialihkan ke dashboard setelah login
-Route::get('/home', function () {
-    return redirect()->route('dashboard');
-});
-
-// Logout manual (dengan invalidasi session dan regenerasi token)
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/');
-})->name('logout');
-
-// Halaman khusus untuk pendaftaran yang sedang menunggu konfirmasi
-Route::get('/registration-pending', function () {
-    return view('auth.registration-pending');
-})->name('registration.pending');
-
-
-// ============================================================\
-// Rute Setelah Autentikasi (dilindungi oleh middleware 'auth')
-// ============================================================\
 Route::middleware(['auth', 'check.user.status'])->group(function () {
-    // Dashboard, diakses setelah login
+
+    // Dashboard utama, diakses setelah login
     Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::patch('/users/{user}', [UserController::class, 'update'])->name('user.update');
 
-    // Manajemen Pengguna (hanya Admin)
-    Route::prefix('users')->middleware('role:admin')->group(function () {
-        Route::get('/', [UserController::class, 'index'])->name('user.management');
-        Route::get('/users', [UserController::class, 'index'])->name('user.management');
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-        // routes/web.php
-        Route::patch('/users/{user}', [UserController::class, 'update'])->name('user.update');
-        Route::get('/pending-registrations', [UserController::class, 'pendingRegistrations'])->name('admin.pending-registrations');
-        Route::post('/approve-registration/{user}', [UserController::class, 'approveRegistration'])->name('admin.approve-registration');
-        Route::post('/reject-registration/{user}', [UserController::class, 'rejectRegistration'])->name('admin.reject-registration');
-        Route::get('/pending-profile-updates', [UserController::class, 'pendingProfileUpdates'])->name('admin.pending-profile-updates');
-        Route::post('/approve-profile-update/{pendingUpdate}', [UserController::class, 'approveProfileUpdate'])->name('admin.approve-profile-update');
-        Route::post('/reject-profile-update/{pendingUpdate}', [UserController::class, 'rejectProfileUpdate'])->name('admin.reject-profile-update');
-    });
+    // Rute-rute ini akan digunakan oleh SEMUA user yang terautentikasi (admin, guru, siswa)
+    Route::get('/profile', [UserController::class, 'showProfile'])->name('profile.show'); //
+    Route::get('/profile/edit', [UserController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
 
-    // Edit dan Update Profil (User yang sedang login)
-    Route::get('/profile/edit', [UserController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
-    Route::get('/setting', [SettingController::class, 'index'])->name('setting');
-    Route::put('/settings', [SettingController::class, 'update'])->name('setting.update');
-
-
-    // ============================================================
-    // Rute Khusus Admin & Guru (Dilindungi oleh middleware 'role:admin|guru')
-    // ============================================================
-    Route::middleware('role:admin|guru')->group(function () {
-        // Manajemen Kriteria
-        Route::resource('criteria', criteria_controller::class);
-        Route::post('/criteria/update/{criteria}', [criteria_controller::class, 'update'])->name('criteria.update');
-        Route::get('/criteria', [criteria_controller::class, 'index'])->name('criteria.index');
-
-        // Manajemen Alternatif
-        Route::resource('alternatif', AlternatifController::class);
-        Route::post('/alternatif/update/{alternatif}', [AlternatifController::class, 'update'])->name('alternatif.update');
-        Route::get('/alternatif', [AlternatifController::class, 'index'])->name('alternatif.index');
-
-        // Manajemen Penilaian
-        Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index');
-        Route::post('/penilaian/store-or-update', [PenilaianController::class, 'storeOrUpdate'])->name('penilaian.storeOrUpdate');
-        
-        // Proses VIKOR (oleh Admin & Guru)
-        Route::prefix('hitung')->group(function () {
-            Route::get('/', [HitungController::class, 'index'])->name('hitung.index');
-            Route::post('/simpan', [HitungController::class, 'simpan'])->name('hitung.simpan');
-            Route::get('/normalisasi', [HitungController::class, 'tampilNormalisasi'])->name('hitung.normalisasi');
-            Route::get('/normalisasiterbobot', [HitungController::class, 'tampilNormalisasiTerbobot'])->name('hitung.normalisasiterbobot');
-            Route::get('/selisihideal', [HitungController::class, 'tampilSelisihIdeal'])->name('hitung.selisihideal');
-            Route::get('/matriks', [HitungController::class, 'tampilMatriks'])->name('hitung.matriks');
-            Route::get('/utility', [HitungController::class, 'tampilUtility'])->name('hitung.utility');
-            Route::get('/kompromi', [HitungController::class, 'tampilKompromi'])->name('hitung.kompromi');
-            Route::get('/ranking', [HitungController::class, 'tampilRanking'])->name('hitung.ranking');
-        });
-    });
+    // Rute Setting
+    Route::get('/setting', [SettingController::class, 'index'])->name('setting'); //
+    Route::put('/settings', [SettingController::class, 'update'])->name('setting.update'); //
 
     // Rute untuk Hasil VIKOR (dapat diakses oleh semua peran terautentikasi)
-    Route::get('/hasil', [HasilController::class, 'index'])->name('hasil.index');
+    Route::get('/hasil', [HasilController::class, 'index'])->name('hasil.index'); //
+    Route::get('/hasil/cetak-pdf', [HasilController::class, 'cetak'])->name('hasil.cetak'); //
 
-    // ** Tambahkan rute ini untuk cetak PDF **
-    // Pastikan hanya admin yang bisa mengaksesnya, sesuai dengan middleware di controller
-    Route::get('/hasil/cetak-pdf', [HasilController::class, 'cetak'])->name('hasil.cetak');
-    Route::get('/some-restricted-page', [UserController::class, 'index'])->middleware('check.user.status');
 
+    // ============================================================
+    // Rute Khusus Admin (Dilindungi oleh middleware 'role:admin')
+    // ============================================================
+    Route::middleware('role:admin')->prefix('admin')->group(function () {
+        // Manajemen Pengguna (Admin dapat mengelola semua pengguna)
+        Route::get('/users', [UserController::class, 'index'])->name('user.management'); //
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy'); //
+        // Admin mengedit user lain (perhatikan route model binding)
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
+        Route::get('/users/pending-registrations', [UserController::class, 'pendingRegistrations'])->name('admin.users.pending-registrations'); //
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+        // Persetujuan Pendaftaran Pengguna
+        
+        Route::post('/users/{userId}/approve-registration', [UserController::class, 'approveRegistration'])->name('admin.users.approve-registration'); //
+        Route::post('/users/{userId}/reject-registration', [UserController::class, 'rejectRegistration'])->name('admin.users.reject-registration'); //
+
+        // Persetujuan Pembaruan Profil
+        Route::get('/users/pending-profile-updates', [UserController::class, 'pendingProfileUpdates'])->name('admin.users.pending-profile-updates'); //
+        Route::post('/users/{pendingUpdate}/approve-profile-update', [UserController::class, 'approveProfileUpdate'])->name('admin.users.approve-profile-update'); //
+        Route::post('/users/{pendingUpdate}/reject-profile-update', [UserController::class, 'rejectProfileUpdate'])->name('admin.users.reject-profile-update'); //
+    });
+
+    // ============================================================
+    // Rute Khusus Siswa (Dilindungi oleh middleware 'role:siswa')
+    // ============================================================
+    Route::middleware('role:siswa')->group(function () {
+
+        // Dashboard siswa untuk menampilkan hasil Vikor
+        Route::get('/siswa/dashboard', [HomeController::class, 'showSiswaDashboard'])->name('siswa.dashboard'); //
+        Route::get('/siswa/hasil', [HasilController::class, 'showSiswa'])->name('siswa.hasil'); //
+        Route::get('/siswa/cetak-hasil', [HasilController::class, 'cetakSiswa'])->name('siswa.cetak-hasil'); //
+        Route::get('/siswa/profile/show', [UserController::class, 'showProfile'])->name('siswa.profile.show'); //
+        Route::get('/siswa/profile/edit', [UserController::class, 'edit'])->name('siswa.profile.edit-siswa'); //
+        // Form penilaian mandiri siswa
+        Route::get('/siswa/penilaian', [PenilaianController::class, 'indexForStudent'])->name('siswa.penilaian.index'); //
+        Route::post('/siswa/penilaian', [PenilaianController::class, 'storeOrUpdateForStudent'])->name('siswa.penilaian.store'); //
+    });
+
+    // ... Rute Khusus Admin & Guru (tetap sama) ...
+    Route::middleware('role:admin|guru')->group(function () {
+        // Manajemen Kriteria
+        Route::resource('criteria', criteria_controller::class)->except(['update']); //
+        Route::post('/criteria/update/{criteria}', [criteria_controller::class, 'update'])->name('criteria.update'); //
+
+        // Manajemen Alternatif
+        Route::resource('alternatif', AlternatifController::class)->except(['update']); //
+        Route::post('/alternatif/update/{alternatif}', [AlternatifController::class, 'update'])->name('alternatif.update'); //
+
+        // Manajemen Penilaian
+        Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index'); //
+        Route::post('/penilaian/store-or-update', [PenilaianController::class, 'storeOrUpdate'])->name('penilaian.storeOrUpdate'); //
+
+        // Proses VIKOR
+        Route::prefix('hitung')->group(function () { //
+            Route::get('/', [HitungController::class, 'index'])->name('hitung.index'); //
+            Route::post('/perform', [HitungController::class, 'performCalculation'])->name('hitung.perform'); //
+            Route::post('/simpan', [HitungController::class, 'simpan'])->name('hitung.simpan'); //
+            Route::get('/normalisasi', [HitungController::class, 'tampilNormalisasi'])->name('hitung.normalisasi'); //
+            Route::get('/normalisasi-terbobot', [HitungController::class, 'tampilNormalisasiTerbobot'])->name('hitung.normalisasi-terbobot'); //
+            Route::get('/selisih-ideal', [HitungController::class, 'tampilSelisihIdeal'])->name('hitung.selisih-ideal'); //
+            Route::get('/matriks', [HitungController::class, 'tampilMatriks'])->name('hitung.matriks'); //
+            Route::get('/utility', [HitungController::class, 'tampilUtility'])->name('hitung.utility'); //
+            Route::get('/kompromi', [HitungController::class, 'tampilKompromi'])->name('hitung.kompromi'); //
+            Route::get('/ranking', [HitungController::class, 'tampilRanking'])->name('hitung.ranking'); //
+        });
+    });
 });

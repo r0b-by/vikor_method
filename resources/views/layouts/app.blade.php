@@ -35,8 +35,5 @@
         </main>
     </div>
     <script src="{{ mix('js/app.js') }}"></script>
-
-    {{-- Removed AOS JS and loader spinner --}}
-
 </body>
 </html>

@@ -7,49 +7,45 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles; // Import trait Spatie
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail // Jika Anda menggunakan verifikasi email
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles; // Tambahkan HasRoles
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    // app/Models/User.php
     protected $fillable = [
         'name', 'email', 'password', 'nis', 'kelas', 'jurusan', 'alamat',
-        'status', // <<< Pastikan ini ada
+        'status',
         'approved_by',
         'approved_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'approved_at' => 'datetime', // Cast ini juga
+        'approved_at' => 'datetime',
     ];
 
-    // Relasi ke admin yang menyetujui
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Relasi ke model Alternatif.
+     * Asumsi satu user (siswa) memiliki satu alternatif.
+     */
+    public function alternatif()
+    {
+        return $this->hasOne(Alternatif::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

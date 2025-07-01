@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\User; // Import model User
 
-class NewUserRegisteredNotification extends Notification implements ShouldQueue // Tambahkan ShouldQueue jika ingin antrean
+class NewUserRegisteredNotification extends Notification implements ShouldQueue 
 {
     use Queueable;
 
@@ -33,7 +33,7 @@ class NewUserRegisteredNotification extends Notification implements ShouldQueue 
      */
     public function via($notifiable)
     {
-        return ['mail']; // Anda bisa menambahkan 'database' jika ingin notifikasi di database
+        return ['mail']; 
     }
 
     /**
@@ -49,7 +49,7 @@ class NewUserRegisteredNotification extends Notification implements ShouldQueue 
                     ->line('Pengguna baru telah mendaftar dan menunggu konfirmasi Anda.')
                     ->line('Nama: ' . $this->newUser->name)
                     ->line('Email: ' . $this->newUser->email)
-                    ->action('Lihat Pendaftaran Menunggu', url('/admin/pending-registrations')) // Anda akan membuat rute ini nanti
+                    ->action('Lihat Pendaftaran Menunggu', url('/admin/pending-registrations')) 
                     ->line('Terima kasih!');
     }
 

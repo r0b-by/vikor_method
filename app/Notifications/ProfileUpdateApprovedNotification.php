@@ -12,6 +12,11 @@ class ProfileUpdateApprovedNotification extends Notification implements ShouldQu
 {
     use Queueable;
 
+    public function __construct(User $user) // <-- Konstruktor mengharapkan tipe App\Models\User
+    {
+        $this->user = $user;
+    }
+
     protected $user;
 
     /**
@@ -20,10 +25,6 @@ class ProfileUpdateApprovedNotification extends Notification implements ShouldQu
      * @param \App\Models\User $user
      * @return void
      */
-    public function __construct(User $user)
-    {
-        $this->user = $user;
-    }
 
     /**
      * Get the notification's delivery channels.
@@ -47,7 +48,7 @@ class ProfileUpdateApprovedNotification extends Notification implements ShouldQu
         return (new MailMessage)
                     ->subject('Perubahan Profil Disetujui!')
                     ->line('Selamat ' . $this->user->name . ', perubahan profil Anda telah disetujui oleh administrator.')
-                    ->action('Lihat Profil Anda', url('/users/' . $this->user->id . '/edit')) // Ganti dengan rute edit profil yang sesuai
+                    ->action('Lihat Profil Anda', url('/users/' . $this->user->id . '/edit')) 
                     ->line('Terima kasih!');
     }
 

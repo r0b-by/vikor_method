@@ -18,7 +18,6 @@ class CheckUserStatus
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Pastikan pengguna sudah login
         if (Auth::check()) {
             $user = Auth::user();
 

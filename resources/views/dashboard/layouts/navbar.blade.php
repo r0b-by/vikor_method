@@ -1,7 +1,7 @@
 <!-- Navbar -->
 <nav
     id="navbar-main"
-    class="sticky top-0 z-10 w-full 
+    class="sticky top-0 z-10 w-full
            flex items-center justify-between px-4 py-3
            shadow-md rounded-lg
            bg-white dark:bg-slate-850 "
@@ -18,11 +18,10 @@
             <h6 class="mb-0 font-bold capitalize text-slate-700 dark:text-white">{{ Request::segment(1) }}</h6>
         </nav>
         <ul class="flex flex-row justify-end pl-0 mb-0 list-none md-max:w-full">
-            <!-- Notifications for Admin -->
+        <!-- Notifications for Admin -->
             @role('admin') {{-- Only show notifications if the user is an admin --}}
             <li class="relative flex items-center px-4">
-                {{-- Link to pending registrations page --}}
-                <a href="{{ route('admin.pending-registrations') }}" class="block p-0 text-sm text-slate-700 dark:text-white transition-all ease-nav-brand">
+                <a href="{{ route('admin.users.pending-registrations') }}" class="block p-0 text-sm text-slate-700 dark:text-white transition-all ease-nav-brand">
                     <i class="fa fa-bell cursor-pointer"></i>
                     {{-- Display notification badge if there are pending registrations --}}
                     @if (isset($pendingRegistrationsCount) && $pendingRegistrationsCount > 0)
@@ -48,7 +47,7 @@
                     <!-- Dropdown -->
                     <div id="profileDropdownMenu"
                         class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-md shadow-lg z-50 py-2 transition-all duration-150">
-                        <a href="{{ route('users.edit', Auth::user()->id) }}"
+                        <a href="{{ route('profile.edit') }}" {{-- Menggunakan rute 'profile.edit' --}}
                             class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">Profile</a>
                         <a href="{{ route('setting') }}"
                             class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">Settings</a>
@@ -75,7 +74,6 @@
             {{-- Placeholder for fixed-plugin-button-nav --}}
             <li class="flex items-center px-4">
                 <a href="javascript:;" class="block p-0 text-sm text-slate-700 dark:text-white transition-all ease-nav-brand">
-                    <!-- fixed-plugin-button-nav -->
                 </a>
             </li>
         </ul>
@@ -103,4 +101,3 @@
         }
     });
 </script>
-

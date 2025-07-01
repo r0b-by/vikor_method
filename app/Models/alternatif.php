@@ -5,22 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class alternatif extends Model
+class Alternatif extends Model
 {
     use HasFactory;
     protected $table = 'alternatifs';
-    public $timestamps = false;
+    public $timestamps = false; 
 
     protected $fillable = [
-        'user_id', // Tambahkan ini untuk menghubungkan dengan User
-        'no_alternatif',
+        'user_id',
+        'no_alternatif', 
         'alternatif_code',
         'alternatif_name',
+        'status_perhitungan',
     ];
 
     public function penilaian()
     {
-        return $this->hasMany(penilaian::class, 'id_alternatif');
+        return $this->hasMany(Penilaian::class, 'id_alternatif');
     }
 
     /**
@@ -29,5 +30,14 @@ class alternatif extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relasi ke model HasilVikor.
+     * Asumsi satu alternatif memiliki satu hasil VIKOR (misalnya, yang terakhir dihitung).
+     */
+    public function hasilVikor()
+    {
+        return $this->hasOne(HasilVikor::class, 'id_alternatif');
     }
 }

@@ -1,14 +1,14 @@
 services:
   - type: web
     name: laravel-app
-    env: docker
+    env: php
     region: oregon
     plan: free
-    dockerfilePath: Dockerfile
     buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan config:cache
+      composer install --no-dev
+      php artisan key:generate
       php artisan migrate --force
+    startCommand: php artisan serve --host 0.0.0.0 --port 10000
     envVars:
       - key: APP_ENV
         value: production
@@ -18,9 +18,3 @@ services:
         value: false
       - key: DB_CONNECTION
         value: sqlite
-      - key: DB_DATABASE
-        value: /var/www/html/database/database.sqlite
-      - key: APP_NAME
-        value: Laravel App
-      - key: APP_URL
-        value: https://vikor-method.onrender.com
