@@ -20,7 +20,8 @@ COPY package.json package-lock.json ./
 
 # Install PHP & Node dependencies
 RUN composer install --no-scripts --no-dev --optimize-autoloader -vvv
-RUN npm install && npm run prod
+RUN npm install
+RUN npx mix --mix-config=webpack.mix.cjs --production
 
 # Copy the rest of the application
 COPY . .
