@@ -1,7 +1,7 @@
-# Gunakan image PHP dengan Apache
+# Gunakan image PHP + Apache
 FROM php:8.2-apache
 
-# Install dependensi sistem untuk Laravel, SQLite, Node, dan Vite
+# ✅ Install system dependencies (PHP ext + SQLite + Node)
 RUN apt-get update && apt-get install -y \
     libzip-dev zip unzip sqlite3 libsqlite3-dev \
     libpng-dev libonig-dev libxml2-dev curl git \
@@ -10,46 +10,52 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && docker-php-ext-install pdo pdo_sqlite zip
 
-# Install Composer dari image resmi
+# ✅ Install Composer dari image resmi
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# ✅ Set working directory
 WORKDIR /var/www/html
 
-# Salin semua file proyek ke dalam container
+# ✅ Salin file package.json dan composer.json lebih awal untuk cache
+COPY package*.json ./
+COPY composer.json composer.lock ./
+
+# ✅ Install Node modules
+RUN npm install
+
+# ✅ Salin semua file Laravel ke container
 COPY . .
 
-# Install dependensi Laravel tanpa dev
+# ✅ Install dependensi Laravel (tanpa dev)
 RUN composer install --no-dev --optimize-autoloader
 
-# Install dan build asset frontend dengan Vite
-COPY package*.json ./
-RUN npm install && npm run build
+# ✅ Build Vite assets
+RUN npm run build
 
-# Salin .env jika belum ada
+# ✅ Salin .env jika belum ada
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# Laravel: cache config, route, view
+# ✅ Cache konfigurasi Laravel
 RUN php artisan config:clear && \
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache
 
-# Jalankan migrasi (opsional, skip error kalau DB belum siap)
+# ✅ Migrasi DB (skip error jika DB kosong)
 RUN php artisan migrate --force || true
 
-# Atur permission untuk Laravel
+# ✅ Atur permission
 RUN chmod -R 755 /var/www/html && \
     chown -R www-data:www-data /var/www/html
 
-# Aktifkan modul rewrite Apache
+# ✅ Aktifkan rewrite Apache
 RUN a2enmod rewrite
 
-# Ganti DocumentRoot Apache ke /public
+# ✅ Ubah document root ke `/public`
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 
-# Izinkan .htaccess aktif untuk routing Laravel
+# ✅ Izinkan .htaccess aktif
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-# Buka port Apache default
+# ✅ Buka port default Apache
 EXPOSE 80
