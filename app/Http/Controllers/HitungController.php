@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\HasilVikor;
-use App\Models\criteria;
-use App\Models\penilaian;
-use App\Models\alternatif;
+use App\Models\Criteria;
+use App\Models\Penilaian;
+use App\Models\Alternatif;
+use App\Models\AcademicPeriod;
 use Illuminate\Http\Request;
 
 class HitungController extends Controller
@@ -21,122 +23,229 @@ class HitungController extends Controller
         $this->middleware(['auth', 'role:admin|guru']);
     }
 
-    /**
-     * Displays the main calculation page and performs VIKOR calculations.
-     * This method will now primarily handle the initial calculation and
-     * display the final results (compromise values and ranking), and
-     * also manage the session messages for incomplete data.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $criterias = criteria::all();
-        $alternatifs = alternatif::with('hasilVikor')->get();
-        $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
+        $criterias = Criteria::all();
+        $academicPeriods = AcademicPeriod::orderBy('tahun_ajaran', 'desc')->orderBy('semester')->get();
 
-        // Inisialisasi variabel
-        $normalizedValues = [];
-        $weightedNormalization = [];
-        $ideal = [];
-        $Si = [];
-        $Ri = [];
-        $finalValues = [];
-        $ranking = [];
-        $calculationPerformed = false;
+        $selectedTahunAjaran = $request->input('tahun_ajaran_hitung');
+        $selectedSemester = $request->input('semester_hitung');
 
-        if (!$criterias->isEmpty() &&
-            !$alternatifs->isEmpty() &&
-            !$penilaians->isEmpty() &&
-            ($alternatifs->count() > 0 && $criterias->count() > 0) &&
-            $penilaians->count() === ($alternatifs->count() * $criterias->count())) {
-
-            // Lakukan perhitungan
-            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-            $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-            $ideal = $this->getIdeal($weightedNormalization);
-            $SiRi = $this->getSiRi($criterias, $alternatifs, $weightedNormalization, $ideal);
-            $Si = $SiRi['Si'];
-            $Ri = $SiRi['Ri'];
-            $finalValues = $this->getQi($Si, $Ri);
-            $ranking = $this->getRanking($finalValues);
-            $calculationPerformed = true;
-
-            // Simpan hasil ke database (Ini tetap di sini karena merupakan inti perhitungan dan penyimpanan)
-            DB::beginTransaction();
-            try {
-                HasilVikor::truncate();
-
-                foreach ($alternatifs as $alt) {
-                    $altId = $alt->id;
-                    $nilaiS = $Si[$altId] ?? 0;
-                    $nilaiR = $Ri[$altId] ?? 0;
-                    $nilaiQ = $finalValues[$altId] ?? 0;
-                    $rankingAlt = $ranking[$altId] ?? null;
-
-                    HasilVikor::create([
-                        'id_alternatif' => $altId,
-                        'nilai_s' => $nilaiS,
-                        'nilai_r' => $nilaiR,
-                        'nilai_q' => $nilaiQ,
-                        'ranking' => $rankingAlt,
-                        'status' => ($rankingAlt !== null && $rankingAlt <= 10) ? 'Lulus' : 'Tidak Lulus',
-                    ]);
-
-                    $alt->status_perhitungan = 'calculated';
-                    $alt->save();
+        if (!$selectedTahunAjaran && !$selectedSemester) {
+            $activePeriod = AcademicPeriod::where('is_active', true)->first();
+            if ($activePeriod) {
+                $selectedTahunAjaran = $activePeriod->tahun_ajaran;
+                $selectedSemester = $activePeriod->semester;
+            } elseif ($academicPeriods->isNotEmpty()) {
+                $latestPeriod = AcademicPeriod::orderBy('tahun_ajaran', 'desc')->orderBy('semester', 'desc')->first();
+                if ($latestPeriod) {
+                    $selectedTahunAjaran = $latestPeriod->tahun_ajaran;
+                    $selectedSemester = $latestPeriod->semester;
                 }
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                session()->flash('error', 'Gagal menyimpan hasil: ' . $e->getMessage());
             }
-        } else {
-            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Perhitungan tidak dapat dilakukan. Pastikan semua nilai penilaian telah diisi untuk setiap alternatif dan kriteria.');
-            $calculationPerformed = false;
         }
 
-        // Mengembalikan ke view utama, yang sekarang berisi rangkuman atau link ke tahapan lain
-        return view('dashboard.hitung', [ // <-- TETAP MENGARAH KE SATU BLADE INI
-            'criterias' => $criterias,
-            'alternatifs' => $alternatifs,
-            'penilaians' => $penilaians,
-            'normalisasi' => $normalizedValues,
-            'weightedNormalization' => $weightedNormalization,
-            'ideal' => $ideal,
-            'Si' => $Si,
-            'Ri' => $Ri,
-            'finalValues' => $finalValues,
-            'ranking' => $ranking,
-            'calculationPerformed' => $calculationPerformed,
-        ]);
+        $alternatifs = collect();
+        $penilaians = collect();
+        $noDataMessage = null;
+
+        if ($selectedTahunAjaran && $selectedSemester) {
+            $alternatifs = Alternatif::with('user')
+                ->where('tahun_ajaran', $selectedTahunAjaran)
+                ->where('semester', $selectedSemester)
+                ->get();
+
+            if ($alternatifs->isEmpty()) {
+                $noDataMessage = 'Tidak ada data siswa untuk Tahun Ajaran ' . $selectedTahunAjaran . ' Semester ' . $selectedSemester . '.';
+            }
+
+            $penilaians = Penilaian::with(['alternatif', 'criteria'])
+                ->whereIn('id_alternatif', $alternatifs->pluck('id'))
+                ->get();
+        }
+
+        $currentCalculation = [
+            'normalizedValues' => [],
+            'weightedNormalization' => [],
+            'ideal' => [],
+            'Si' => [],
+            'Ri' => [],
+            'finalValues' => [],
+            'ranking' => [],
+            'calculationPerformed' => false,
+            'calculationMessage' => 'Pilih Tahun Ajaran dan Semester di atas, lalu klik "Proses Perhitungan" untuk melihat hasil VIKOR.',
+            'currentTahunAjaran' => $selectedTahunAjaran,
+            'currentSemester' => $selectedSemester,
+            'noDataMessage' => $noDataMessage
+        ];
+
+        if ($request->has('process_calculation') && $selectedTahunAjaran && $selectedSemester) {
+            $expectedPenilaianCount = $alternatifs->count() * $criterias->count();
+
+            if (
+                !$criterias->isEmpty() &&
+                !$alternatifs->isEmpty() &&
+                !$penilaians->isEmpty() &&
+                $penilaians->count() === $expectedPenilaianCount
+            ) {
+                $currentCalculation['normalizedValues'] = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
+                $currentCalculation['weightedNormalization'] = $this->getNormalisasiTerbobot($criterias, $currentCalculation['normalizedValues']);
+                $currentCalculation['ideal'] = $this->getIdeal($currentCalculation['weightedNormalization']);
+                $SiRi = $this->getSiRi($criterias, $alternatifs, $currentCalculation['weightedNormalization'], $currentCalculation['ideal']);
+                $currentCalculation['Si'] = $SiRi['Si'];
+                $currentCalculation['Ri'] = $SiRi['Ri'];
+                $currentCalculation['finalValues'] = $this->getQi($currentCalculation['Si'], $currentCalculation['Ri']);
+                $currentCalculation['ranking'] = $this->getRanking($currentCalculation['finalValues']);
+                $currentCalculation['calculationPerformed'] = true;
+                $currentCalculation['calculationMessage'] = 'Perhitungan VIKOR berhasil dilakukan untuk Tahun Ajaran ' . $selectedTahunAjaran . ' Semester ' . $selectedSemester . '.';
+            } else {
+                $currentCalculation['calculationMessage'] = 'Data penilaian tidak lengkap atau kosong untuk periode ini.';
+            }
+        } elseif ($selectedTahunAjaran && $selectedSemester) {
+            $currentCalculation['calculationMessage'] = 'Tahun Ajaran: ' . $selectedTahunAjaran . ', Semester: ' . $selectedSemester . '. Klik "Proses Perhitungan" untuk melihat hasil VIKOR.';
+        }
+
+        $selectedTahunAjaranHistory = $request->input('tahun_ajaran_history');
+        $selectedSemesterHistory = $request->input('semester_history');
+
+        $historicalResultsQuery = HasilVikor::with(['alternatif.user']);
+
+        if ($selectedTahunAjaranHistory) {
+            $historicalResultsQuery->where('tahun_ajaran', $selectedTahunAjaranHistory);
+        }
+        if ($selectedSemesterHistory) {
+            $historicalResultsQuery->where('semester', $selectedSemesterHistory);
+        }
+
+        $historicalResults = $historicalResultsQuery->orderBy('tanggal_penilaian', 'desc')
+            ->orderBy('jam_penilaian', 'desc')
+            ->get();
+
+        $availableTahunAjarans = HasilVikor::select('tahun_ajaran')->distinct()->whereNotNull('tahun_ajaran')->pluck('tahun_ajaran');
+        $availableSemesters = HasilVikor::select('semester')->distinct()->whereNotNull('semester')->pluck('semester');
+
+        return view('dashboard.hitung', array_merge(
+            $currentCalculation,
+            [
+                'criterias' => $criterias,
+                'alternatifs' => $alternatifs,
+                'penilaians' => $penilaians,
+                'historicalResults' => $historicalResults,
+                'academicPeriods' => $academicPeriods,
+                'availableTahunAjarans' => $availableTahunAjarans,
+                'availableSemesters' => $availableSemesters,
+                'selectedTahunAjaranHistory' => $selectedTahunAjaranHistory,
+                'selectedSemesterHistory' => $selectedSemesterHistory,
+            ]
+        ));
     }
 
-    // PERBAIKAN 5: Modifikasi fungsi pendukung untuk gunakan ID sebagai key
+    public function performCalculation(Request $request)
+    {
+        return $this->index($request->merge(['process_calculation' => true]));
+    }
+
+    /**
+     * Saves VIKOR calculation results as a new historical entry.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function simpan(Request $request)
+    {
+        $request->validate([
+            'finalValues' => 'required|array',
+            'finalValues.*' => 'nullable|numeric',
+            'alternatif_ids' => 'required|array',
+            'alternatif_ids.*' => 'required|exists:alternatifs,id',
+            'ranking' => 'required|array',
+            'ranking.*' => 'nullable|integer',
+            'Si' => 'nullable|array',
+            'Si.*' => 'nullable|numeric',
+            'Ri' => 'nullable|array',
+            'Ri.*' => 'nullable|numeric',
+            'tahun_ajaran' => 'required|string|max:255',
+            'semester' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Hapus hasil perhitungan yang sudah ada untuk tahun ajaran dan semester ini
+            HasilVikor::where('tahun_ajaran', $request->tahun_ajaran)
+                      ->where('semester', $request->semester)
+                      ->delete();
+
+            $currentDate = Carbon::now()->toDateString();
+            $currentTime = Carbon::now()->toTimeString();
+
+            foreach ($request->alternatif_ids as $alternatifId) {
+                $nilaiQ = $request->finalValues[$alternatifId] ?? 0;
+                $rankingValue = $request->ranking[$alternatifId] ?? null;
+                $nilaiS = $request->Si[$alternatifId] ?? 0;
+                $nilaiR = $request->Ri[$alternatifId] ?? 0;
+
+                HasilVikor::create([
+                    'id_alternatif' => $alternatifId,
+                    'nilai_q' => $nilaiQ,
+                    'ranking' => $rankingValue,
+                    'nilai_s' => $nilaiS,
+                    'nilai_r' => $nilaiR,
+                    'status' => ($rankingValue !== null && $rankingValue <= 10) ? 'Lulus' : 'Tidak Lulus',
+                    'tahun_ajaran' => $request->tahun_ajaran,
+                    'semester' => $request->semester,
+                    'tanggal_penilaian' => $currentDate,
+                    'jam_penilaian' => $currentTime,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('hitung.index')->with('success', 'Hasil perhitungan VIKOR berhasil disimpan sebagai riwayat!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+        }
+    }
+
+
+    // --- Metode-metode perhitungan VIKOR (dengan perbaikan kecil dan konsistensi) ---
     private function getNormalisasi($criterias, $alternatifs, $penilaians)
     {
         $normalizedValues = [];
         foreach ($criterias as $c) {
-            $values = $penilaians->where('id_criteria', $c->id);
-            $nilai = $values->pluck('nilai')->toArray();
+            $valuesForCriteria = $penilaians->where('id_criteria', $c->id);
+            $nilaiCollection = $valuesForCriteria->pluck('nilai');
 
-            if (empty($nilai)) continue;
+            if ($nilaiCollection->isEmpty()) {
+                 foreach ($alternatifs as $alt) {
+                    $normalizedValues[$alt->id][$c->id] = 0;
+                }
+                continue;
+            }
 
-            $maxVal = max($nilai);
-            $minVal = min($nilai);
-            $range = ($maxVal - $minVal) ?: 1;
+            $maxVal = $nilaiCollection->max();
+            $minVal = $nilaiCollection->min();
+            $range = ($maxVal - $minVal);
 
             foreach ($alternatifs as $alt) {
-                $value = $values->where('id_alternatif', $alt->id)->first();
+                $value = $penilaians->where('id_alternatif', $alt->id)
+                                    ->where('id_criteria', $c->id)
+                                    ->first();
+
                 if (!$value) {
                     $normalizedValues[$alt->id][$c->id] = 0;
                     continue;
                 }
 
-                $normalized = ($c->criteria_type == 'Cost')
-                    ? ($maxVal - $value->nilai) / $range
-                    : ($value->nilai - $minVal) / $range;
+                if ($range == 0) { // Menghindari pembagian dengan nol
+                    $normalized = 0;
+                } else {
+                    $normalized = ($c->criteria_type == 'Cost')
+                        ? ($maxVal - $value->nilai) / $range
+                        : ($value->nilai - $minVal) / $range;
+                }
 
                 $normalizedValues[$alt->id][$c->id] = round($normalized, 3);
             }
@@ -162,10 +271,17 @@ class HitungController extends Controller
         if (empty($weightedNormalization)) {
             return $ideal;
         }
-        $firstRow = reset($weightedNormalization);
-        foreach ($firstRow as $criteriaId => $val) {
+        // Ambil semua ID kriteria dari baris pertama (alternatif pertama)
+        $criteriaIds = array_keys(reset($weightedNormalization));
+
+        foreach ($criteriaIds as $criteriaId) {
             $columnValues = array_column($weightedNormalization, $criteriaId);
-            $ideal[$criteriaId] = max($columnValues);
+            // Pastikan array tidak kosong sebelum memanggil max/min
+            if (empty($columnValues)) {
+                $ideal[$criteriaId] = 0;
+            } else {
+                $ideal[$criteriaId] = max($columnValues); // Ideal terbaik adalah nilai maksimum
+            }
         }
         return $ideal;
     }
@@ -191,7 +307,7 @@ class HitungController extends Controller
 
     private function getQi($Si, $Ri)
     {
-        $V = 0.5;
+        $V = 0.5; // Bobot strategi 'mayoritas' vs 'individu'
         $finalValues = [];
 
         if (empty($Si) || empty($Ri)) {
@@ -203,12 +319,12 @@ class HitungController extends Controller
         $Rmax = max($Ri);
         $Rmin = min($Ri);
 
-        $denomS = ($Smax - $Smin) ?: 1;
-        $denomR = ($Rmax - $Rmin) ?: 1;
+        $denomS = ($Smax - $Smin);
+        $denomR = ($Rmax - $Rmin);
 
         foreach ($Si as $altId => $s) {
-            $val1 = ($s - $Smin) / $denomS;
-            $val2 = ($Ri[$altId] - $Rmin) / $denomR;
+            $val1 = ($denomS == 0) ? 0 : ($s - $Smin) / $denomS;
+            $val2 = ($denomR == 0) ? 0 : ($Ri[$altId] - $Rmin) / $denomR;
             $finalValues[$altId] = round($V * $val1 + (1 - $V) * $val2, 3);
         }
 
@@ -221,7 +337,7 @@ class HitungController extends Controller
         if (empty($finalValues)) {
             return $ranking;
         }
-        asort($finalValues); 
+        asort($finalValues); // Urutkan dari nilai Qi terkecil (terbaik)
         $rank = 1;
         foreach ($finalValues as $altId => $value) {
             $ranking[$altId] = $rank++;
@@ -229,247 +345,30 @@ class HitungController extends Controller
         return $ranking;
     }
 
-    /**
-     * Displays normalized decision matrix.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function tampilMatriksKeputusan()
+    // Metode ini tidak lagi digunakan untuk filtering penilaians karena kolom sudah dihapus
+    // Filter dilakukan pada alternatif terlebih dahulu.
+    private function getFilteredPenilaians(Request $request)
     {
-        $criterias = criteria::all();
-        $alternatifs = alternatif::all();
-        $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
-
-        if ($criterias->isEmpty() || $alternatifs->isEmpty() || $penilaians->isEmpty() || $penilaians->count() !== ($alternatifs->count() * $criterias->count())) {
-            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Matriks ini mungkin kosong.');
-        }
-
-        return view('dashboard.hitung', [
-            'criterias' => $criterias,
-            'alternatifs' => $alternatifs,
-            'penilaians' => $penilaians,
-        ]);
+        // This method is no longer directly used for filtering penilaians by tahun_ajaran/semester
+        // as those columns have been removed from the penilaians table.
+        // Penilaians are now fetched based on filtered Alternatifs.
+        return Penilaian::all(); // Or modify as needed if you need a different subset
     }
 
-    public function tampilNormalisasi()
+    private function getAvailablePeriodsForHistory()
     {
-        $criterias = criteria::all();
-        $alternatifs = alternatif::all();
-        $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
-        $normalizedValues = [];
+        $availableTahunAjarans = HasilVikor::select('tahun_ajaran')
+                                            ->distinct()
+                                            ->whereNotNull('tahun_ajaran')
+                                            ->pluck('tahun_ajaran');
 
-        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty() && ($alternatifs->count() > 0 && $criterias->count() > 0) && $penilaians->count() === ($alternatifs->count() * $criterias->count())) {
-            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-        } else {
-            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
-        }
-
-        return view('dashboard.hitung', [
-            'criterias' => $criterias,
-            'alternatifs' => $alternatifs,
-            'normalisasi' => $normalizedValues
-        ]);
-    }
-
-    /**
-     * Displays weighted normalized matrix.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function tampilNormalisasiTerbobot()
-    {
-        $criterias = criteria::all();
-        $alternatifs = alternatif::all();
-        $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
-        $weightedNormalization = [];
-
-        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty() && ($alternatifs->count() > 0 && $criterias->count() > 0) && $penilaians->count() === ($alternatifs->count() * $criterias->count())) {
-            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-            $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-        } else {
-            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
-        }
-
-        return view('dashboard.hitung', [
-            'criterias' => $criterias,
-            'alternatifs' => $alternatifs,
-            'weightedNormalization' => $weightedNormalization,
-        ]);
-    }
-
-    /**
-     * Displays ideal difference.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function tampilSelisihIdeal()
-    {
-        $criterias = criteria::all();
-        $alternatifs = alternatif::all();
-        $penilaians = penilaian::with(['alternatif', 'criteria'])->get();
-        $ideal = [];
-        $weightedNormalization = [];
-
-        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty() && ($alternatifs->count() > 0 && $criterias->count() > 0) && $penilaians->count() === ($alternatifs->count() * $criterias->count())) {
-            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-            $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-            $ideal = $this->getIdeal($weightedNormalization);
-        } else {
-            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
-        }
-
-        return view('dashboard.hitung', [ // Updated view name
-            'criterias' => $criterias,
-            'alternatifs' => $alternatifs,
-            'ideal' => $ideal,
-            'weightedNormalization' => $weightedNormalization,
-        ]);
-    }
-
-    /**
-     * Displays utility (Si and Ri).
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function tampilUtility()
-    {
-        $criterias = Criteria::all();
-        $alternatifs = Alternatif::all();
-        $penilaians = Penilaian::with(['alternatif', 'criteria'])->get(); 
-
-        $Si = [];
-        $Ri = [];
-
-        if (!$criterias->isEmpty() && !$alternatifs->isEmpty() && !$penilaians->isEmpty() && ($alternatifs->count() > 0 && $criterias->count() > 0) && $penilaians->count() === ($alternatifs->count() * $criterias->count())) {
-            $bobot = $criterias->pluck('weight')->toArray();
-            if (empty($bobot) || array_sum($bobot) == 0) {
-                session()->flash('warning', 'Bobot kriteria tidak valid atau nol semua. Perhitungan tidak dapat dilakukan.');
-            } else {
-                $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-                $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-                $ideal = $this->getIdeal($weightedNormalization);
-                $SiRi = $this->getSiRi($criterias, $alternatifs, $weightedNormalization, $ideal);
-                $Si = $SiRi['Si'];
-                $Ri = $SiRi['Ri'];
-            }
-        } else {
-            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak ditemukan atau tidak lengkap. Tabel ini mungkin kosong.');
-        }
-
-        return view('dashboard.hitung', [
-            'criterias' => $criterias,
-            'alternatifs' => $alternatifs,
-            'Si' => $Si,
-            'Ri' => $Ri,
-        ]);
-    }
-    /**
-     * Displays compromise values (Qi) and final ranking.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function tampilKompromi()
-    {
-        $criterias = Criteria::all();
-        $alternatifs = Alternatif::all();
-        $penilaians = Penilaian::with(['alternatif', 'criteria'])->get();
-
-        $finalValues = [];
-        $ranking = [];
-        $Si = []; 
-        $Ri = [];
-
-        if (!$criterias->isEmpty() &&
-            !$alternatifs->isEmpty() &&
-            !$penilaians->isEmpty() &&
-            ($alternatifs->count() > 0 && $criterias->count() > 0) &&
-            $penilaians->count() === ($alternatifs->count() * $criterias->count())) {
-
-            // Perform all necessary calculations to get Qi and Ranking
-            $normalizedValues = $this->getNormalisasi($criterias, $alternatifs, $penilaians);
-            $weightedNormalization = $this->getNormalisasiTerbobot($criterias, $normalizedValues);
-            $ideal = $this->getIdeal($weightedNormalization);
-            $SiRi = $this->getSiRi($criterias, $alternatifs, $weightedNormalization, $ideal);
-            $Si = $SiRi['Si'];
-            $Ri = $SiRi['Ri'];
-            $finalValues = $this->getQi($Si, $Ri);
-            $ranking = $this->getRanking($finalValues);
-
-        } else {
-            session()->flash('warning', 'Data kriteria, alternatif, atau penilaian tidak lengkap. Tabel ini mungkin kosong.');
-        }
-
-        return view('dashboard.hitung', [
-            'criterias' => $criterias,
-            'alternatifs' => $alternatifs,
-            'finalValues' => $finalValues,
-            'ranking' => $ranking,
-            'Si' => $Si, // Pass Si and Ri to the kompromi view for the hidden inputs
-            'Ri' => $Ri,
-        ]);
-    }
-
-    /**
-     * Saves VIKOR calculation results.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function simpan(Request $request)
-    {
-        // Validate and prevent null array errors
-        $request->validate([
-            'finalValues' => 'required|array',
-            'finalValues.*' => 'nullable|numeric',
-            'alternatif' => 'required|array', 
-            'alternatif.*' => 'required|exists:alternatifs,id',
-            'ranking' => 'required|array',
-            'ranking.*' => 'nullable|integer',
-            'Si' => 'nullable|array',
-            'Si.*' => 'nullable|numeric',
-            'Ri' => 'nullable|array',
-            'Ri.*' => 'nullable|numeric',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            HasilVikor::truncate(); 
-
-            foreach ($request->alternatif as $key => $alternatifId) {
-                $nilaiQ = $request->finalValues[$key] ?? 0;
-                $rankingValue = $request->ranking[$key] ?? null;
-                $nilaiS = $request->Si[$key] ?? 0; 
-                $nilaiR = $request->Ri[$key] ?? 0; 
-
-                HasilVikor::create([
-                    'id_alternatif' => $alternatifId,
-                    'nilai_q' => $nilaiQ,
-                    'ranking' => $rankingValue,
-                    'nilai_s' => $nilaiS,
-                    'nilai_r' => $nilaiR,
-                    'status' => ($rankingValue !== null && $rankingValue <= 10) ? 'Lulus' : 'Tidak Lulus',
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-
-                // Update status_perhitungan for the alternative
-                Alternatif::where('id', $alternatifId)->update(['status_perhitungan' => 'calculated']);
-            }
-
-            DB::commit();
-
-            // Create PDF
-            $hasilPdf = HasilVikor::with('alternatif')->orderBy('ranking', 'asc')->get();
-            $dataPdf = [
-                'hasilLengkap' => $hasilPdf,
-            ];
-
-            $pdf = Pdf::loadView('pdf.hasil-vikor', $dataPdf);
-            return $pdf->download('hasil-perhitungan-vikor.pdf');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
-        }
+        $availableSemesters = HasilVikor::select('semester')
+                                           ->distinct()
+                                           ->whereNotNull('semester')
+                                           ->pluck('semester');
+        return [
+            'availableTahunAjarans' => $availableTahunAjarans,
+            'availableSemesters' => $availableSemesters,
+        ];
     }
 }

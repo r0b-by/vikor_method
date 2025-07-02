@@ -25,13 +25,13 @@
                         <span class="ml-1 duration-300 opacity-100">Dashboard</span>
                     </a>
                 </li>
-                {{-- User Manual --}}
+                {{-- Administration (previously User Manual) --}}
                 @role('admin')
-                <li x-data="{ open: {{ json_encode(Request::is('user-management')) }} }" x-cloak>
+                <li x-data="{ open: {{ json_encode(Request::is('admin/users*') || Request::is('admin/academic-periods*')) }} }" x-cloak>
                     <div class="mt-6 mb-2 px-4" data-aos="fade-right" data-aos-delay="200">
                         <button @click="open = !open" class="w-full flex items-center justify-between py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-white/70 hover:text-blue-600 transition">
                             <span class="flex items-center gap-2">
-                                <i class="fa fa-book text-[10px] opacity-70"></i> USER MANUAL
+                                <i class="fa fa-user-cog text-[10px] opacity-70"></i> ADMINISTRATION
                             </span>
                             <i :class="open ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" class="text-xs"></i>
                         </button>
@@ -45,9 +45,16 @@
                         x-transition:leave-end="opacity-0 max-h-0"
                         class="pl-4 space-y-1 overflow-hidden">
                         <li data-aos="fade-right" data-aos-delay="200">
-                            <a class="{{ Request::is('user-management') ? 'bg-blue-500/13 font-semibold rounded-lg' : '' }} dark:text-white py-2.7 text-sm flex items-center px-4 transition-colors"
+                            <a class="{{ Request::is('admin/users') ? 'bg-blue-500/13 font-semibold rounded-lg' : '' }} dark:text-white py-2.7 text-sm flex items-center px-4 transition-colors"
                             href="{{ route('user.management') }}">
                                 <i class="mr-2 text-sm text-purple-500 fa fa-users"></i> Data Users
+                            </a>
+                        </li>
+                        {{-- New: Academic Periods --}}
+                        <li data-aos="fade-right" data-aos-delay="220">
+                            <a class="{{ Request::is('admin/academic-periods*') ? 'bg-blue-500/13 font-semibold rounded-lg' : '' }} dark:text-white py-2.7 text-sm flex items-center px-4 transition-colors"
+                            href="{{ route('admin.academic_periods.index') }}">
+                                <i class="mr-2 text-sm text-indigo-500 fa fa-calendar-alt"></i> Periode Akademik
                             </a>
                         </li>
                     </ul>
@@ -147,7 +154,7 @@
                 </li>
                 @endrole
                 {{-- Profile (All Authenticated Users) --}}
-                @role('admin')
+                @role('admin') {{-- Note: This @role('admin') here might be redundant if the profile route is for all authenticated users --}}
                 <li data-aos="fade-right" data-aos-delay="450">
                     <a class="{{ Request::is('profile/edit') ? 'bg-blue-500/13 font-semibold rounded-lg' : '' }} dark:text-white py-2.7 text-sm flex items-center px-4 transition-colors"
                     href="{{ route('profile.edit') }}"> {{-- Menggunakan rute 'profile.edit' --}}

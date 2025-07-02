@@ -18,7 +18,11 @@ class CreateHasilVikorTable extends Migration
                 $table->double('nilai_q')->nullable();
                 $table->integer('ranking')->nullable();
                 $table->enum('status', ['Lulus', 'Tidak Lulus'])->nullable();
+                $table->date('tanggal_penilaian')->nullable();
+                $table->time('jam_penilaian')->nullable();
                 $table->timestamps();
+
+                $table->foreignId('academic_period_id')->nullable()->constrained('academic_periods')->after('id_alternatif');
             });
         }
     }

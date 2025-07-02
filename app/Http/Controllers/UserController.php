@@ -54,6 +54,7 @@ class UserController extends Controller
      * Display the profile of the currently authenticated user.
      * Menampilkan profil pengguna yang sedang login.
      *
+     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function show(User $user): View|Factory
@@ -93,40 +94,40 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function edit(User $user)
-{
-    $this->authorize('update', $user); // Add authorization
-    $roles = Role::all();
-    return view('users.edit', compact('user', 'roles'));
-}
+    {
+        $this->authorize('update', $user); // Add authorization
+        $roles = Role::all();
+        return view('users.edit', compact('user', 'roles'));
+    }
 
 
-/**
- * Show the form for editing the specified user.
- *
- * @param  \App\Models\User  $user
- * @return \Illuminate\Http\Response
- */
-public function update(Request $request, User $user)
-{
-    $this->authorize('update', $user);
-    
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,'.$user->id,
-        'nis' => 'nullable|string|max:20|unique:users,nis,'.$user->id,
-        'kelas' => 'nullable|string|max:255',
-        'jurusan' => 'nullable|string|max:255',
-        'alamat' => 'nullable|string',
-        'status' => 'required|in:pending,active,inactive,rejected',
-        'roles' => 'required|array',
-    ]);
+    /**
+    * Show the form for editing the specified user.
+    *
+    * @param  \App\Models\User  $user
+    * @return \Illuminate\Http\Response
+    */
+    public function update(Request $request, User $user)
+    {
+        $this->authorize('update', $user);
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'nis' => 'nullable|string|max:20|unique:users,nis,'.$user->id,
+            'kelas' => 'nullable|string|max:255',
+            'jurusan' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            'status' => 'required|in:pending,active,inactive,rejected',
+            'roles' => 'required|array',
+        ]);
 
-    $user->update($validated);
-    $user->syncRoles($request->roles);
+        $user->update($validated);
+        $user->syncRoles($request->roles);
 
-    return redirect()->route('admin.users.index')
-           ->with('success', 'User updated successfully');
-}
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User updated successfully');
+    }
 
 
     /**
@@ -136,18 +137,18 @@ public function update(Request $request, User $user)
      * @param   \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-   public function editProfile()
-{
-    $user = auth()->user(); // Get the currently authenticated user
-    $roles = Role::all(); // Only if you need roles for the form
-    
-    // Make sure the user exists
-    if (!$user) {
-        abort(404, 'User not found');
+    public function editProfile()
+    {
+        $user = auth()->user(); // Get the currently authenticated user
+        $roles = Role::all(); // Only if you need roles for the form
+        
+        // Make sure the user exists
+        if (!$user) {
+            abort(404, 'User not found');
+        }
+        
+        return view('users.edit', compact('user', 'roles'));
     }
-    
-    return view('users.edit', compact('user', 'roles'));
-}
 
     /**
      * Display a listing of pending user registrations (for admin).
@@ -187,9 +188,11 @@ public function update(Request $request, User $user)
 
                 if (!Alternatif::where('user_id', $user->id)->exists()) {
                     Alternatif::create([
-                        'user_id' => $user->id, // Kolom user_id sudah disertakan di sini
+                        'user_id' => $user->id,
                         'alternatif_code' => 'ALT-' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
                         'alternatif_name' => $user->name,
+                        'tahun_ajaran' => $user->tahun_ajaran, // Menambahkan tahun_ajaran dari user
+                        'semester' => $user->semester,       // Menambahkan semester dari user
                         'status_perhitungan' => 'pending',
                     ]);
                 }

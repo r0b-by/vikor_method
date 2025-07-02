@@ -21,6 +21,7 @@ return new class extends Migration
 
             $table->foreign('id_alternatif')->references('id')->on('alternatifs')->onDelete('cascade');
             $table->foreign('id_criteria')->references('id')->on('criterias')->onDelete('cascade');
+            $table->foreignId('academic_period_id')->nullable()->constrained('academic_periods')->after('id_criteria');
         });
     }
 

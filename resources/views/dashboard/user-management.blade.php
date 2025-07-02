@@ -6,7 +6,7 @@
      data-aos-easing="ease-in-back"
      data-aos-delay="300"
      data-aos-offset="0">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 w-full">
         <h2 class="text-2xl xl:text-3xl font-bold text-slate-900 dark:text-white">
             Manajemen Pengguna
         </h2>
@@ -43,6 +43,24 @@
                                     Email
                                 </th>
                                 <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    NIS
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Kelas
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Jurusan
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Alamat
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Tahun Ajaran
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                    Semester
+                                </th>
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
                                     Role
                                 </th>
                                 <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
@@ -73,6 +91,36 @@
                                     </td>
                                     <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                         <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->nis ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->kelas ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->jurusan ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->alamat ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->tahun_ajaran ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
+                                            {{ $user->semester ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                        <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
                                             {{ $user->getRoleNames()->first() ?: 'Tidak Ada' }}
                                         </span>
                                     </td>
@@ -82,7 +130,6 @@
                                         </span>
                                     </td>
                                     <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent text-center">
-                                        {{-- MODIFIKASI: Mengubah nama rute menjadi admin.users.edit --}}
                                         <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-500 hover:text-blue-700 font-medium">Edit</a>
                                         <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline-block ml-2">
                                             @csrf
@@ -93,7 +140,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-3 text-sm text-gray-500 dark:text-white">Tidak ada pengguna yang terdaftar.</td>
+                                    <td colspan="12" class="text-center py-3 text-sm text-gray-500 dark:text-white">Tidak ada pengguna yang terdaftar.</td>
                                 </tr>
                             @endforelse
                         </tbody>

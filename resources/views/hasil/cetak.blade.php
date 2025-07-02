@@ -20,9 +20,8 @@
         }
 
         .watermark-img {
-            width: 400px;
+            width: 400px; /* Adjust size as needed */
         }
-
 
         .header {
             display: flex;
@@ -31,7 +30,9 @@
         }
 
         .logo {
-            width: 80px;
+            width: 80px; /* Adjust logo size */
+            height: 80px; /* Ensure height is set for proper scaling */
+            margin-right: 20px; /* Add some space between logo and text */
         }
 
         .school-info {
@@ -64,7 +65,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            font-size: 14px;
+            font-size: 12px; /* Slightly smaller font for table content */
         }
 
         th {
@@ -85,6 +86,7 @@
         .footer {
             margin-top: 60px;
             width: 100%;
+            position: relative; /* For proper positioning of TTD */
         }
 
         .ttd {
@@ -108,7 +110,20 @@
 
     <hr>
 
-    <h3>Laporan Hasil Akhir Metode VIKOR</h3>
+    <h3>Laporan Hasil Akhir Metode VIKOR
+        @if (!empty($selectedTahunAjaran) || !empty($selectedSemester))
+            <br>
+            @if (!empty($selectedTahunAjaran))
+                Tahun Ajaran: {{ $selectedTahunAjaran }}
+            @endif
+            @if (!empty($selectedTahunAjaran) && !empty($selectedSemester))
+                ,
+            @endif
+            @if (!empty($selectedSemester))
+                Semester: {{ $selectedSemester }}
+            @endif
+        @endif
+    </h3>
 
     <table>
         <thead>
@@ -119,19 +134,25 @@
                 <th>Nilai Q</th>
                 <th>Ranking</th>
                 <th>Status</th>
+                <th>Tanggal Perhitungan</th> {{-- Added Tanggal Perhitungan column --}}
             </tr>
         </thead>
         <tbody>
-            @foreach ($hasil as $item)
+            @forelse ($hasil as $item)
                 <tr>
-                    <td>{{ $item->alternatif->alternatif_name }}</td>
+                    <td>{{ $item->alternatif->user->name ?? $item->alternatif->alternatif_name ?? '-' }}</td>
                     <td>{{ number_format($item->nilai_s, 4) }}</td>
                     <td>{{ number_format($item->nilai_r, 4) }}</td>
                     <td>{{ number_format($item->nilai_q, 4) }}</td>
                     <td>{{ $item->ranking }}</td>
                     <td>{{ $item->status }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal_penilaian)->format('d-m-Y') }} {{ \Carbon\Carbon::parse($item->jam_penilaian)->format('H:i') }}</td> {{-- Displaying date and time --}}
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td colspan="7" style="text-align: center;">Tidak ada data hasil VIKOR untuk filter yang dipilih.</td> {{-- Updated colspan --}}
+                </tr>
+            @endforelse
         </tbody>
     </table>
 

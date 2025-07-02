@@ -7,11 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class Penilaian extends Model
 {
     protected $table = 'penilaians';
-    protected $fillable = [
+   protected $fillable = [
         'id_alternatif',
         'id_criteria',
         'nilai',
-        'certificate_details'
+        'certificate_details',
+        'tahun_ajaran', // Tambahkan ini
+        'semester',     // Tambahkan ini
+        'tanggal_penilaian', // Tambahkan ini
+        'jam_penilaian', // Tambahkan ini
+        'academic_period_id',
     ];
     protected $casts = [
         'certificate_details' => 'array'
@@ -25,6 +30,11 @@ class Penilaian extends Model
     public function criteria()
     {
         return $this->belongsTo(Criteria::class, 'id_criteria');
+    }
+
+    public function academicPeriod()
+    {
+        return $this->belongsTo(AcademicPeriod::class, 'academic_period_id');
     }
 
     // Helper untuk menghitung total poin dari detail sertifikat

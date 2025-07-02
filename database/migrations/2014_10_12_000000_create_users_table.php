@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('tahun_ajaran')->nullable(); // <-- Diperbaiki
+            $table->string('semester')->nullable();     // <-- Diperbaiki
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
@@ -26,10 +28,6 @@ return new class extends Migration
             // Kolom untuk menyimpan waktu persetujuan
             $table->timestamp('approved_at')->nullable();
 
-            // Menambahkan foreign key ke tabel users sendiri jika approved_by merujuk ke user lain
-            // Jika approved_by merujuk ke ID user (admin) di tabel users, Anda bisa menambahkan ini:
-            // $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
-            // Atau jika Anda tidak ingin relasi foreign key, cukup biarkan sebagai unsignedBigInteger.
         });
     }
 

@@ -9,13 +9,14 @@ class Alternatif extends Model
 {
     use HasFactory;
     protected $table = 'alternatifs';
-    public $timestamps = false; 
+    public $timestamps = true; 
 
     protected $fillable = [
         'user_id',
-        'no_alternatif', 
         'alternatif_code',
         'alternatif_name',
+        'tahun_ajaran', 
+        'semester',
         'status_perhitungan',
     ];
 

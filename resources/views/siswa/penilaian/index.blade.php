@@ -1,5 +1,7 @@
 @extends('dashboard.layouts.dashboardmain')
 
+@section('title', 'Form Penilaian Mandiri')
+
 @section('content')
 <div class="flex flex-wrap -mx-3" data-aos="fade-zoom-in"
      data-aos-easing="ease-in-back"
@@ -33,7 +35,7 @@
                         <span class="block sm:inline">{{ session('info') }}</span>
                     </div>
                 @endif
-                @if ($errors->any()))
+                @if ($errors->any())
                     <div class="bg-red-100 dark:bg-red-700 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-100 px-4 py-3 rounded relative mb-4" role="alert">
                         <ul class="list-disc list-inside">
                             @foreach ($errors->all() as $error)
@@ -43,15 +45,15 @@
                     </div>
                 @endif
 
-                @if(Auth::user()->status === 'pending'))
+                @if(Auth::user()->status === 'pending')
                     <div class="bg-yellow-100 dark:bg-yellow-700 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-100 px-4 py-3 rounded relative mb-4" role="alert">
                         Pendaftaran Anda sedang dalam peninjauan. Anda akan dapat mengisi penilaian setelah disetujui oleh admin.
                     </div>
-                @elseif(!$alternatif))
+                @elseif(!$alternatif)
                     <div class="bg-red-100 dark:bg-red-700 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-100 px-4 py-3 rounded relative mb-4" role="alert">
                         Data alternatif Anda belum terdaftar. Silakan hubungi admin untuk mendaftarkan alternatif Anda agar bisa mengisi penilaian.
                     </div>
-                @elseif($criterias->isEmpty()))
+                @elseif($criterias->isEmpty())
                     <div class="bg-yellow-100 dark:bg-yellow-700 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-100 px-4 py-3 rounded relative mb-4" role="alert">
                         Belum ada kriteria yang terdaftar. Harap hubungi admin/guru.
                     </div>
@@ -59,10 +61,19 @@
                     {{-- Cek apakah sudah ada penilaian lengkap --}}
                     @php
                         $isComplete = true;
-                        foreach ($criterias as $criteria) {
-                            if (!isset($penilaians[$criteria->id])) {
-                                $isComplete = false;
-                                break;
+                        // Assuming $penilaians is an associative array keyed by criteria ID for easy lookup
+                        // We also need to consider if all criteria have a penilaian entry.
+                        // However, based on how $penilaians is used ($penilaians[$criteria->id]->nilai ?? null),
+                        // it seems $penilaians might only contain entries for existing assessments.
+                        // Let's refine this check: ensure count matches and then check existence.
+                        if (count($penilaians) < count($criterias)) {
+                            $isComplete = false;
+                        } else {
+                            foreach ($criterias as $criteria) {
+                                if (!isset($penilaians[$criteria->id])) {
+                                    $isComplete = false;
+                                    break;
+                                }
                             }
                         }
                     @endphp
@@ -73,7 +84,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('siswa.penilaian.store') }}" method="POST">
+                    <form action="{{ route('penilaian.storeOrUpdate') }}" method="POST">
                         @csrf
                         <input type="hidden" name="id_alternatif" value="{{ $alternatif->id }}">
 
@@ -108,11 +119,27 @@
                                                     $currentValue = $penilaians[$criteria->id]->nilai ?? null;
                                                     $selected = old('nilai.' . $criteria->id, $currentValue);
                                                     $hasValue = isset($penilaians[$criteria->id]);
+
+                                                    // Prepare certificate details for C4/C5 if existing and not old input
+                                                    $existingCertificateDetails = [];
+                                                    if ($hasValue && $penilaians[$criteria->id]->certificate_details && !$errors->any()) {
+                                                        $existingCertificateDetails = json_decode($penilaians[$criteria->id]->certificate_details, true);
+                                                    } elseif ($errors->any() && isset(old('certificate_level.' . $criteria->id))) {
+                                                        // If there are validation errors, use old input for certificates
+                                                        $oldLevels = old('certificate_level.' . $criteria->id, []);
+                                                        $oldCounts = old('certificate_count.' . $criteria->id, []);
+                                                        foreach ($oldLevels as $index => $level) {
+                                                            $existingCertificateDetails[] = [
+                                                                'level' => $level,
+                                                                'count' => $oldCounts[$index] ?? 1,
+                                                            ];
+                                                        }
+                                                    }
                                                 @endphp
 
                                                 @if ($hasValue)
                                                     {{-- Tampilkan nilai yang sudah ada dalam mode read-only --}}
-                                                    <input type="text" 
+                                                    <input type="text"
                                                         class="focus:shadow-primary-outline dark:bg-slate-700 dark:text-white dark:placeholder:text-white/80 dark:border-white/40 leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-gray-100 bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none"
                                                         value="{{ $selected }}" readonly>
                                                     <input type="hidden" name="nilai[{{ $criteria->id }}]" value="{{ $selected }}">
@@ -149,27 +176,21 @@
                                                                 Total Poin Sertifikat: <span id="total-points-display-{{ $criteria->id }}" class="font-bold text-blue-500">{{ $selected ?? 0 }}</span>
                                                             </p>
 
-                                                            @php
-                                                                $oldLevels = old('certificate_level.' . $criteria->id, []);
-                                                                $oldCounts = old('certificate_count.' . $criteria->id, []);
-                                                                $hasOldInput = count($oldLevels) > 0;
-                                                            @endphp
-
-                                                            @if($hasOldInput)
-                                                                @foreach($oldLevels as $index => $level)
+                                                            @if(count($existingCertificateDetails) > 0)
+                                                                @foreach($existingCertificateDetails as $index => $detail)
                                                                     <div class="flex items-center space-x-2 mb-2 certificate-item">
                                                                         <select name="certificate_level[{{ $criteria->id }}][]"
                                                                             class="certificate-level dark:bg-slate-700 dark:text-white dark:border-white/40 border-gray-300 text-sm rounded-lg block w-full px-3 py-2" onchange="calculateTotalPoints()">
                                                                             <option value="">Pilih Tingkat</option>
-                                                                            <option value="10" {{ $level == 10 ? 'selected' : '' }}>Juara Nasional (10 poin)</option>
-                                                                            <option value="8" {{ $level == 8 ? 'selected' : '' }}>Provinsi (8 poin)</option>
-                                                                            <option value="6" {{ $level == 6 ? 'selected' : '' }}>Kabupaten/Kota (6 poin)</option>
-                                                                            <option value="4" {{ $level == 4 ? 'selected' : '' }}>Sekolah (4 poin)</option>
-                                                                            <option value="2" {{ $level == 2 ? 'selected' : '' }}>Partisipasi (2 poin)</option>
+                                                                            <option value="10" {{ ($detail['level'] == 10 || $detail['level'] == 'Nasional') ? 'selected' : '' }}>Juara Nasional (10 poin)</option>
+                                                                            <option value="8" {{ ($detail['level'] == 8 || $detail['level'] == 'Provinsi') ? 'selected' : '' }}>Provinsi (8 poin)</option>
+                                                                            <option value="6" {{ ($detail['level'] == 6 || $detail['level'] == 'Kabupaten/Kota') ? 'selected' : '' }}>Kabupaten/Kota (6 poin)</option>
+                                                                            <option value="4" {{ ($detail['level'] == 4 || $detail['level'] == 'Sekolah') ? 'selected' : '' }}>Sekolah (4 poin)</option>
+                                                                            <option value="2" {{ ($detail['level'] == 2 || $detail['level'] == 'Partisipasi') ? 'selected' : '' }}>Partisipasi (2 poin)</option>
                                                                         </select>
                                                                         <input type="number" name="certificate_count[{{ $criteria->id }}][]"
                                                                             class="certificate-count w-20 dark:bg-slate-700 dark:text-white dark:border-white/40 border-gray-300 text-sm rounded-lg block px-3 py-2"
-                                                                            min="1" value="{{ $oldCounts[$index] ?? 1 }}" onchange="calculateTotalPoints()" onkeyup="calculateTotalPoints()">
+                                                                            min="1" value="{{ $detail['count'] ?? 1 }}" onchange="calculateTotalPoints()" onkeyup="calculateTotalPoints()">
                                                                         <button type="button" class="remove-certificate-btn text-red-500 hover:text-red-700 text-xl font-bold leading-none">&times;</button>
                                                                     </div>
                                                                 @endforeach
@@ -246,13 +267,14 @@
                 min="1" value="1" onchange="calculateTotalPoints()" onkeyup="calculateTotalPoints()">
             <button type="button" class="remove-certificate-btn text-red-500 hover:text-red-700 text-xl font-bold leading-none">&times;</button>
         `;
+        // Insert the new certificate item before the "Tambah Sertifikat" button
         container.insertBefore(newDiv, container.querySelector('.add-certificate-btn'));
-        calculateTotalPoints();
+        calculateTotalPoints(); // Recalculate total points after adding a new item
     }
 
     function calculateTotalPoints() {
         document.querySelectorAll('.certificate-container').forEach(container => {
-            const criteriaId = container.dataset.criteriaId || container.id.split('-')[1];
+            const criteriaId = container.dataset.criteriaId || container.id.split('-')[1]; // Ensure criteriaId is correctly retrieved
             let totalPoints = 0;
 
             container.querySelectorAll('.certificate-item').forEach(itemDiv => {
@@ -273,12 +295,15 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        calculateTotalPoints();
+        calculateTotalPoints(); // Initial calculation on page load
 
-        document.querySelectorAll('.remove-certificate-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                this.closest('.certificate-item').remove();
-                calculateTotalPoints();
+        // Event delegation for dynamically added remove buttons
+        document.querySelectorAll('.certificate-container').forEach(container => {
+            container.addEventListener('click', function(event) {
+                if (event.target.classList.contains('remove-certificate-btn')) {
+                    event.target.closest('.certificate-item').remove();
+                    calculateTotalPoints(); // Recalculate total points after removing an item
+                }
             });
         });
     });

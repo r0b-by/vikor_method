@@ -5,51 +5,122 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon; // Import Carbon for date handling
+use App\Models\AcademicPeriod; // Import AcademicPeriod model
+use App\Models\Alternatif; // Import Alternatif model
+use App\Models\Criteria; // Import Criteria model
+use App\Models\Penilaian; // Import Penilaian model to use its helper method
 
 class PenilaianSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
     public function run()
     {
         Schema::disableForeignKeyConstraints();
         DB::table('penilaians')->truncate();
         Schema::enableForeignKeyConstraints();
 
+        // Ambil periode akademik yang aktif atau yang paling baru
+        $activeAcademicPeriod = AcademicPeriod::where('is_active', true)->first();
+
+        // Fallback ke periode akademik terbaru jika tidak ada yang aktif
+        if (!$activeAcademicPeriod) {
+            $activeAcademicPeriod = AcademicPeriod::orderBy('tahun_ajaran', 'desc')
+                                                    ->orderBy('semester', 'desc')
+                                                    ->first();
+        }
+
+        // Jika tidak ada periode akademik sama sekali, tampilkan error dan keluar
+        if (!$activeAcademicPeriod) {
+            $this->command->error('Tidak ada periode akademik ditemukan. Pastikan AcademicPeriodSeeder sudah dijalankan.');
+            return;
+        }
+
+        $this->command->info("Seeding Penilaian for Tahun Ajaran: {$activeAcademicPeriod->tahun_ajaran}, Semester: {$activeAcademicPeriod->semester}");
+
         $studentEvaluations = $this->getStudentEvaluationData();
-        $criterias = DB::table('criterias')->get();
-        $alternatifs = DB::table('alternatifs')
-            ->join('users', 'alternatifs.user_id', '=', 'users.id')
-            ->select('alternatifs.id', 'users.name')
-            ->get();
+        $criterias = Criteria::all(); // Menggunakan model Eloquent
+        
+        // Filter alternatif berdasarkan tahun ajaran dan semester dari periode aktif
+        $alternatifs = Alternatif::with('user')
+                                 ->where('tahun_ajaran', $activeAcademicPeriod->tahun_ajaran)
+                                 ->where('semester', $activeAcademicPeriod->semester)
+                                 ->get(); // Menggunakan model Eloquent dan eager load user
+
+        if ($alternatifs->isEmpty()) {
+            $this->command->warn("Tidak ada alternatif ditemukan untuk Tahun Ajaran: {$activeAcademicPeriod->tahun_ajaran}, Semester: {$activeAcademicPeriod->semester}. Penilaian tidak dapat di-seed.");
+            return;
+        }
+
+        if ($criterias->isEmpty()) {
+            $this->command->warn("Tidak ada kriteria ditemukan. Penilaian tidak dapat di-seed.");
+            return;
+        }
 
         $penilaianData = [];
+        $currentDateTime = Carbon::now();
         
         foreach ($alternatifs as $alternatif) {
+            $studentName = $alternatif->user->name ?? $alternatif->alternatif_name;
+            
+            // Pastikan data evaluasi untuk siswa ini ada
+            if (!isset($studentEvaluations[$studentName])) {
+                $this->command->warn("Data evaluasi tidak ditemukan untuk alternatif: {$studentName}. Melewatkan penilaian untuk alternatif ini.");
+                continue; // Lewati jika tidak ada data evaluasi untuk siswa ini
+            }
+
             foreach ($criterias as $criteria) {
                 $criteriaCode = $criteria->criteria_code;
+                
+                $evaluationData = $studentEvaluations[$studentName][$criteriaCode] ?? ['nilai' => 0, 'detail' => null];
 
-                // Coba dapatkan data evaluasi dari $studentEvaluations
-                // Jika tidak ditemukan, default ke array dengan 'nilai' 0 dan 'detail' null
-                $evaluationData = $studentEvaluations[$alternatif->name][$criteriaCode] ?? ['nilai' => 0, 'detail' => null];
-
-                // Ekstrak nilai dan detail. Pastikan nilai selalu ada, default ke 0 jika tidak valid.
                 $nilai = is_array($evaluationData) && isset($evaluationData['nilai']) ? $evaluationData['nilai'] : (is_scalar($evaluationData) ? $evaluationData : 0);
                 $detail = is_array($evaluationData) && isset($evaluationData['detail']) ? $evaluationData['detail'] : null;
 
-                // Tambahkan data penilaian ke array, sekarang tidak ada kondisi 'if ($evaluation)'
+                // Jika kriteria adalah C5 (Poin Prestasi), gunakan calculateCertificatePoints
+                if ($criteriaCode === 'C5' && is_array($detail)) {
+                    // Buat instance sementara Penilaian untuk menggunakan metode calculateCertificatePoints
+                    $tempPenilaian = new Penilaian();
+                    $tempPenilaian->certificate_details = $this->formatCertificateDetails($detail); // Set detail yang sudah diformat
+                    $nilai = $tempPenilaian->calculateCertificatePoints();
+                    $certificateDetailsJson = json_encode($this->formatCertificateDetails($detail));
+                } else {
+                    $certificateDetailsJson = null;
+                }
+
                 $penilaianData[] = [
                     'id_alternatif' => $alternatif->id,
                     'id_criteria' => $criteria->id,
                     'nilai' => $nilai,
-                    'certificate_details' => $detail ? json_encode($this->formatCertificateDetails($detail)) : null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'academic_period_id' => $activeAcademicPeriod->id, // Gunakan ID periode akademik aktif/default
+                    'tanggal_penilaian' => Carbon::now()->toDateString(), // Menggunakan tanggal saat ini
+                    'jam_penilaian' => Carbon::now()->toTimeString(),    // Menggunakan waktu saat ini
+                    'certificate_details' => $certificateDetailsJson,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                 ];
             }
         }
 
-        DB::table('penilaians')->insert($penilaianData);
+        // Masukkan data penilaian ke database
+        if (!empty($penilaianData)) {
+            DB::table('penilaians')->insert($penilaianData);
+            $this->command->info('Penilaian berhasil di-seed.');
+        } else {
+            $this->command->warn('Tidak ada data penilaian yang dihasilkan untuk di-seed.');
+        }
     }
 
+    /**
+     * Formats certificate details into an array of objects.
+     *
+     * @param array $detail
+     * @return array
+     */
     private function formatCertificateDetails($detail)
     {
         $formatted = [];
@@ -62,6 +133,11 @@ class PenilaianSeeder extends Seeder
         return $formatted;
     }
 
+    /**
+     * Returns the sample student evaluation data.
+     *
+     * @return array
+     */
     private function getStudentEvaluationData()
     {
         return [

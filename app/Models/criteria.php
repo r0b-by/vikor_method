@@ -9,7 +9,7 @@ class criteria extends Model
 {
     use HasFactory;
     protected $table = 'criterias';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'no',
