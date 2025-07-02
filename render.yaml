@@ -1,37 +1,20 @@
 services:
   - type: web
-    name: vikor-method
-    env: docker
+    name: laravel-app
+    env: php
+    region: oregon
     plan: free
-    branch: main
+    buildCommand: |
+      composer install --no-dev
+      php artisan key:generate
+      php artisan migrate --force
+    startCommand: php artisan serve --host 0.0.0.0 --port 10000
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        value: base64:...
+        generateValue: true
       - key: APP_DEBUG
         value: false
-      - key: APP_URL
-        value: https://vikor-method.onrender.com
-
-      # ✅ Database SQLite
       - key: DB_CONNECTION
         value: sqlite
-      - key: DB_DATABASE
-        value: /var/www/html/database/database.sqlite
-
-      # ✅ File-based session/cache/log
-      - key: SESSION_DRIVER
-        value: file
-      - key: CACHE_DRIVER
-        value: file
-      - key: QUEUE_CONNECTION
-        value: sync
-      - key: LOG_CHANNEL
-        value: stack
-
-      # ✅ Timezone
-      - key: APP_TIMEZONE
-        value: Asia/Jakarta
-      - key: VITE_APP_URL
-        value: https://vikor-method.onrender.com

@@ -20,5 +20,8 @@
   "name": "formadiksivote",
   "description": "A Laravel Vite-powered project",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "mix": "^0.0.1"
+  }
 }

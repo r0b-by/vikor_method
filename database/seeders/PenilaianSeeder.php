@@ -24,25 +24,26 @@ class PenilaianSeeder extends Seeder
         $penilaianData = [];
         
         foreach ($alternatifs as $alternatif) {
-            if (isset($studentEvaluations[$alternatif->name])) {
-                foreach ($criterias as $criteria) {
-                    $criteriaCode = $criteria->criteria_code;
-                    $evaluation = $studentEvaluations[$alternatif->name][$criteriaCode] ?? null;
-                    
-                    if ($evaluation) {
-                        $nilai = is_array($evaluation) ? $evaluation['nilai'] : $evaluation;
-                        $detail = is_array($evaluation) ? $evaluation['detail'] : null;
-                        
-                        $penilaianData[] = [
-                            'id_alternatif' => $alternatif->id,
-                            'id_criteria' => $criteria->id,
-                            'nilai' => $nilai,
-                            'certificate_details' => $detail ? json_encode($this->formatCertificateDetails($detail)) : null,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-                    }
-                }
+            foreach ($criterias as $criteria) {
+                $criteriaCode = $criteria->criteria_code;
+
+                // Coba dapatkan data evaluasi dari $studentEvaluations
+                // Jika tidak ditemukan, default ke array dengan 'nilai' 0 dan 'detail' null
+                $evaluationData = $studentEvaluations[$alternatif->name][$criteriaCode] ?? ['nilai' => 0, 'detail' => null];
+
+                // Ekstrak nilai dan detail. Pastikan nilai selalu ada, default ke 0 jika tidak valid.
+                $nilai = is_array($evaluationData) && isset($evaluationData['nilai']) ? $evaluationData['nilai'] : (is_scalar($evaluationData) ? $evaluationData : 0);
+                $detail = is_array($evaluationData) && isset($evaluationData['detail']) ? $evaluationData['detail'] : null;
+
+                // Tambahkan data penilaian ke array, sekarang tidak ada kondisi 'if ($evaluation)'
+                $penilaianData[] = [
+                    'id_alternatif' => $alternatif->id,
+                    'id_criteria' => $criteria->id,
+                    'nilai' => $nilai,
+                    'certificate_details' => $detail ? json_encode($this->formatCertificateDetails($detail)) : null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
         }
 

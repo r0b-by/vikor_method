@@ -16,7 +16,7 @@ class AlternatifSeeder extends Seeder
 
         // Get only student users (excluding admin and teachers)
         $students = DB::table('users')
-            ->where('email', '!=', 'admin@example.com')
+            ->where('email', '!=', 'robby.admin@vikor.com')
             ->where('kelas', '!=', 'Guru')
             ->orderBy('id')
             ->get();

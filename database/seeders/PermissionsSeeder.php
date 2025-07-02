@@ -72,7 +72,7 @@ class PermissionsSeeder extends Seeder
             'hasil-vikor-list',
         ]);
 
-        $admin = \App\Models\User::where('email', 'admin@example.com')->first();
+        $admin = \App\Models\User::where('email', 'robby.admin@vikor.com')->first();
         $admin->assignRole('admin');
 
         $teachers = \App\Models\User::where('kelas', 'Guru')->get();

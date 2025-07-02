@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div class="d-flex justify-content-end mt-3">
-               <a href="{{ route('siswa.profile.edit', auth()->id()) }}" 
+               <a href="{{ route('siswa.profile.edit-siswa', auth()->id()) }}" 
                 class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
                     Edit Profil
                 </a>

@@ -20,6 +20,13 @@ use App\Http\Controllers\UserController;
 Route::get('/', function () {
     return view('welcome'); 
 })->name('welcome');
+
+// ============================================================
+// Halaman Informasi Pendaftaran 'Pending' (tanpa login)
+// ============================================================
+Route::get('/registration-pending', function () {
+    return view('admin.registration-pending');
+})->name('registration.pending');
 // ============================================================
 // Autentikasi Laravel (termasuk verifikasi email)
 // ============================================================

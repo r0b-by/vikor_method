@@ -52,10 +52,14 @@
                         <a href="{{ route('setting') }}"
                             class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">Settings</a>
                         <div class="border-t border-gray-100 dark:border-slate-600 my-1"></div>
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form id="logout-form" method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"
-                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">Logout</button>
+                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600">
+                                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    Logout
+                                </a>
+                            </button>
                         </form>
                     </div>
                 </div>

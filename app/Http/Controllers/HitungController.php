@@ -62,7 +62,7 @@ class HitungController extends Controller
             $ranking = $this->getRanking($finalValues);
             $calculationPerformed = true;
 
-            // Simpan hasil ke database (This part remains the same as it's the core calculation and saving)
+            // Simpan hasil ke database (Ini tetap di sini karena merupakan inti perhitungan dan penyimpanan)
             DB::beginTransaction();
             try {
                 HasilVikor::truncate();
@@ -97,10 +97,11 @@ class HitungController extends Controller
             $calculationPerformed = false;
         }
 
-        return view('dashboard.hitung', [
+        // Mengembalikan ke view utama, yang sekarang berisi rangkuman atau link ke tahapan lain
+        return view('dashboard.hitung', [ // <-- TETAP MENGARAH KE SATU BLADE INI
             'criterias' => $criterias,
             'alternatifs' => $alternatifs,
-            'penilaians' => $penilaians, // Needed for Matriks Keputusan
+            'penilaians' => $penilaians,
             'normalisasi' => $normalizedValues,
             'weightedNormalization' => $weightedNormalization,
             'ideal' => $ideal,

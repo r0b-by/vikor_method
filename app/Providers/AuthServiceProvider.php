@@ -16,6 +16,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         HasilVikor::class => HasilVikorPolicy::class,
+        
     ];
 
     /**
@@ -23,6 +24,14 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->registerPolicies();
+
+        Gate::define('approve registrations', function ($user) {
+        return $user->hasRole('admin');
+    });
+
+        Gate::define('reject registrations', function ($user) {
+            return $user->hasRole('admin');
+        });
     }
 }

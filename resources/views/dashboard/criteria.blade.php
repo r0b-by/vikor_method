@@ -199,7 +199,7 @@
                                                         <form id="edit-form-{{ $c->id }}"
                                                             action="{{ route('criteria.update', $c->id) }}"
                                                             class="p-4 md:p-5" method="POST">
-                                                            @method('PUT')
+                                                            @method('POST')
                                                             @csrf
                                                             <input name="id" type="hidden"
                                                                 value="{{ $c->id }}" />

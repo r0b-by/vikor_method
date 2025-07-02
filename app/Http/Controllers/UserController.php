@@ -72,6 +72,20 @@ class UserController extends Controller
         return view('users.show', compact('user'));
     }
 
+    public function showProfile(): View|Factory
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('siswa')) {
+            return view('siswa.profile.show', [
+                'user' => $user,
+                'alternatif' => $user->alternatif
+            ]);
+        }
+
+        return view('users.show', compact('user'));
+    }
+
     /**
      * Show the form for editing the specified user (for admin, guru, and siswa).
      *

@@ -49,7 +49,7 @@ class PenilaianController extends Controller
                         ->get()
                         ->keyBy('id_criteria');
 
-        return view('siswa.penilaian.index', compact('criterias', 'penilaians', 'alternatifs'));
+        return view('siswa.penilaian.index', compact('criterias', 'penilaians', 'alternatif'));
     }
 
     /**
