@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             AcademicPeriodSeeder::class,
             UserSeeder::class,
             CriteriaSeeder::class,
+            CriteriaSubSeeder::class,
             AlternatifSeeder::class,
             PenilaianSeeder::class,
             //HasilVikorSeeder::class,

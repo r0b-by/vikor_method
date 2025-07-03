@@ -30,8 +30,11 @@ class AlternatifController extends Controller
      */
     public function index(): Factory|View
     {
-        // Ambil semua alternatif, diurutkan berdasarkan kode
-        $alternatif = Alternatif::orderByRaw('LENGTH(alternatif_code), alternatif_code')->get();
+    
+    
+        $alternatif = Alternatif::orderByRaw('LENGTH(alternatif_code), alternatif_code')
+                    ->paginate(10); // Simple pagination
+
 
         // Ambil semua periode akademik yang aktif untuk dropdown
         $academicPeriods = AcademicPeriod::where('is_active', true)->get();

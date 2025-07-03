@@ -12,92 +12,76 @@ use Illuminate\Http\Response;
 
 class criteria_controller extends Controller
 {
-    /**
-     * Konstruktor untuk menerapkan middleware otorisasi.
-     * Hanya 'admin' yang dapat mengakses metode-metode di controller ini.
-     */
     public function __construct()
     {
-        $this->middleware(middleware: ['auth', 'role:admin']); // Memastikan hanya admin
+        $this->middleware(['auth', 'role:admin']);
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index(): Factory|View
     {
-        $criteria = criteria::orderByRaw('LENGTH(criteria_code), criteria_code')->get();
-        return view('dashboard.criteria ', compact('criteria'));
+        $criteria = criteria::with('subs')->orderByRaw('LENGTH(criteria_code), criteria_code')->get();
+        return view('dashboard.criteria', compact('criteria'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create(): void
     {
-        //
+        // Metode ini kosong, jika tidak digunakan bisa dihapus
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\CriteriaRequest  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(CriteriaRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        criteria::create($data);
+
+        $criteria = criteria::create($data);
+
+        // Perbaikan di sini: Menggunakan $request->subs
+        if ($data['input_type'] === 'poin' && $request->has('subs')) {
+            foreach ($request->subs as $sub) {
+                $criteria->subs()->create([
+                    'label' => $sub['label'] ?? null,
+                    'point' => $sub['point'] ?? 0,
+                ]);
+            }
+        }
+
         return redirect()->back()->with('success', 'Kriteria berhasil ditambahkan!');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\criteria 
-     * @return \Illuminate\Http\Response
-     */
     public function show(criteria $criteria): void
     {
-        //
+        // Metode ini kosong, jika tidak digunakan bisa dihapus
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\criteria  $criteria
-     * @return \Illuminate\Http\Response
-     */
     public function edit(criteria $criteria): void
     {
-        //
+        // Metode ini kosong, jika tidak digunakan bisa dihapus
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\CriteriaRequest  $request
-     * @param  \App\Models\criteria  $criteria
-     * @return \Illuminate\Http\Response
-     */
     public function update(CriteriaRequest $request, criteria $criteria): RedirectResponse
     {
-        $criteria = criteria::findOrFail($request->id); 
         $data = $request->validated();
         $criteria->update($data);
+
+        // Hapus sub-kriteria lama jika input_type poin
+        if ($data['input_type'] === 'poin') {
+            $criteria->subs()->delete(); // hapus semua dulu
+
+            // Perbaikan di sini: Menggunakan $request->subs
+            if ($request->has('subs')) {
+                foreach ($request->subs as $sub) {
+                    $criteria->subs()->create([
+                        'label' => $sub['label'] ?? null,
+                        'point' => $sub['point'] ?? 0,
+                    ]);
+                }
+            }
+        } else {
+            $criteria->subs()->delete(); // jika berubah jadi manual, pastikan semua sub-kriteria dihapus
+        }
+
         return redirect()->back()->with('success', 'Kriteria berhasil diperbarui!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  string  $criteria
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(string $criteria): RedirectResponse
     {
         criteria::findOrFail($criteria)->delete();

@@ -5,304 +5,434 @@
 <div class="flex flex-wrap -mx-3" data-aos="fade-zoom-in" data-aos-easing="ease-in-back" data-aos-delay="300"
     data-aos-offset="0">
 
+    <!-- Futuristic Header -->
     <div class="flex items-center justify-between mb-6 w-full">
-        <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100">
-            Manajemen Penilaian
-        </h2>
-    </div>
-
-    {{-- Filter Periode Akademik --}}
-    <div class="w-full px-3 mb-6">
-        <form action="{{ route('penilaian.index') }}" method="GET" class="flex items-end space-x-4">
-            <div class="flex-grow">
-                <label for="academic_period_id" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Pilih Periode Akademik:</label>
-                <select name="academic_period_id" id="academic_period_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-slate-700 dark:border-gray-600 dark:text-white">
-                    <option value="">Semua Periode</option>
-                    @foreach($academicPeriods as $period)
-                        <option value="{{ $period->id }}" {{ $selectedAcademicPeriodId == $period->id ? 'selected' : '' }}>
-                            {{ $period->tahun_ajaran }} - {{ $period->semester }} {{ $period->is_active ? '(Aktif)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <button type="submit" class="inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-                    Filter
-                </button>
-            </div>
-        </form>
-    </div>
-
-    {{-- Tab Navigation --}}
-    <div class="w-full px-3 mb-6">
-        <div class="border-b border-gray-200 dark:border-gray-700">
-            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="myTab" data-tabs-toggle="#myTabContent" role="tablist">
-                <li class="me-2" role="presentation">
-                    <button class="inline-block p-4 border-b-2 rounded-t-lg" id="data-tab" data-tabs-target="#data" type="button" role="tab" aria-controls="data" aria-selected="true">Data Penilaian</button>
-                </li>
-                <li class="me-2" role="presentation">
-                    <button class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="detail-tab" data-tabs-target="#detail" type="button" role="tab" aria-controls="detail" aria-selected="false">Rekam Jejak Penilaian</button>
-                </li>
-            </ul>
+        <div>
+            <h2 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
+                Manajemen Penilaian
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Advanced assessment analytics dashboard</p>
         </div>
     </div>
 
-    {{-- Tab Content --}}
-    <div id="myTabContent" class="w-full">
-        {{-- Data Penilaian Section (Matriks Decision) --}}
-        <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="data" role="tabpanel" aria-labelledby="data-tab">
-            <div class="flex-none w-full max-w-full px-3 overflow-x-hidden">
-                <div
-                    class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-
-                    <div
-                        class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                        <h6 class="dark:text-white">Tabel Penilaian (Periode: {{ $selectedAcademicPeriod ? $selectedAcademicPeriod->tahun_ajaran . ' ' . $selectedAcademicPeriod->semester : 'Tidak Dipilih' }})</h6>
-                    </div>
-                    <div class="flex-auto px-0 pt-0 pb-2">
-                        <div class="p-6 overflow-x-auto">
-                            <table class="items-center w-full mb-0 overflow-x-auto align-top border-collapse dark:border-white/40 text-slate-500">
-                                <thead class="align-bottom">
-                                    <tr>
-                                        <th
-                                            class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
-                                            Alternatif</th>
-                                        @foreach ($criterias as $c)
-                                            <th
-                                                class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
-                                                {{ $c->criteria_code }}</th>
-                                        @endforeach
-                                        @role(['admin', 'guru'])
-                                            <th
-                                                class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">
-                                                Aksi</th>
-                                        @endrole
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($alternatifs as $a)
-                                        <tr>
-                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                    {{ $a->alternatif_code }} - {{ $a->user->name ?? 'N/A' }}
-                                                </span>
-                                            </td>
-                                            @foreach ($criterias as $c)
-                                                @php
-                                                    // Ambil penilaian terbaru untuk alternatif dan kriteria ini
-                                                    // Filter berdasarkan periode akademik yang dipilih
-                                                    $penilaianForCriteria = $penilaians
-                                                        ->where('id_alternatif', $a->id)
-                                                        ->where('id_criteria', $c->id)
-                                                        ->where('academic_period_id', $selectedAcademicPeriodId) // Penting: filter berdasarkan periode yang dipilih
-                                                        ->first();
-                                                @endphp
-
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <span class="mb-0 text-xs font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                        {{ $penilaianForCriteria ? $penilaianForCriteria->nilai : 0 }}
-                                                    </span>
-                                                </td>
-                                            @endforeach
-
-                                            @role(['admin', 'guru'])
-                                                <td class="flex p-2 align-middle bg-transparent border-b just dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <button type="button" onclick="openModal('modal-{{ $a->id }}')"
-                                                        class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Edit</button>
-                                                </td>
-                                            @endrole
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="{{ count($criterias) + 2 }}" class="text-center py-4 text-gray-500">
-                                                Belum ada data alternatif atau penilaian untuk periode ini.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+    <!-- Futuristic Filter Card with Glass Morphism -->
+    <div class="w-full px-3 mb-6">
+        <div class="bg-white/80 dark:bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg p-6 border border-white/20 dark:border-slate-700/50">
+            <form action="{{ route('penilaian.index') }}" method="GET" class="flex flex-col md:flex-row items-end space-y-4 md:space-y-0 md:space-x-4">
+                <div class="flex-grow w-full">
+                    <label for="academic_period_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Periode Akademik</label>
+                    <div class="relative">
+                        <select name="academic_period_id" id="academic_period_id" onchange="this.form.submit()"
+                            class="appearance-none w-full pl-4 pr-10 py-3 rounded-lg border border-gray-300 dark:border-slate-600 bg-white/50 dark:bg-slate-700/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-purple-500 dark:focus:border-purple-500 text-gray-900 dark:text-white transition-all duration-300 shadow-sm">
+                            @foreach($academicPeriods as $period)
+                                <option value="{{ $period->id }}" {{ $selectedAcademicPeriod && $selectedAcademicPeriod->id == $period->id ? 'selected' : '' }}>
+                                    {{ $period->tahun_ajaran }} - {{ $period->semester }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
                         </div>
                     </div>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Futuristic Tabs with Animated Underline -->
+    <div class="w-full px-3 mb-6">
+        <div class="relative">
+            <div class="flex space-x-8 border-b border-gray-200 dark:border-slate-700">
+                <button id="data-tab" data-tabs-target="#data" type="button" 
+                    class="relative py-4 px-1 text-sm font-medium transition-all duration-300 focus:outline-none group">
+                    <span class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500 group-hover:text-blue-600 dark:text-purple-400 dark:group-hover:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Data Penilaian
+                    </span>
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 dark:bg-purple-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                </button>
+                <button id="detail-tab" data-tabs-target="#detail" type="button" 
+                    class="relative py-4 px-1 text-sm font-medium transition-all duration-300 focus:outline-none group">
+                    <span class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500 group-hover:text-blue-600 dark:text-purple-400 dark:group-hover:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Rekam Jejak
+                    </span>
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 dark:bg-purple-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="myTabContent" class="w-full">
+        <!-- Data Penilaian Section -->
+        <div class="hidden p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-md" id="data" role="tabpanel" aria-labelledby="data-tab">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    Tabel Penilaian
+                    @if($selectedAcademicPeriod)
+                        <span class="text-sm font-normal text-blue-600 dark:text-purple-400 ml-2">
+                            (Periode: {{ $selectedAcademicPeriod->tahun_ajaran }} {{ $selectedAcademicPeriod->semester }})
+                        </span>
+                    @endif
+                </h3>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-purple-900/30 dark:text-purple-300">
+                        {{ count($alternatifs) }} Alternatif
+                    </span>
+                    <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                        {{ count($criterias) }} Kriteria
+                    </span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                    <thead class="bg-gray-50/80 dark:bg-slate-800/80">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                Alternatif
+                            </th>
+                            @foreach ($criterias as $c)
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        {{ $c->criteria_code }}
+                                        <span class="ml-1 text-xs text-gray-400 dark:text-slate-500" data-tooltip-target="tooltip-{{ $c->id }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </span>
+                                        <div id="tooltip-{{ $c->id }}" role="tooltip" class="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip dark:bg-slate-700">
+                                            {{ $c->nama_criteria }}
+                                            <div class="tooltip-arrow" data-popper-arrow></div>
+                                        </div>
+                                    </div>
+                                </th>
+                            @endforeach
+                            @role(['admin', 'guru'])
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    Aksi
+                                </th>
+                            @endrole
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white/50 dark:bg-slate-800/50 divide-y divide-gray-200 dark:divide-slate-700">
+                        @forelse ($alternatifs as $a)
+                            <tr class="hover:bg-gray-50/80 dark:hover:bg-slate-700/80 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                                            <span class="text-blue-600 dark:text-purple-400 font-medium">{{ substr($a->alternatif_code, 0, 2) }}</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                {{ $a->alternatif_code }}
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-slate-400">
+                                                {{ $a->user->name ?? 'N/A' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                @foreach ($criterias as $c)
+                                    @php
+                                        $penilaianForCriteria = $penilaians
+                                            ->where('id_alternatif', $a->id)
+                                            ->where('id_criteria', $c->id)
+                                            ->first();
+                                        $nilai = $penilaianForCriteria ? $penilaianForCriteria->nilai : 0;
+                                    @endphp
+
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white font-medium">
+                                            {{ $nilai }}
+                                        </div>
+                                    </td>
+                                @endforeach
+
+                                @role(['admin', 'guru'])
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button type="button" onclick="openModal('modal-{{ $a->id }}')"
+                                            class="text-blue-600 hover:text-blue-900 dark:text-purple-400 dark:hover:text-purple-300 mr-3 transition-colors duration-200">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                @endrole
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ count($criterias) + 2 }}" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-slate-400">
+                                    <div class="flex flex-col items-center justify-center py-8">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 dark:text-slate-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p class="text-gray-600 dark:text-slate-300">Belum ada data alternatif atau penilaian untuk periode ini.</p>
+                                        <p class="text-sm text-gray-500 dark:text-slate-500 mt-1">Silakan pilih periode akademik lain atau tambahkan data baru.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        {{-- Detail Penilaian Section (Rekam Jejak Penilaian) --}}
-        <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="detail" role="tabpanel" aria-labelledby="detail-tab">
-            <div class="mt-8 px-3">
-                <h3 class="text-2xl font-bold mb-4 text-slate-900 dark:text-slate-100">Rekam Jejak Penilaian</h3>
-                @forelse ($groupedPenilaians as $key => $group)
-                    <div class="mb-6 border p-4 rounded-lg bg-white shadow-md dark:bg-slate-850">
-                        {{-- $key sudah berisi "Nama Alternatif (Tahun Ajaran Semester - Tanggal Jam)" --}}
-                        <h4 class="text-xl font-semibold mb-2 dark:text-white">
-                            {{ $key }}
-                        </h4>
-                        @php
-                            $firstItem = $group->first();
-                        @endphp
-                        <p class="text-gray-600 dark:text-gray-400">Alternatif: {{ $firstItem->alternatif->alternatif_name ?? $firstItem->alternatif->user->name ?? '-' }} ({{ $firstItem->alternatif->alternatif_code ?? '-' }})</p>
-                        <p class="text-gray-600 dark:text-gray-400">Periode: {{ $firstItem->academicPeriod->tahun_ajaran ?? 'N/A' }} {{ $firstItem->academicPeriod->semester ?? 'N/A' }}</p>
-                        <p class="text-gray-600 dark:text-gray-400">Tanggal Penilaian: {{ \Carbon\Carbon::parse($firstItem->tanggal_penilaian)->format('d F Y') }}</p>
-                        <p class="text-gray-600 dark:text-gray-400">Jam Penilaian: {{ \Carbon\Carbon::parse($firstItem->jam_penilaian)->format('H:i') }}</p>
+        <!-- Rekam Jejak Section -->
+        <div class="hidden p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-md" id="detail" role="tabpanel" aria-labelledby="detail-tab">
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Rekam Jejak Penilaian</h3>
+                <p class="text-sm text-gray-500 dark:text-slate-400">Riwayat lengkap semua penilaian yang pernah dilakukan</p>
+            </div>
 
-                        <div class="overflow-x-auto mt-4">
-                            <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-                                <thead class="align-bottom">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left font-bold uppercase text-xxs text-black dark:text-white dark:border-white/40 border-b border-b-solid">Kriteria</th>
-                                        <th class="px-6 py-3 text-left font-bold uppercase text-xxs text-black dark:text-white dark:border-white/40 border-b border-b-solid">Nilai</th>
-                                        <th class="px-6 py-3 text-left font-bold uppercase text-xxs text-black dark:text-white dark:border-white/40 border-b border-b-solid">Detail Sertifikat</th>
-                                        <th class="px-6 py-3 text-left font-bold uppercase text-xxs text-black dark:text-white dark:border-white/40 border-b border-b-solid">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($group as $item) {{-- Loop melalui setiap penilaian dalam grup --}}
-                                        <tr>
-                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-                                                <span class="text-xs font-semibold dark:text-white dark:opacity-80">
-                                                    {{ $item->criteria->criteria_name }} ({{ $item->criteria->criteria_code }})
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-                                                <span class="text-xs font-semibold dark:text-white dark:opacity-80">
-                                                    {{ $item->nilai }}
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-                                                <span class="text-xs font-semibold dark:text-white dark:opacity-80">
-                                                    @if ($item->certificate_details)
-                                                        @foreach ($item->certificate_details as $cert)
-                                                            Level: {{ $cert['level'] ?? 'N/A' }}, Count: {{ $cert['count'] ?? 'N/A' }} <br>
-                                                        @endforeach
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap">
-                                                <form action="{{ route('penilaian.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus penilaian ini?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-medium">Hapus</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+            @forelse ($groupedPenilaians as $key => $group)
+                <div class="mb-6 border border-gray-200 dark:border-slate-700 p-5 rounded-xl bg-white/70 dark:bg-slate-800/70 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    @php
+                        list($alternatifCode, $tahunAjaran, $semester) = explode('-', $key);
+                        $firstItem = $group->first();
+                        $tanggal = \Carbon\Carbon::parse($firstItem->tanggal_penilaian)->format('d F Y');
+                        $jam = \Carbon\Carbon::parse($firstItem->jam_penilaian)->format('H:i');
+                    @endphp
+
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">
+                                    {{ $alternatifCode }}
+                                </span>
+                                {{ $firstItem->alternatif->alternatif_name ?? $firstItem->alternatif->user->name ?? '-' }}
+                            </h4>
+                            <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                                <span class="text-sm text-gray-600 dark:text-slate-300 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    {{ $tanggal }}
+                                </span>
+                                <span class="text-sm text-gray-600 dark:text-slate-300 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {{ $jam }}
+                                </span>
+                                <span class="text-sm text-gray-600 dark:text-slate-300 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                    </svg>
+                                    {{ $tahunAjaran }} - {{ $semester }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mt-3 md:mt-0">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                {{ $group->count() }} Kriteria Dinilai
+                            </span>
                         </div>
                     </div>
-                @empty
-                    <p class="text-center text-gray-500 dark:text-gray-400">Belum ada rekam jejak penilaian.</p>
-                @endforelse
-            </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                            <thead class="bg-gray-50/80 dark:bg-slate-800/80">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Kriteria
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Nilai
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Sertifikat
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Aksi
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/50 dark:bg-slate-800/50 divide-y divide-gray-200 dark:divide-slate-700">
+                                @foreach ($group as $item)
+                                    <tr class="hover:bg-gray-50/80 dark:hover:bg-slate-700/80 transition-colors duration-150">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                {{ $item->criteria->nama_criteria }}
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-slate-400">
+                                                {{ $item->criteria->criteria_code }}
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                                {{ $item->nilai }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            @if ($item->certificate_details)
+                                                <div class="flex flex-wrap gap-2">
+                                                    @foreach ($item->certificate_details as $cert)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                                                            {{ $cert['level'] ?? 'N/A' }} ({{ $cert['count'] ?? 'N/A' }})
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="text-sm text-gray-500 dark:text-slate-400">-</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <form action="{{ route('penilaian.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus penilaian ini?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 dark:text-slate-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h4 class="text-lg font-medium text-gray-600 dark:text-slate-300">Belum ada rekam jejak penilaian</h4>
+                    <p class="text-sm text-gray-500 dark:text-slate-500 mt-2">Mulai lakukan penilaian untuk melihat riwayat di sini</p>
+                </div>
+            @endforelse
         </div>
     </div>
 </div>
 
-{{-- MODAL PENILAIAN --}}
+<!-- Futuristic Modal -->
 @foreach ($alternatifs as $a)
     @role(['admin', 'guru'])
         <div id="modal-{{ $a->id }}" tabindex="-1" aria-hidden="true"
-            class="hidden fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm">
-            <div class="relative w-full max-w-md max-h-full mx-auto mt-20">
-                <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                    <div class="flex items-center justify-between p-4 border-b rounded-t md:p-5 dark:border-gray-600">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                            Penilaian untuk {{ $a->alternatif_code }} ({{ $a->user->name ?? 'N/A' }})
+            class="hidden fixed inset-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto h-modal h-full backdrop-blur-sm">
+            <div class="relative w-full h-full max-w-4xl mx-auto mt-10">
+                <!-- Modal content -->
+                <div class="relative bg-white rounded-xl shadow-xl dark:bg-slate-800 border border-white/20 dark:border-slate-700/50">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-5 border-b rounded-t-xl dark:border-slate-700 bg-gradient-to-r from-blue-500 to-purple-600">
+                        <h3 class="text-xl font-medium text-white">
+                            Penilaian untuk <span class="font-semibold">{{ $a->alternatif_code }}</span>
                         </h3>
                         <button type="button" onclick="closeModal('modal-{{ $a->id }}')"
-                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
-                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 14 14">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                            class="text-white hover:bg-white/20 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center transition-colors duration-200">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
-                            <span class="sr-only">Close modal</span>
+                            <span class="sr-only">Tutup modal</span>
                         </button>
                     </div>
+                    <!-- Modal body -->
                     <form action="{{ route('penilaian.storeOrUpdate') }}" method="POST">
                         @csrf
-                        <div class="p-4 md:p-5">
+                        <div class="p-6 space-y-6">
                             <input type="hidden" name="id_alternatif" value="{{ $a->id }}">
 
-                            {{-- Ganti input tahun_ajaran dan semester dengan dropdown academic_period_id --}}
-                            <div class="mb-4">
-                                <label for="academic_period_id-modal-{{ $a->id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Periode Akademik:</label>
-                                <select name="academic_period_id" id="academic_period_id-modal-{{ $a->id }}"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    required>
-                                    <option value="">Pilih Periode Akademik</option>
-                                    @foreach($academicPeriods as $period)
-                                        <option value="{{ $period->id }}"
-                                            {{ old('academic_period_id', $selectedAcademicPeriodId) == $period->id ? 'selected' : '' }}>
-                                            {{ $period->tahun_ajaran }} - {{ $period->semester }} {{ $period->is_active ? '(Aktif)' : '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <div class="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label for="academic_period_id-modal-{{ $a->id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Periode Akademik</label>
+                                    <select name="academic_period_id" id="academic_period_id-modal-{{ $a->id }}"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+                                        required>
+                                        @foreach($academicPeriods as $period)
+                                            <option value="{{ $period->id }}" {{ $selectedAcademicPeriod && $selectedAcademicPeriod->id == $period->id ? 'selected' : '' }}>
+                                                {{ $period->tahun_ajaran }} - {{ $period->semester }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 @foreach ($criterias as $c)
                                     @php
-                                        // Ambil nilai terbaru untuk kriteria ini pada alternatif ini
-                                        // Filter berdasarkan periode akademik yang dipilih di halaman utama
                                         $nilaiTerbaru = $penilaians
                                             ->where('id_alternatif', $a->id)
                                             ->where('id_criteria', $c->id)
-                                            ->where('academic_period_id', $selectedAcademicPeriodId) // Penting: filter berdasarkan periode yang dipilih
                                             ->first();
-
-                                        // Ambil detail sertifikat jika ada
+                                            
                                         $certificateDetails = $nilaiTerbaru ? $nilaiTerbaru->certificate_details : [];
                                     @endphp
-                                    <div class="col-span-2 sm:col-span-1">
-                                        <label for="nilai_{{ $a->id }}_{{ $c->id }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                            {{ $c->criteria_code }}
+                                    <div class="bg-gray-50/50 dark:bg-slate-700/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            {{ $c->criteria_code }} - {{ $c->nama_criteria }}
                                         </label>
-                                        <input type="number" min="0" step="0.01"
-                                            value="{{ old('nilai.' . $c->id, $nilaiTerbaru ? $nilaiTerbaru->nilai : 0) }}"
-                                            name="nilai[{{ $c->id }}]" id="nilai_{{ $a->id }}_{{ $c->id }}"
-                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                            required onchange="formatDecimal(this)">
-
-                                        {{-- Bagian untuk input detail sertifikat jika diperlukan --}}
-                                        @if ($c->criteria_type == 'Benefit' || $c->criteria_type == 'Cost') {{-- Sesuaikan dengan kriteria yang memerlukan sertifikat --}}
-                                            <div class="mt-2" id="certificate_inputs_{{ $a->id }}_{{ $c->id }}">
-                                                <label class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">Sertifikat:</label>
-                                                <button type="button" onclick="addCertificateField('{{ $a->id }}', '{{ $c->id }}')" class="text-blue-500 text-sm hover:underline mb-2">Tambah Sertifikat</button>
-
+                                        
+                                        @if(in_array($c->criteria_code, ['C4', 'C5']))
+                                            <input type="hidden" name="nilai[{{ $c->id }}]" 
+                                                   value="{{ $nilaiTerbaru ? $nilaiTerbaru->nilai : 0 }}">
+                                            
+                                            <div class="mt-3 space-y-2" id="certificate_inputs_{{ $a->id }}_{{ $c->id }}">
+                                                <label class="block text-sm font-medium text-gray-900 dark:text-white">Detail Sertifikat:</label>
+                                                <button type="button" onclick="addCertificateField('{{ $a->id }}', '{{ $c->id }}')" 
+                                                    class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                                                    Tambah Sertifikat
+                                                </button>
+                                                
                                                 @if (!empty($certificateDetails))
                                                     @foreach ($certificateDetails as $index => $detail)
-                                                        <div class="flex gap-2 mb-2 certificate-row">
-                                                            <select name="certificate_level[{{ $c->id }}][]" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+                                                        <div class="flex gap-2 items-center certificate-row">
+                                                            <select name="certificate_level[{{ $c->id }}][]" 
+                                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                                    onchange="calculateCertificateScore('{{ $a->id }}', '{{ $c->id }}')">
                                                                 <option value="">Pilih Level</option>
-                                                                <option value="Nasional" {{ (old('certificate_level.' . $c->id . '.' . $index, $detail['level'] ?? '') == 'Nasional') ? 'selected' : '' }}>Nasional</option>
-                                                                <option value="Provinsi" {{ (old('certificate_level.' . $c->id . '.' . $index, $detail['level'] ?? '') == 'Provinsi') ? 'selected' : '' }}>Provinsi</option>
-                                                                <option value="Kabupaten/Kota" {{ (old('certificate_level.' . $c->id . '.' . $index, $detail['level'] ?? '') == 'Kabupaten/Kota') ? 'selected' : '' }}>Kabupaten/Kota</option>
-                                                                <option value="Sekolah" {{ (old('certificate_level.' . $c->id . '.' . $index, $detail['level'] ?? '') == 'Sekolah') ? 'selected' : '' }}>Sekolah</option>
-                                                                <option value="Partisipasi" {{ (old('certificate_level.' . $c->id . '.' . $index, $detail['level'] ?? '') == 'Partisipasi') ? 'selected' : '' }}>Partisipasi</option>
+                                                                @foreach($c->subs as $sub)
+                                                                    <option value="{{ $sub->label }}" 
+                                                                            data-point="{{ $sub->point }}"
+                                                                            {{ ($detail['level'] ?? '') == $sub->label ? 'selected' : '' }}>
+                                                                        {{ $sub->label }} ({{ $sub->point }} poin)
+                                                                    </option>
+                                                                @endforeach
                                                             </select>
-                                                            <input type="number" name="certificate_count[{{ $c->id }}][]" value="{{ old('certificate_count.' . $c->id . '.' . $index, $detail['count'] ?? 1) }}" min="1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                                                            <button type="button" onclick="removeCertificateField(this)" class="text-red-500 text-sm hover:underline">Hapus</button>
+                                                            <input type="number" name="certificate_count[{{ $c->id }}][]" 
+                                                                   value="{{ $detail['count'] ?? 1 }}" min="1" 
+                                                                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                                   onchange="calculateCertificateScore('{{ $a->id }}', '{{ $c->id }}')">
+                                                            <button type="button" onclick="removeCertificateField(this, '{{ $a->id }}', '{{ $c->id }}')" class="text-red-500 hover:text-red-700 text-sm">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                                </svg>
+                                                            </button>
                                                         </div>
                                                     @endforeach
                                                 @endif
                                             </div>
+                                        @else
+                                            <input type="number" min="0" step="0.01"
+                                                value="{{ $nilaiTerbaru ? $nilaiTerbaru->nilai : 0 }}"
+                                                name="nilai[{{ $c->id }}]"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                required onchange="formatDecimal(this)">
                                         @endif
                                     </div>
                                 @endforeach
                             </div>
-                            <button type="submit"
-                                class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                <svg class="w-5 h-5 me-1 -ms-1" fill="currentColor" viewBox="0 0 20 20"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                        d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                                Simpan Penilaian
-                            </button>
+                            
+                            <div class="flex justify-end mt-4">
+                                <button type="submit"
+                                    class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                    <svg class="w-5 h-5 me-1 -ms-1" fill="currentColor" viewBox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                            d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                    Simpan Penilaian
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -312,100 +442,155 @@
 @endforeach
 
 <script>
-    // Fungsi untuk membuka modal
-    function openModal(modalId) {
-        document.getElementById(modalId).classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-    }
+    // Certificate point values
+   // Certificate point values
+const certificatePoints = {
+    'Internasional': 5,
+    'Nasional': 4,
+    'Provinsi': 3,
+    'Kabupaten/Kota': 2,
+    'Sekolah': 1
+};
 
-    // Fungsi untuk menutup modal
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
+// Function to add certificate field
+function addCertificateField(alternatifId, criteriaId) {
+    const container = document.getElementById(`certificate_inputs_${alternatifId}_${criteriaId}`);
+    
+    const div = document.createElement('div');
+    div.className = 'flex gap-2 items-center certificate-row';
+    div.innerHTML = `
+        <select name="certificate_level[${criteriaId}][]" 
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                onchange="calculateCertificateScore('${alternatifId}', '${criteriaId}')">
+            <option value="">Pilih Level</option>
+            <option value="Internasional" data-point="5">Internasional (5 poin)</option>
+            <option value="Nasional" data-point="4">Nasional (4 poin)</option>
+            <option value="Provinsi" data-point="3">Provinsi (3 poin)</option>
+            <option value="Kabupaten/Kota" data-point="2">Kabupaten/Kota (2 poin)</option>
+            <option value="Sekolah" data-point="1">Sekolah (1 poin)</option>
+        </select>
+        <input type="number" name="certificate_count[${criteriaId}][]" 
+               value="1" min="1" 
+               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+               onchange="calculateCertificateScore('${alternatifId}', '${criteriaId}')">
+        <button type="button" onclick="removeCertificateField(this, '${alternatifId}', '${criteriaId}')" class="text-red-500 hover:text-red-700 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+        </button>
+    `;
+    
+    container.appendChild(div);
+}
 
-    // Fungsi untuk memformat input desimal
-    function formatDecimal(input) {
-        input.value = parseFloat(input.value).toFixed(2);
-    }
+// Function to remove certificate field
+function removeCertificateField(button, alternatifId, criteriaId) {
+    const row = button.closest('.certificate-row');
+    row.remove();
+    calculateCertificateScore(alternatifId, criteriaId);
+}
 
-    // Fungsi untuk menambah field sertifikat (jika diperlukan)
-    function addCertificateField(alternatifId, criteriaId) {
-        const container = document.getElementById(`certificate_inputs_${alternatifId}_${criteriaId}`);
-        const newRow = document.createElement('div');
-        newRow.classList.add('flex', 'gap-2', 'mb-2', 'certificate-row');
-        newRow.innerHTML = `
-            <select name="certificate_level[${criteriaId}][]" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                <option value="">Pilih Level</option>
-                <option value="Nasional">Nasional</option>
-                <option value="Provinsi">Provinsi</option>
-                <option value="Kabupaten/Kota">Kabupaten/Kota</option>
-                <option value="Sekolah">Sekolah</option>
-                <option value="Partisipasi">Partisipasi</option>
-            </select>
-            <input type="number" name="certificate_count[${criteriaId}][]" value="1" min="1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-            <button type="button" onclick="removeCertificateField(this)" class="text-red-500 text-sm hover:underline">Hapus</button>
-        `;
-        container.appendChild(newRow);
-    }
-
-    // Fungsi untuk menghapus field sertifikat
-    function removeCertificateField(button) {
-        button.closest('.certificate-row').remove();
-    }
-
-    // Tutup modal saat mengklik di luar modal
-    window.onclick = function(event) {
-        @foreach ($alternatifs as $a)
-            const modal = document.getElementById('modal-{{ $a->id }}');
-            if (modal && event.target === modal) { // Tambahkan cek `modal` tidak null
-                closeModal('modal-{{ $a->id }}');
-            }
-        @endforeach
-    }
-
-    // Initialize tabs with Flowbite's JS (assuming it's loaded) or custom JS
-    document.addEventListener('DOMContentLoaded', function() {
-        const dataTabButton = document.getElementById('data-tab');
-        const detailTabButton = document.getElementById('detail-tab');
-        const dataContent = document.getElementById('data');
-        const detailContent = document.getElementById('detail');
-
-        function activateTab(tabButton, contentDiv) {
-            dataTabButton.classList.remove('border-blue-600', 'text-blue-600');
-            dataTabButton.classList.add('hover:text-gray-600', 'hover:border-gray-300', 'dark:hover:text-gray-300');
-            detailTabButton.classList.remove('border-blue-600', 'text-blue-600');
-            detailTabButton.classList.add('hover:text-gray-600', 'hover:border-gray-300', 'dark:hover:text-gray-300');
-
-            tabButton.classList.add('border-blue-600', 'text-blue-600');
-            tabButton.classList.remove('hover:text-gray-600', 'hover:border-gray-300', 'dark:hover:text-gray-300');
-
-            dataContent.classList.add('hidden');
-            detailContent.classList.add('hidden');
-            contentDiv.classList.remove('hidden');
+// Function to calculate certificate score
+function calculateCertificateScore(alternatifId, criteriaId) {
+    const container = document.getElementById(`certificate_inputs_${alternatifId}_${criteriaId}`);
+    const selects = container.querySelectorAll('select[name^="certificate_level"]');
+    const inputs = container.querySelectorAll('input[name^="certificate_count"]');
+    
+    let totalScore = 0;
+    
+    selects.forEach((select, index) => {
+        const selectedOption = select.options[select.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            const point = parseFloat(selectedOption.dataset.point);
+            const count = parseFloat(inputs[index].value);
+            totalScore += point * count;
         }
+    });
+    
+    // Find the hidden input for this criteria and set its value
+    const hiddenInput = document.querySelector(`input[name="nilai[${criteriaId}]"]`);
+    if (hiddenInput) {
+        hiddenInput.value = totalScore;
+    }
+}
 
-        // Check if there's a selected tab in local storage or URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const activeTabFromUrl = urlParams.get('tab');
+// Function to format decimal input
+function formatDecimal(input) {
+    // Ensure the value is a valid number with 2 decimal places
+    let value = parseFloat(input.value);
+    if (isNaN(value)) {
+        value = 0;
+    }
+    input.value = value.toFixed(2);
+}
 
-        if (activeTabFromUrl === 'detail') {
-            activateTab(detailTabButton, detailContent);
-        } else {
-            activateTab(dataTabButton, dataContent);
-        }
-
-        dataTabButton.addEventListener('click', function() {
-            activateTab(dataTabButton, dataContent);
-            // Update URL without reloading page
-            history.pushState(null, '', '?tab=data');
+// Tab switching functionality
+document.querySelectorAll('[data-tabs-target]').forEach(tab => {
+    tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-tabs-target');
+        document.querySelectorAll('#myTabContent > div').forEach(content => {
+            content.classList.add('hidden');
         });
+        document.querySelector(target).classList.remove('hidden');
+        
+        // Update active tab styling
+        document.querySelectorAll('[data-tabs-target]').forEach(t => {
+            t.classList.remove('text-blue-600', 'dark:text-purple-400');
+            t.classList.add('text-gray-500', 'dark:text-slate-400');
+        });
+        tab.classList.remove('text-gray-500', 'dark:text-slate-400');
+        tab.classList.add('text-blue-600', 'dark:text-purple-400');
+    });
+});
 
-        detailTabButton.addEventListener('click', function() {
-            activateTab(detailTabButton, detailContent);
-            // Update URL without reloading page
-            history.pushState(null, '', '?tab=detail');
+// Modal functions
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    if (event.target.classList.contains('backdrop-blur-sm')) {
+        const modals = document.querySelectorAll('.backdrop-blur-sm');
+        modals.forEach(modal => {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+    }
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-tooltip-target]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        const tooltipId = tooltipTriggerEl.getAttribute('data-tooltip-target');
+        const tooltipEl = document.getElementById(tooltipId);
+        
+        tooltipTriggerEl.addEventListener('mouseenter', function() {
+            tooltipEl.classList.remove('invisible', 'opacity-0');
+            tooltipEl.classList.add('visible', 'opacity-100');
+        });
+        
+        tooltipTriggerEl.addEventListener('mouseleave', function() {
+            tooltipEl.classList.add('invisible', 'opacity-0');
+            tooltipEl.classList.remove('visible', 'opacity-100');
         });
     });
+    
+    // Activate first tab by default
+    const firstTab = document.querySelector('[data-tabs-target]');
+    if (firstTab) {
+        firstTab.click();
+    }
+});
 </script>
+
 @endsection

@@ -8,97 +8,90 @@ use App\Models\Alternatif;
 use App\Models\Criteria;
 use App\Models\AcademicPeriod;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB; // Pastikan ini diimpor
-use Illuminate\Support\Facades\Auth; // Tambahkan ini
-use Illuminate\Support\Facades\Validator; // Tambahkan ini
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class PenilaianController extends Controller
 {
-    /**
-     * Constructor to apply authorization middleware.
-     * Only 'admin' and 'guru' can access methods in this controller.
-     */
     public function __construct()
     {
         $this->middleware(['auth', 'role:admin|guru'])->except(['indexForStudent', 'storeOrUpdateForStudent']);
         $this->middleware(['auth', 'role:siswa'])->only(['indexForStudent', 'storeOrUpdateForStudent']);
     }
 
-    /**
-     * Display a listing of the resource for admin/guru.
-     * Menambahkan filter periode akademik.
-     */
     public function index(Request $request)
     {
-        $criterias = Criteria::all();
+        // Hanya ambil periode akademik yang aktif
+        $academicPeriods = AcademicPeriod::where('is_active', true)
+            ->orderBy('tahun_ajaran', 'desc')
+            ->orderBy('semester')
+            ->get();
 
-        // Ambil semua periode akademik yang tersedia untuk dropdown filter
-        $academicPeriods = AcademicPeriod::orderBy('tahun_ajaran', 'desc')->orderBy('semester')->get();
+        // Handle selected academic period
+        $selectedAcademicPeriod = $request->input('academic_period_id') 
+            ? AcademicPeriod::where('is_active', true)->find($request->input('academic_period_id'))
+            : AcademicPeriod::where('is_active', true)->first();
 
-        // Tentukan periode akademik yang dipilih dari request, atau ambil yang paling baru sebagai default
-        $selectedAcademicPeriodId = $request->input('academic_period_id');
-        $selectedAcademicPeriod = null;
-
-        if ($selectedAcademicPeriodId) {
-            $selectedAcademicPeriod = AcademicPeriod::find($selectedAcademicPeriodId);
-        }
-
-        // Jika tidak ada filter yang dipilih atau periode tidak ditemukan, coba ambil periode aktif atau periode terakhir
+        // Jika tidak ada periode aktif sama sekali
         if (!$selectedAcademicPeriod) {
-            $activePeriod = AcademicPeriod::where('is_active', true)->first();
-            if ($activePeriod) {
-                $selectedAcademicPeriod = $activePeriod;
-                $selectedAcademicPeriodId = $activePeriod->id;
-            } elseif ($academicPeriods->isNotEmpty()) {
-                $selectedAcademicPeriod = $academicPeriods->first();
-                $selectedAcademicPeriodId = $academicPeriods->first()->id;
-            }
+            return view('dashboard.penilaian', [
+                'criterias' => Criteria::with('subs')->get(),
+                'alternatifs' => collect(),
+                'penilaians' => collect(),
+                'groupedPenilaians' => collect(),
+                'academicPeriods' => collect(),
+                'selectedAcademicPeriod' => null,
+                'latestPenilaiansForSelectedPeriod' => collect(),
+            ])->with('warning', 'Tidak ada periode akademik yang aktif.');
         }
 
-        // Selalu ambil semua alternatif untuk form input, terlepas dari apakah mereka sudah punya penilaian atau belum.
-        $alternatifs = Alternatif::with('user')->orderByRaw('LENGTH(alternatif_code), alternatif_code')->get();
+        // Load criteria with their subs
+        $criterias = Criteria::with('subs')->get();
+        
+        // Get alternatives for the selected active period
+        $alternatifs = Alternatif::with('user')
+            ->where('tahun_ajaran', $selectedAcademicPeriod->tahun_ajaran)
+            ->where('semester', $selectedAcademicPeriod->semester)
+            ->orderByRaw('LENGTH(alternatif_code), alternatif_code')
+            ->get();
 
-        // Query penilaian berdasarkan filter yang dipilih
-        // Ini akan mengambil semua penilaian untuk periode yang dipilih
-        $queryPenilaians = Penilaian::with(['criteria', 'alternatif.user', 'academicPeriod']);
+        // Query assessments for the selected active period
+        $penilaians = Penilaian::with(['criteria', 'alternatif.user', 'academicPeriod'])
+            ->where('academic_period_id', $selectedAcademicPeriod->id)
+            ->orderBy('tanggal_penilaian', 'desc')
+            ->orderBy('jam_penilaian', 'desc')
+            ->get();
 
-        if ($selectedAcademicPeriodId) {
-            $queryPenilaians->where('academic_period_id', $selectedAcademicPeriodId);
-        }
+        // Get latest assessments for pre-fill
+        $latestPenilaiansForSelectedPeriod = $penilaians->isNotEmpty()
+            ? $penilaians->groupBy(fn($item) => $item->id_alternatif . '_' . $item->id_criteria)
+                ->map->first()
+            : collect();
 
-        $penilaians = $queryPenilaians
-                            ->orderBy('tanggal_penilaian', 'desc')
-                            ->orderBy('jam_penilaian', 'desc')
-                            ->get();
-
-        // Siapkan koleksi penilaian terbaru untuk pre-fill form input
-        // Mengelompokkan berdasarkan kunci komposit (id_alternatif_id_criteria)
-        // dan kemudian mengambil item pertama (terbaru karena sudah diurutkan) dari setiap grup.
-        $latestPenilaiansForSelectedPeriod = new \Illuminate\Support\Collection();
-        if ($penilaians->isNotEmpty()) {
-            $latestPenilaiansForSelectedPeriod = $penilaians->groupBy(function($item) {
-                                                                return $item->id_alternatif . '_' . $item->id_criteria;
-                                                            })
-                                                            ->map(function ($group) {
-                                                                return $group->first(); // Ambil penilaian terbaru dari grup
-                                                            });
-        }
-
-        // Kelompokkan semua penilaian yang diambil (yang sudah difilter berdasarkan periode)
-        // untuk tampilan rekam jejak (riwayat)
+        // Group assessments for history view
         $groupedPenilaians = $penilaians->groupBy(function($item) {
-            // Menggunakan nama alternatif (siswa) agar unik per siswa untuk riwayat
-            $alternatifName = $item->alternatif->user->name ?? $item->alternatif->alternatif_name ?? 'Alternatif Tidak Diketahui';
-            $periodInfo = $item->academicPeriod ? $item->academicPeriod->tahun_ajaran . ' ' . $item->academicPeriod->semester : 'Periode Tidak Diketahui';
-            return $alternatifName . ' (' . $periodInfo . ' - ' . Carbon::parse($item->tanggal_penilaian)->format('d-m-Y H:i') . ')';
+            $alternatifName = $item->alternatif->user->name ?? $item->alternatif->alternatif_name ?? 'Unknown';
+            $periodInfo = $item->academicPeriod 
+                ? $item->academicPeriod->tahun_ajaran . ' ' . $item->academicPeriod->semester 
+                : 'Unknown Period';
+            
+            return $alternatifName . ' (' . $periodInfo . ' - ' . 
+                   Carbon::parse($item->tanggal_penilaian)->format('d-m-Y') . ' ' . 
+                   Carbon::parse($item->jam_penilaian)->format('H:i') . ')';
         });
 
-        return view('dashboard.penilaian', compact('criterias', 'alternatifs', 'penilaians', 'groupedPenilaians', 'academicPeriods', 'selectedAcademicPeriodId', 'selectedAcademicPeriod', 'latestPenilaiansForSelectedPeriod'));
+        return view('dashboard.penilaian', compact(
+            'criterias', 
+            'alternatifs', 
+            'penilaians', 
+            'groupedPenilaians',
+            'academicPeriods', 
+            'selectedAcademicPeriod', 
+            'latestPenilaiansForSelectedPeriod'
+        ));
     }
 
-    /**
-     * Display penilaian form for siswa.
-     */
     public function indexForStudent()
     {
         $user = Auth::user();
@@ -108,58 +101,51 @@ class PenilaianController extends Controller
             return view('siswa.penilaian.index')->with('error', 'Anda belum memiliki alternatif yang terdaftar.');
         }
 
-        $criterias = Criteria::all();
+        $criterias = Criteria::with('subs')->get();
 
-        // Ambil ID Periode Akademik dari Alternatif siswa
         $academicPeriodForStudent = AcademicPeriod::where('tahun_ajaran', $alternatif->tahun_ajaran)
-                                                 ->where('semester', $alternatif->semester)
-                                                 ->first();
+            ->where('semester', $alternatif->semester)
+            ->firstOrFail();
 
-        if (!$academicPeriodForStudent) {
-            return view('siswa.penilaian.index')->with('error', 'Periode akademik untuk alternatif Anda tidak ditemukan.');
-        }
-
-        // Ambil penilaian terbaru siswa untuk periode akademik akunnya
+        // Get latest assessments for current period with proper date casting
         $latestPenilaiansForCurrentPeriod = Penilaian::where('id_alternatif', $alternatif->id)
-            ->where('academic_period_id', $academicPeriodForStudent->id) // Filter berdasarkan academic_period_id
+            ->where('academic_period_id', $academicPeriodForStudent->id)
+            ->select('*')
+            ->selectRaw('CAST(tanggal_penilaian AS DATE) as tanggal_penilaian')
+            ->selectRaw('CAST(jam_penilaian AS TIME) as jam_penilaian')
             ->orderBy('tanggal_penilaian', 'desc')
             ->orderBy('jam_penilaian', 'desc')
             ->get()
-            ->keyBy('id_criteria'); // Untuk kemudahan akses di form
+            ->keyBy('id_criteria');
 
-        // Ambil semua penilaian untuk siswa ini untuk rekam jejak (riwayat)
+        // Get all assessments for history
         $allPenilaiansForStudent = Penilaian::where('id_alternatif', $alternatif->id)
-            ->with('academicPeriod') // Load relasi academicPeriod
-            ->orderBy('academic_period_id', 'desc') // Urutkan berdasarkan ID periode
+            ->with('academicPeriod')
+            ->select('*')
+            ->selectRaw('CAST(tanggal_penilaian AS DATE) as tanggal_penilaian')
+            ->selectRaw('CAST(jam_penilaian AS TIME) as jam_penilaian')
+            ->orderBy('academic_period_id', 'desc')
             ->orderBy('tanggal_penilaian', 'desc')
             ->orderBy('jam_penilaian', 'desc')
             ->get();
 
-        // Kelompokkan semua penilaian untuk tampilan rekam jejak
         $groupedPenilaians = $allPenilaiansForStudent->groupBy(function($item) {
-            $periodInfo = $item->academicPeriod ? $item->academicPeriod->tahun_ajaran . ' ' . $item->academicPeriod->semester : 'Periode Tidak Diketahui';
-            return $periodInfo . ' - ' . Carbon::parse($item->tanggal_penilaian)->format('d-m-Y H:i');
+            $periodInfo = $item->academicPeriod 
+                ? $item->academicPeriod->tahun_ajaran . ' ' . $item->academicPeriod->semester 
+                : 'Unknown Period';
+            
+            $tanggal = Carbon::parse($item->tanggal_penilaian);
+            $jam = Carbon::parse($item->jam_penilaian);
+            
+            return $periodInfo . ' - ' . $tanggal->format('d-m-Y') . ' ' . $jam->format('H:i');
         });
 
-        // Data tahun ajaran dan semester saat ini dari akun siswa (untuk tampilan)
-        $currentTahunAjaran = $alternatif->tahun_ajaran;
-        $currentSemester = $alternatif->semester;
-
         return view('siswa.penilaian.index', compact(
-            'criterias',
-            'alternatif',
-            'latestPenilaiansForCurrentPeriod', // Penilaian terbaru untuk form input
-            'allPenilaiansForStudent',          // Semua penilaian untuk riwayat
-            'groupedPenilaians',                // Penilaian yang dikelompokkan untuk riwayat
-            'currentTahunAjaran',               // Tahun ajaran siswa (dari alternatif)
-            'currentSemester',                  // Semester siswa (dari alternatif)
-            'academicPeriodForStudent'          // Objek periode akademik lengkap untuk siswa
+            'criterias', 'alternatif', 'latestPenilaiansForCurrentPeriod',
+            'allPenilaiansForStudent', 'groupedPenilaians', 'academicPeriodForStudent'
         ));
     }
 
-    /**
-     * Store or update penilaian for admin/guru.
-     */
     public function storeOrUpdate(Request $request)
     {
         $validated = $request->validate([
@@ -168,103 +154,55 @@ class PenilaianController extends Controller
             'nilai.*' => 'required|numeric|min:0',
             'certificate_level' => 'sometimes|array',
             'certificate_count' => 'sometimes|array',
-            'academic_period_id' => 'required|exists:academic_periods,id', // Validasi academic_period_id
+            'academic_period_id' => 'required|exists:academic_periods,id,is_active,1', // Hanya boleh periode aktif
         ]);
 
         DB::beginTransaction();
         try {
             $currentDate = Carbon::now();
-            $academicPeriodId = $validated['academic_period_id']; // Ambil ID periode akademik
-
-            foreach ($validated['nilai'] as $criteriaId => $nilai) {
-                $certificateDetails = [];
-
-                if (isset($validated['certificate_level'][$criteriaId])) {
-                    foreach ($validated['certificate_level'][$criteriaId] as $index => $level) {
-                        $count = $validated['certificate_count'][$criteriaId][$index] ?? 1;
-                        $certificateDetails[] = [
-                            'level' => $level,
-                            'count' => $count
-                        ];
-                    }
-                }
-
-                // Menggunakan create untuk membuat rekam jejak (history) penilaian baru
-                Penilaian::create(
-                    [
-                        'id_alternatif' => $validated['id_alternatif'],
-                        'id_criteria' => $criteriaId,
-                        'nilai' => $nilai,
-                        'certificate_details' => !empty($certificateDetails) ? $certificateDetails : null, // Laravel's cast will handle JSON encoding
-                        'academic_period_id' => $academicPeriodId, // Simpan academic_period_id
-                        'tanggal_penilaian' => $currentDate->toDateString(),
-                        'jam_penilaian' => $currentDate->toTimeString(),
-                    ]
-                );
+            $alternatif = Alternatif::findOrFail($validated['id_alternatif']);
+            
+            // Pastikan alternatif sesuai dengan periode akademik yang dipilih
+            $academicPeriod = AcademicPeriod::findOrFail($validated['academic_period_id']);
+            if ($alternatif->tahun_ajaran !== $academicPeriod->tahun_ajaran || 
+                $alternatif->semester !== $academicPeriod->semester) {
+                throw new \Exception('Alternatif tidak sesuai dengan periode akademik yang dipilih.');
             }
 
-            DB::commit();
-            return redirect()->back()->with('success', 'Penilaian berhasil disimpan!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menyimpan penilaian: ' . $e->getMessage());
-        }
-    }
+            foreach ($validated['nilai'] as $criteriaId => $nilaiInput) {
+                $criteria = Criteria::with('subs')->findOrFail($criteriaId);
+                $nilai = 0;
+                $certificateDetails = null;
 
-    /**
-     * Store or update penilaian for siswa.
-     */
-    public function storeOrUpdateForStudent(Request $request)
-    {
-        $user = Auth::user();
-        $alternatif = $user->alternatif;
-
-        if (!$alternatif) {
-            return redirect()->back()->with('error', 'Anda belum memiliki alternatif yang terdaftar.');
-        }
-
-        $validated = $request->validate([
-            'nilai' => 'required|array',
-            'nilai.*' => 'required|numeric|min:0',
-            'certificate_level' => 'sometimes|array',
-            'certificate_count' => 'sometimes|array',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            $currentDate = Carbon::now();
-
-            // Ambil ID Periode Akademik dari Alternatif siswa
-            $academicPeriodForStudent = AcademicPeriod::where('tahun_ajaran', $alternatif->tahun_ajaran)
-                                                     ->where('semester', $alternatif->semester)
-                                                     ->first();
-
-            if (!$academicPeriodForStudent) {
-                // Ini seharusnya tidak terjadi jika alur registrasi benar
-                throw new \Exception('Periode akademik untuk alternatif siswa tidak ditemukan.');
-            }
-
-            foreach ($validated['nilai'] as $criteriaId => $nilai) {
-                $certificateDetails = [];
-
-                if (isset($validated['certificate_level'][$criteriaId])) {
+                if ($criteria->input_type === 'poin' && isset($validated['certificate_level'][$criteriaId])) {
+                    $certificateDetails = [];
                     foreach ($validated['certificate_level'][$criteriaId] as $index => $level) {
                         $count = $validated['certificate_count'][$criteriaId][$index] ?? 1;
+                        $sub = $criteria->subs->firstWhere('label', $level);
+                        $point = $sub ? $sub->point : 0;
+                        $nilai += $point * $count;
+
                         $certificateDetails[] = [
                             'level' => $level,
-                            'count' => $count
+                            'count' => $count,
+                            'point' => $point,
+                            'sub_total' => $point * $count
                         ];
                     }
+                } else {
+                    $nilai = $nilaiInput;
                 }
 
-                // Menggunakan create untuk membuat rekam jejak (history) penilaian baru
-                Penilaian::create(
+                // Update or create penilaian
+                Penilaian::updateOrCreate(
                     [
                         'id_alternatif' => $alternatif->id,
                         'id_criteria' => $criteriaId,
+                        'academic_period_id' => $academicPeriod->id
+                    ],
+                    [
                         'nilai' => $nilai,
-                        'certificate_details' => !empty($certificateDetails) ? $certificateDetails : null, // Laravel's cast will handle JSON encoding
-                        'academic_period_id' => $academicPeriodForStudent->id, // Simpan academic_period_id
+                        'certificate_details' => $certificateDetails ? json_encode($certificateDetails) : null,
                         'tanggal_penilaian' => $currentDate->toDateString(),
                         'jam_penilaian' => $currentDate->toTimeString(),
                     ]
@@ -279,14 +217,78 @@ class PenilaianController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $penilaian = Penilaian::findOrFail($id);
         $penilaian->delete();
-
         return redirect()->back()->with('success', 'Penilaian berhasil dihapus!');
+    }
+
+    protected function validateRequest(Request $request)
+    {
+        return $request->validate([
+            'id_alternatif' => 'sometimes|required|exists:alternatifs,id',
+            'nilai' => 'required|array',
+            'nilai.*' => 'required|numeric|min:0',
+            'certificate_level' => 'sometimes|array',
+            'certificate_count' => 'sometimes|array',
+            'academic_period_id' => 'sometimes|required|exists:academic_periods,id',
+        ]);
+    }
+
+    protected function processAssessment(array $validated, $alternatifId)
+    {
+        $currentDate = Carbon::now();
+        $academicPeriodId = $validated['academic_period_id'] ?? null;
+
+        foreach ($validated['nilai'] as $criteriaId => $nilaiInput) {
+            $criteria = Criteria::with('subs')->findOrFail($criteriaId);
+            $nilai = 0;
+            $certificateDetails = null;
+
+            if ($criteria->input_type === 'manual') {
+                $nilai = $nilaiInput;
+            } elseif ($criteria->input_type === 'poin') {
+                $certificateDetails = $this->processPointBasedCriteria(
+                    $criteria, 
+                    $validated, 
+                    $criteriaId, 
+                    $nilai
+                );
+            }
+
+            Penilaian::create([
+                'id_alternatif' => $alternatifId,
+                'id_criteria' => $criteriaId,
+                'nilai' => $nilai,
+                'certificate_details' => $certificateDetails,
+                'academic_period_id' => $academicPeriodId,
+                'tanggal_penilaian' => $currentDate->toDateString(),
+                'jam_penilaian' => $currentDate->toTimeString(),
+            ]);
+        }
+    }
+
+    protected function processPointBasedCriteria($criteria, $validated, $criteriaId, &$nilai)
+    {
+        $certificateDetails = [];
+        
+        if (isset($validated['certificate_level'][$criteriaId])) {
+            foreach ($validated['certificate_level'][$criteriaId] as $index => $level) {
+                $count = $validated['certificate_count'][$criteriaId][$index] ?? 1;
+                $sub = $criteria->subs->firstWhere('label', $level);
+                $point = $sub ? $sub->point : 0;
+                $nilai += $point * $count;
+
+                $certificateDetails[] = [
+                    'level' => $level,
+                    'count' => $count,
+                    'point' => $point,
+                    'sub_total' => $point * $count
+                ];
+            }
+        }
+        
+        return !empty($certificateDetails) ? $certificateDetails : null;
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\PendingProfileUpdate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Role; 
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\RegistrationApprovedNotification;
 use App\Notifications\RegistrationRejectedNotification;
@@ -20,14 +20,15 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Contracts\View\Factory;
 
 class UserController extends Controller
-{    public function __construct()
+{
+    public function __construct()
     {
         $this->middleware('auth');
 
         $this->middleware('role:admin')->only([
-            'index', 
-            'update', 
-            'destroy', 
+            'index',
+            'update',
+            'destroy',
             'pendingRegistrations',
             'approveRegistration',
             'rejectRegistration',
@@ -54,12 +55,15 @@ class UserController extends Controller
      * Display the profile of the currently authenticated user.
      * Menampilkan profil pengguna yang sedang login.
      *
-     * @param  \App\Models\User  $user
+     * @param   \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function show(User $user): View|Factory
     {
-        $this->authorize('view', $user); // Requires admin role
+        // Baris ini akan memeriksa kebijakan 'view' pada UserPolicy
+        // Pastikan UserPolicy Anda mengizinkan admin untuk melihat pengguna lain,
+        // dan pengguna untuk melihat profil mereka sendiri.
+        $this->authorize('view', $user); 
         
         // For students, show with their alternatif data
         if ($user->hasRole('siswa')) {
@@ -95,21 +99,27 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $this->authorize('update', $user); // Add authorization
+        // Hapus baris "$user = auth()->user();" di sini.
+        // Variabel $user sudah di-inject dari route model binding.
+        $this->authorize('update', $user); // Ini akan memanggil UserPolicy@update
         $roles = Role::all();
         return view('users.edit', compact('user', 'roles'));
     }
 
 
     /**
-    * Show the form for editing the specified user.
+    * Update the specified user.
     *
+    * @param  \Illuminate\Http\Request  $request
     * @param  \App\Models\User  $user
     * @return \Illuminate\Http\Response
     */
     public function update(Request $request, User $user)
     {
-        $this->authorize('update', $user);
+        // Hapus baris 'if ($authenticatedUser->hasRole('admin')) { return true; }'
+        // Karena otorisasi sudah ditangani oleh $this->authorize('update', $user);
+        // dan middleware 'role:admin' di constructor.
+        $this->authorize('update', $user); // Ini akan memanggil UserPolicy@update
         
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -125,16 +135,15 @@ class UserController extends Controller
         $user->update($validated);
         $user->syncRoles($request->roles);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully');
+         return redirect()->route('admin.users.edit', $user->id) // Pass the user's ID
+        ->with('success', 'User updated successfully');
     }
 
 
     /**
-     * Update the profile of the currently authenticated user.
+     * Show the form for editing the currently authenticated user's profile.
      * Menangani permintaan pembaruan profil dari pengguna non-admin (atau admin untuk profilnya sendiri).
      *
-     * @param   \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function editProfile()
@@ -149,6 +158,10 @@ class UserController extends Controller
         
         return view('users.edit', compact('user', 'roles'));
     }
+
+    // CATATAN PENTING: Anda mungkin perlu menambahkan public function updateProfile(Request $request)
+    // untuk menangani pengiriman form dari editProfile() jika ingin memisahkannya dari method update() admin.
+    // Atau pastikan form editProfile() mengarah ke route update() yang benar dengan otorisasi yang sesuai.
 
     /**
      * Display a listing of pending user registrations (for admin).
@@ -228,8 +241,8 @@ class UserController extends Controller
         }
 
         if ($user->status === 'pending' && $user->hasRole('siswa')) {
-            $user->status = 'rejected'; 
-            $user->approved_by = Auth::id(); 
+            $user->status = 'rejected';
+            $user->approved_by = Auth::id();
             $user->approved_at = now();
             $user->save();
 
@@ -266,29 +279,22 @@ class UserController extends Controller
      */
     public function approveProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate): RedirectResponse
     {
+        // Metode ini dilindungi oleh middleware 'role:admin' di constructor.
+        // Tidak perlu $this->authorize() tambahan di sini kecuali Anda ingin pengecekan spesifik lainnya.
         if ($pendingUpdate->status === 'pending') {
 
-            // Mendapatkan instance User terkait dari pending update
-            // Laravel secara otomatis me-load User di sini karena ini adalah relasi Eloquent
             $user = $pendingUpdate->user;
 
-            // Karena 'proposed_data' sudah di-cast ke 'array' di model PendingProfileUpdate,
-            // Anda tidak perlu lagi memanggil json_decode().
-            // Variabel $proposedData sudah akan berupa array.
-            $proposedData = $pendingUpdate->proposed_data; // <--- INI PERBAIKANNYA
+            $proposedData = $pendingUpdate->proposed_data;
 
-            // Mengisi data profil user dengan data yang diusulkan
             $user->fill($proposedData);
             $user->save();
 
-            // Ubah status pending update menjadi 'approved'
             $pendingUpdate->status = 'approved';
             $pendingUpdate->approved_by = Auth::id();
             $pendingUpdate->approved_at = now();
             $pendingUpdate->save();
 
-            // Kirim notifikasi ke user
-            // Pastikan konstruktor ProfileUpdateApprovedNotification($user) menerima instance App\Models\User
             Notification::send($user, new ProfileUpdateApprovedNotification($user));
 
             return redirect()->route('admin.users.pending-profile-updates')->with('success', 'Perubahan profil berhasil disetujui.');
@@ -308,6 +314,7 @@ class UserController extends Controller
      */
     public function rejectProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate): RedirectResponse
     {
+        // Metode ini dilindungi oleh middleware 'role:admin' di constructor.
         if ($pendingUpdate->status === 'pending') {
             $pendingUpdate->status = 'rejected';
             $pendingUpdate->approved_by = Auth::id();
@@ -327,11 +334,20 @@ class UserController extends Controller
      * Menghapus pengguna dari penyimpanan.
      *
      * @param   \App\Models\User  $user
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(User $user): RedirectResponse
     {
+        // Hapus baris 'if ($authenticatedUser->hasRole('admin')) { return true; }'
+        // Karena otorisasi sudah ditangani oleh $this->authorize('manage users');
+        // dan middleware 'role:admin' di constructor.
         $this->authorize('manage users'); 
+        
+        // Pencegahan agar admin tidak menghapus akunnya sendiri
+        if (Auth::id() === $user->id) {
+            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
         $user->delete();
         return redirect()->route('user.management')->with('success', 'User deleted successfully.');
     }

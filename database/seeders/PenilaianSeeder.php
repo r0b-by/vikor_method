@@ -25,16 +25,8 @@ class PenilaianSeeder extends Seeder
         Schema::enableForeignKeyConstraints();
 
         // Ambil periode akademik yang aktif atau yang paling baru
-        $activeAcademicPeriod = AcademicPeriod::where('is_active', true)->first();
+        $activeAcademicPeriod = $this->getActiveAcademicPeriod();
 
-        // Fallback ke periode akademik terbaru jika tidak ada yang aktif
-        if (!$activeAcademicPeriod) {
-            $activeAcademicPeriod = AcademicPeriod::orderBy('tahun_ajaran', 'desc')
-                                                    ->orderBy('semester', 'desc')
-                                                    ->first();
-        }
-
-        // Jika tidak ada periode akademik sama sekali, tampilkan error dan keluar
         if (!$activeAcademicPeriod) {
             $this->command->error('Tidak ada periode akademik ditemukan. Pastikan AcademicPeriodSeeder sudah dijalankan.');
             return;
@@ -43,16 +35,15 @@ class PenilaianSeeder extends Seeder
         $this->command->info("Seeding Penilaian for Tahun Ajaran: {$activeAcademicPeriod->tahun_ajaran}, Semester: {$activeAcademicPeriod->semester}");
 
         $studentEvaluations = $this->getStudentEvaluationData();
-        $criterias = Criteria::all(); // Menggunakan model Eloquent
+        $criterias = Criteria::with('subs')->get();
         
-        // Filter alternatif berdasarkan tahun ajaran dan semester dari periode aktif
         $alternatifs = Alternatif::with('user')
-                                 ->where('tahun_ajaran', $activeAcademicPeriod->tahun_ajaran)
-                                 ->where('semester', $activeAcademicPeriod->semester)
-                                 ->get(); // Menggunakan model Eloquent dan eager load user
+            ->where('tahun_ajaran', $activeAcademicPeriod->tahun_ajaran)
+            ->where('semester', $activeAcademicPeriod->semester)
+            ->get();
 
         if ($alternatifs->isEmpty()) {
-            $this->command->warn("Tidak ada alternatif ditemukan untuk Tahun Ajaran: {$activeAcademicPeriod->tahun_ajaran}, Semester: {$activeAcademicPeriod->semester}. Penilaian tidak dapat di-seed.");
+            $this->command->warn("Tidak ada alternatif ditemukan untuk periode ini. Penilaian tidak dapat di-seed.");
             return;
         }
 
@@ -61,78 +52,112 @@ class PenilaianSeeder extends Seeder
             return;
         }
 
+        $penilaianData = $this->preparePenilaianData($alternatifs, $criterias, $studentEvaluations, $activeAcademicPeriod);
+
+        if (!empty($penilaianData)) {
+            DB::table('penilaians')->insert($penilaianData);
+            $count = count($penilaianData);
+            $this->command->info("Berhasil menambahkan {$count} data penilaian untuk {$alternatifs->count()} siswa.");
+        } else {
+            $this->command->error('Tidak ada data penilaian yang berhasil dibuat.');
+        }
+    }
+
+    /**
+     * Get active academic period
+     */
+    private function getActiveAcademicPeriod()
+    {
+        return AcademicPeriod::where('is_active', true)->first() 
+            ?? AcademicPeriod::orderBy('tahun_ajaran', 'desc')
+                ->orderBy('semester', 'desc')
+                ->first();
+    }
+
+    /**
+     * Prepare penilaian data for insertion
+     */
+    private function preparePenilaianData($alternatifs, $criterias, $studentEvaluations, $activeAcademicPeriod)
+    {
         $penilaianData = [];
         $currentDateTime = Carbon::now();
         
         foreach ($alternatifs as $alternatif) {
             $studentName = $alternatif->user->name ?? $alternatif->alternatif_name;
             
-            // Pastikan data evaluasi untuk siswa ini ada
             if (!isset($studentEvaluations[$studentName])) {
-                $this->command->warn("Data evaluasi tidak ditemukan untuk alternatif: {$studentName}. Melewatkan penilaian untuk alternatif ini.");
-                continue; // Lewati jika tidak ada data evaluasi untuk siswa ini
+                $this->command->warn("Data evaluasi tidak ditemukan untuk: {$studentName}");
+                continue;
             }
 
             foreach ($criterias as $criteria) {
                 $criteriaCode = $criteria->criteria_code;
                 
-                $evaluationData = $studentEvaluations[$studentName][$criteriaCode] ?? ['nilai' => 0, 'detail' => null];
-
-                $nilai = is_array($evaluationData) && isset($evaluationData['nilai']) ? $evaluationData['nilai'] : (is_scalar($evaluationData) ? $evaluationData : 0);
-                $detail = is_array($evaluationData) && isset($evaluationData['detail']) ? $evaluationData['detail'] : null;
-
-                // Jika kriteria adalah C5 (Poin Prestasi), gunakan calculateCertificatePoints
-                if ($criteriaCode === 'C5' && is_array($detail)) {
-                    // Buat instance sementara Penilaian untuk menggunakan metode calculateCertificatePoints
-                    $tempPenilaian = new Penilaian();
-                    $tempPenilaian->certificate_details = $this->formatCertificateDetails($detail); // Set detail yang sudah diformat
-                    $nilai = $tempPenilaian->calculateCertificatePoints();
-                    $certificateDetailsJson = json_encode($this->formatCertificateDetails($detail));
-                } else {
+                if (!isset($studentEvaluations[$studentName][$criteriaCode])) {
+                    $nilai = 0;
                     $certificateDetailsJson = null;
+                } else {
+                    $evaluationData = $studentEvaluations[$studentName][$criteriaCode];
+                    
+                    if ($criteria->input_type === 'poin' && is_array($evaluationData) && isset($evaluationData['detail'])) {
+                        $certificateDetails = $this->formatCertificateDetails($evaluationData['detail'], $criteria);
+                        $nilai = $this->calculateTotalPoints($certificateDetails);
+                        $certificateDetailsJson = json_encode($certificateDetails);
+                    } else {
+                        $nilai = is_array($evaluationData) ? ($evaluationData['nilai'] ?? 0) : $evaluationData;
+                        $certificateDetailsJson = null;
+                    }
                 }
 
                 $penilaianData[] = [
                     'id_alternatif' => $alternatif->id,
                     'id_criteria' => $criteria->id,
                     'nilai' => $nilai,
-                    'academic_period_id' => $activeAcademicPeriod->id, // Gunakan ID periode akademik aktif/default
-                    'tanggal_penilaian' => Carbon::now()->toDateString(), // Menggunakan tanggal saat ini
-                    'jam_penilaian' => Carbon::now()->toTimeString(),    // Menggunakan waktu saat ini
+                    'academic_period_id' => $activeAcademicPeriod->id,
+                    'tanggal_penilaian' => $currentDateTime->toDateString(),
+                    'jam_penilaian' => $currentDateTime->toTimeString(),
                     'certificate_details' => $certificateDetailsJson,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'created_at' => $currentDateTime,
+                    'updated_at' => $currentDateTime,
                 ];
             }
         }
 
-        // Masukkan data penilaian ke database
-        if (!empty($penilaianData)) {
-            DB::table('penilaians')->insert($penilaianData);
-            $this->command->info('Penilaian berhasil di-seed.');
-        } else {
-            $this->command->warn('Tidak ada data penilaian yang dihasilkan untuk di-seed.');
-        }
+        return $penilaianData;
     }
 
     /**
-     * Formats certificate details into an array of objects.
-     *
-     * @param array $detail
-     * @return array
+     * Format certificate details to match with criteria subs
      */
-    private function formatCertificateDetails($detail)
+    private function formatCertificateDetails(array $details, Criteria $criteria): array
     {
         $formatted = [];
-        foreach ($detail as $level => $count) {
-            $formatted[] = [
-                'level' => $level,
-                'count' => $count
-            ];
+        
+        foreach ($details as $level => $count) {
+            $subCriteria = $criteria->subs->firstWhere('label', $level);
+            
+            if ($subCriteria) {
+                $formatted[] = [
+                    'level' => $subCriteria->label,
+                    'count' => $count,
+                    'point' => $subCriteria->point,
+                    'sub_total' => $subCriteria->point * $count
+                ];
+            } else {
+                $this->command->warn("Sub kriteria '{$level}' tidak ditemukan untuk kriteria {$criteria->criteria_code}");
+            }
         }
+        
         return $formatted;
     }
 
+    /**
+     * Calculate total points from certificate details
+     */
+    private function calculateTotalPoints(array $certificateDetails): int
+    {
+        return array_reduce($certificateDetails, fn($total, $cert) => $total + ($cert['sub_total'] ?? 0), 0);
+    }
     /**
      * Returns the sample student evaluation data.
      *

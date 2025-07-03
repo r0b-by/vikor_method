@@ -111,11 +111,11 @@ Route::middleware(['auth', 'check.user.status'])->group(function () {
     Route::middleware('role:admin|guru')->group(function () {
         // Manajemen Kriteria
         Route::resource('criteria', criteria_controller::class)->except(['update']); // Perbaiki nama controller
-        Route::post('/criteria/update/{criteria}', [criteria_controller::class, 'update'])->name('criteria.update'); // Perbaiki nama controller
+        Route::put('/criteria/{criteria}', [criteria_controller::class, 'update'])->name('criteria.update');
 
         // Manajemen Alternatif
         Route::resource('alternatif', AlternatifController::class)->except(['update']);
-        Route::post('/alternatif/update/{alternatif}', [AlternatifController::class, 'update'])->name('alternatif.update');
+        Route::put('/alternatif/update/{alternatif}', [AlternatifController::class, 'update'])->name('alternatif.update');
 
         // Manajemen Penilaian
         Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index');
