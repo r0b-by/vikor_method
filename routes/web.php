@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HasilController;
-use App\Http\Controllers\criteria_controller; // Perbaiki nama controller
+use App\Http\Controllers\CriteriaController; // Perbaiki nama controller
 use App\Http\Controllers\AlternatifController;
 use App\Http\Controllers\PenilaianController;
 use App\Http\Controllers\SettingController;
@@ -17,9 +17,25 @@ use App\Http\Controllers\AcademicPeriodController; // Import AcademicPeriodContr
 // ============================================================
 // Halaman Utama / Welcome Page (Tidak memerlukan autentikasi)
 // ============================================================
+// Halaman Publik
 Route::get('/', function () {
-    return view('welcome');
+    return view('welcome'); // Pastikan file welcome.blade.php ada
 })->name('welcome');
+
+Route::get('/about', function() {
+    if (!View::exists('about')) {
+        abort(500, 'View [about] tidak ditemukan');
+    }
+    return view('about');
+})->name('about');
+
+Route::get('/features', function () {
+    return view('features'); // Pastikan file features.blade.php ada
+})->name('features');
+
+Route::get('/contact', function () {
+    return view('contact'); // Pastikan file contact.blade.php ada
+})->name('contact');
 
 // ============================================================
 // Halaman Informasi Pendaftaran 'Pending' (tanpa login)
@@ -62,10 +78,12 @@ Route::middleware(['auth', 'check.user.status'])->group(function () {
     // ============================================================
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         // Manajemen Pengguna (Admin dapat mengelola semua pengguna)
-        Route::get('/users', [UserController::class, 'index'])->name('user.management');
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-        // Admin mengedit user lain (perhatikan route model binding)
+        Route::get('/users', [UserController::class, 'index'])->name('admin.user.management');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+        // Admin mengedit user lain
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
+        // ... (other admin routes)
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
         Route::get('/users/pending-registrations', [UserController::class, 'pendingRegistrations'])->name('admin.users.pending-registrations');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
         // Persetujuan Pendaftaran Pengguna
@@ -88,34 +106,27 @@ Route::middleware(['auth', 'check.user.status'])->group(function () {
         });
     });
 
-    // ============================================================
-    // Rute Khusus Siswa (Dilindungi oleh middleware 'role:siswa')
-    // ============================================================
-    Route::middleware('role:siswa')->group(function () {
-
-        // Dashboard siswa untuk menampilkan hasil Vikor
-        Route::get('/siswa/dashboard', [HomeController::class, 'showSiswaDashboard'])->name('siswa.dashboard');
-        Route::get('/siswa/hasil', [HasilController::class, 'showSiswa'])->name('siswa.hasil');
-        Route::get('/siswa/cetak-hasil', [HasilController::class, 'cetakSiswa'])->name('siswa.cetak-hasil');
-        Route::get('/siswa/profile/show', [UserController::class, 'showProfile'])->name('siswa.profile.show');
-        Route::get('/siswa/profile/edit', [UserController::class, 'edit'])->name('siswa.profile.edit-siswa');
-        // Form penilaian mandiri siswa
-        Route::get('/siswa/penilaian', [PenilaianController::class, 'indexForStudent'])->name('siswa.penilaian.index');
-        Route::post('/siswa/penilaian', [PenilaianController::class, 'storeOrUpdateForStudent'])->name('siswa.penilaian.store'); // Method POST untuk menyimpan
-
-    });
-
+    Route::middleware(['auth', 'role:siswa'])->group(function () { // Added 'auth' middleware explicitly here
+    // Dashboard siswa untuk menampilkan hasil Vikor
+    Route::get('/siswa/dashboard', [HomeController::class, 'showSiswaDashboard'])->name('siswa.dashboard');
+    Route::get('/siswa/hasil', [HasilController::class, 'showSiswa'])->name('siswa.hasil');
+    Route::get('/siswa/cetak-hasil', [HasilController::class, 'cetakSiswa'])->name('siswa.cetak-hasil');
+    Route::get('/siswa/profile/show', [UserController::class, 'showProfile'])->name('siswa.profile.show');
+    Route::get('/siswa/profile/edit', [UserController::class, 'edit'])->name('siswa.profile.edit-siswa');
+    // Form penilaian mandiri siswa
+    Route::get('/siswa/penilaian', [PenilaianController::class, 'indexForStudent'])->name('siswa.penilaian.index');
+    // Updated to call storeOrUpdateForStudent
+    Route::post('/siswa/penilaian', [PenilaianController::class, 'storeOrUpdateForStudent'])->name('siswa.penilaian.store'); // Changed name for clarity
+});
     // ============================================================
     // Rute Khusus Admin & Guru (Dilindungi oleh middleware 'role:admin|guru')
     // ============================================================
     Route::middleware('role:admin|guru')->group(function () {
         // Manajemen Kriteria
-        Route::resource('criteria', criteria_controller::class)->except(['update']); // Perbaiki nama controller
-        Route::put('/criteria/{criteria}', [criteria_controller::class, 'update'])->name('criteria.update');
+        Route::resource('criteria', CriteriaController::class);
 
         // Manajemen Alternatif
-        Route::resource('alternatif', AlternatifController::class)->except(['update']);
-        Route::put('/alternatif/update/{alternatif}', [AlternatifController::class, 'update'])->name('alternatif.update');
+        Route::resource('alternatif', AlternatifController::class);
 
         // Manajemen Penilaian
         Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index');
@@ -124,20 +135,42 @@ Route::middleware(['auth', 'check.user.status'])->group(function () {
 
         // Proses VIKOR
         Route::prefix('hitung')->group(function () {
-            Route::get('/', [HitungController::class, 'index'])->name('hitung.index');
-            // Rute untuk memicu perhitungan (menggunakan POST untuk mengirim filter)
-           Route::post('/dahsboard/perform', [HitungController::class, 'performCalculation'])->name('hitung.perform');
+            // Route untuk menampilkan halaman utama perhitungan VIKOR
+            // Ini adalah halaman di mana pengguna mungkin memilih periode akademik sebelum melakukan perhitungan.
+            Route::get('/', [HitungController::class, 'index'])->name('dashboard.hitung');
+
+            // Route untuk memicu perhitungan VIKOR
+            // Menggunakan POST karena ini adalah tindakan yang mengubah atau memproses data (memulai perhitungan).
+            // Typo 'dahsboard' diperbaiki menjadi 'dashboard'.
+            Route::match(['get', 'post'], '/dashboard/perform', [HitungController::class, 'performCalculation'])->name('hitung.perform');
+            
+            // Route untuk menyimpan hasil perhitungan VIKOR
+            // Menggunakan POST karena ini adalah tindakan penyimpanan data.
             Route::post('/dashboard/simpan', [HitungController::class, 'simpan'])->name('hitung.simpan');
 
-            // Rute untuk menampilkan tahapan perhitungan (jika masih ingin terpisah)
-            // Pastikan metode ini di HitungController juga difilter berdasarkan tahun_ajaran/semester
-            Route::get('/matriks', [HitungController::class, 'tampilMatriksKeputusan'])->name('hitung.matriks'); // Perbaiki nama method
+            // --- Rute untuk Menampilkan Tahapan Perhitungan (Read-only views) ---
+            // Semua rute ini menggunakan GET karena mereka hanya menampilkan data, bukan mengubahnya.
+            // Pastikan metode-metode ini di HitungController juga difilter berdasarkan tahun_ajaran/semester
+            // (misalnya, melalui parameter di URL atau data sesi jika sudah dipilih di index).
+
+            // Route untuk menampilkan Matriks Keputusan
+            Route::get('/matriks-keputusan', [HitungController::class, 'tampilMatriksKeputusan'])->name('hitung.matriks-keputusan');
+            
+            // Route untuk menampilkan Matriks Normalisasi
             Route::get('/normalisasi', [HitungController::class, 'tampilNormalisasi'])->name('hitung.normalisasi');
+            
+            // Route untuk menampilkan Matriks Normalisasi Terbobot
             Route::get('/normalisasi-terbobot', [HitungController::class, 'tampilNormalisasiTerbobot'])->name('hitung.normalisasi-terbobot');
+            
+            // Route untuk menampilkan Nilai Selisih Ideal (S dan R)
             Route::get('/selisih-ideal', [HitungController::class, 'tampilSelisihIdeal'])->name('hitung.selisih-ideal');
+            
+            // Route untuk menampilkan Nilai Utility (Q)
             Route::get('/utility', [HitungController::class, 'tampilUtility'])->name('hitung.utility');
-            Route::get('/kompromi', [HitungController::class, 'tampilKompromi'])->name('hitung.kompromi');
-            // Route::get('/ranking', [HitungController::class, 'tampilRanking'])->name('hitung.ranking'); // Ini biasanya bagian dari tampilKompromi
+            
+            // Route untuk menampilkan Indeks Kompromi dan Ranking Akhir
+            // Biasanya, tahap kompromi sudah mencakup ranking akhir, jadi mungkin tidak perlu route terpisah untuk ranking.
+            Route::get('/kompromi-ranking', [HitungController::class, 'tampilKompromi'])->name('hitung.kompromi-ranking');
         });
 
         // Rute untuk menghapus hasil VIKOR dari riwayat (di HasilController)

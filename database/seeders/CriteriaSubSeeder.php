@@ -27,36 +27,36 @@ class CriteriaSubSeeder extends Seeder
             // Sub-criteria for Prestasi Akademik (C4)
             [
                 'criteria_id' => $prestasiAkademik->id,
+                'label' => 'Internasional',
+                'point' => 25, // Updated point
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'criteria_id' => $prestasiAkademik->id,
                 'label' => 'Nasional',
-                'point' => 10,
+                'point' => 20, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'criteria_id' => $prestasiAkademik->id,
                 'label' => 'Provinsi',
-                'point' => 8,
+                'point' => 15, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'criteria_id' => $prestasiAkademik->id,
                 'label' => 'Kabupaten/Kota',
-                'point' => 6,
+                'point' => 10, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'criteria_id' => $prestasiAkademik->id,
                 'label' => 'Sekolah',
-                'point' => 4,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'criteria_id' => $prestasiAkademik->id,
-                'label' => 'Partisipasi',
-                'point' => 2,
+                'point' => 5, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -64,36 +64,36 @@ class CriteriaSubSeeder extends Seeder
             // Sub-criteria for Prestasi Non-Akademik (C5)
             [
                 'criteria_id' => $prestasiNonAkademik->id,
+                'label' => 'Internasional',
+                'point' => 25, // Updated point
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'criteria_id' => $prestasiNonAkademik->id,
                 'label' => 'Nasional',
-                'point' => 10,
+                'point' => 20, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'criteria_id' => $prestasiNonAkademik->id,
                 'label' => 'Provinsi',
-                'point' => 8,
+                'point' => 15, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'criteria_id' => $prestasiNonAkademik->id,
                 'label' => 'Kabupaten/Kota',
-                'point' => 6,
+                'point' => 10, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'criteria_id' => $prestasiNonAkademik->id,
                 'label' => 'Sekolah',
-                'point' => 4,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'criteria_id' => $prestasiNonAkademik->id,
-                'label' => 'Partisipasi',
-                'point' => 2,
+                'point' => 5, // Updated point
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

@@ -14,19 +14,22 @@ return new class extends Migration
         Schema::create('criteria_subs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('criteria_id');
-            $table->string('label', 100); // Menambahkan panjang maksimum untuk string
-            $table->integer('point')->default(0); // Menambahkan default value
+            $table->string('label', 100);
+            $table->integer('point');
             $table->timestamps();
 
-            // Menambahkan index untuk foreign key
+            // Index untuk foreign key
             $table->index('criteria_id');
             
-            // Foreign key constraint dengan opsi onDelete cascade
+            // Unique constraint untuk mencegah duplikasi point dalam satu criteria
+            $table->unique(['criteria_id', 'point']);
+            
+            // Foreign key constraint
             $table->foreign('criteria_id')
                   ->references('id')
                   ->on('criterias')
                   ->onDelete('cascade')
-                  ->onUpdate('cascade'); // Menambahkan onUpdate cascade
+                  ->onUpdate('cascade');
         });
     }
 
@@ -35,12 +38,12 @@ return new class extends Migration
      */
     public function down()
     {
-        // Menghapus foreign key constraint terlebih dahulu
         Schema::table('criteria_subs', function (Blueprint $table) {
+            // Hapus foreign key dan unique constraint terlebih dahulu
+            $table->dropUnique(['criteria_id', 'point']);
             $table->dropForeign(['criteria_id']);
         });
         
-        // Baru kemudian drop tabel
         Schema::dropIfExists('criteria_subs');
     }
 };

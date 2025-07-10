@@ -9,7 +9,7 @@ use Carbon\Carbon; // Import Carbon for date handling
 use App\Models\AcademicPeriod; // Import AcademicPeriod model
 use App\Models\Alternatif; // Import Alternatif model
 use App\Models\Criteria; // Import Criteria model
-use App\Models\Penilaian; // Import Penilaian model to use its helper method
+use App\Models\Penilaian; // Import Penilaian model (though its helper method isn't used directly here, it's good practice to keep it if it's part of the application context)
 
 class PenilaianSeeder extends Seeder
 {
@@ -83,29 +83,30 @@ class PenilaianSeeder extends Seeder
         $currentDateTime = Carbon::now();
         
         foreach ($alternatifs as $alternatif) {
+            // Use user's name if available, otherwise fallback to alternatif_name
             $studentName = $alternatif->user->name ?? $alternatif->alternatif_name;
             
             if (!isset($studentEvaluations[$studentName])) {
-                $this->command->warn("Data evaluasi tidak ditemukan untuk: {$studentName}");
+                $this->command->warn("Data evaluasi tidak ditemukan untuk: {$studentName}. Melewatkan alternatif ini.");
                 continue;
             }
 
             foreach ($criterias as $criteria) {
                 $criteriaCode = $criteria->criteria_code;
                 
-                if (!isset($studentEvaluations[$studentName][$criteriaCode])) {
-                    $nilai = 0;
-                    $certificateDetailsJson = null;
-                } else {
+                $nilai = 0;
+                $certificateDetailsJson = null;
+
+                if (isset($studentEvaluations[$studentName][$criteriaCode])) {
                     $evaluationData = $studentEvaluations[$studentName][$criteriaCode];
                     
-                    if ($criteria->input_type === 'poin' && is_array($evaluationData) && isset($evaluationData['detail'])) {
+                    if (($criteriaCode === 'C4' || $criteriaCode === 'C5') && is_array($evaluationData) && isset($evaluationData['detail'])) {
                         $certificateDetails = $this->formatCertificateDetails($evaluationData['detail'], $criteria);
                         $nilai = $this->calculateTotalPoints($certificateDetails);
                         $certificateDetailsJson = json_encode($certificateDetails);
                     } else {
+                        // For C1, C2, C3, directly use the value
                         $nilai = is_array($evaluationData) ? ($evaluationData['nilai'] ?? 0) : $evaluationData;
-                        $certificateDetailsJson = null;
                     }
                 }
 
@@ -128,6 +129,8 @@ class PenilaianSeeder extends Seeder
 
     /**
      * Format certificate details to match with criteria subs
+     * This method ensures that the points used are from the database (CriteriaSub model)
+     * and not hardcoded in the seeder's getStudentEvaluationData.
      */
     private function formatCertificateDetails(array $details, Criteria $criteria): array
     {
@@ -140,11 +143,11 @@ class PenilaianSeeder extends Seeder
                 $formatted[] = [
                     'level' => $subCriteria->label,
                     'count' => $count,
-                    'point' => $subCriteria->point,
+                    'point' => $subCriteria->point, // Use point from CriteriaSub
                     'sub_total' => $subCriteria->point * $count
                 ];
             } else {
-                $this->command->warn("Sub kriteria '{$level}' tidak ditemukan untuk kriteria {$criteria->criteria_code}");
+                $this->command->warn("Sub kriteria '{$level}' tidak ditemukan untuk kriteria {$criteria->criteria_code}.");
             }
         }
         
@@ -152,12 +155,14 @@ class PenilaianSeeder extends Seeder
     }
 
     /**
-     * Calculate total points from certificate details
+     * Calculate total points from certificate details, with a cap of 100.
      */
     private function calculateTotalPoints(array $certificateDetails): int
     {
-        return array_reduce($certificateDetails, fn($total, $cert) => $total + ($cert['sub_total'] ?? 0), 0);
+        $total = array_reduce($certificateDetails, fn($total, $cert) => $total + ($cert['sub_total'] ?? 0), 0);
+        return min(100, $total); // Apply the 100-point cap here
     }
+    
     /**
      * Returns the sample student evaluation data.
      *
@@ -167,393 +172,333 @@ class PenilaianSeeder extends Seeder
     {
         return [
             'Ahmad Fauzan' => [
-                'C1' => 88.84,
-                'C2' => 80,
-                'C3' => 80,
+                'C1' => 90,
+                'C2' => 40, // (3-4 juta)
+                'C3' => 40, // (3 orang)
                 'C4' => [
-                    'nilai' => 32,
-                    'detail' => ['Provinsi' => 2, 'Kabupaten/Kota' => 2, 'Sekolah' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 18,
-                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Budi Santoso' => [
-                'C1' => 63.91,
-                'C2' => 40,
-                'C3' => 60,
+                'C1' => 85,
+                'C2' => 60, // (2-3 juta)
+                'C3' => 60, // (4 orang)
                 'C4' => [
-                    'nilai' => 32,
-                    'detail' => ['Nasional' => 2, 'Sekolah' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 32,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 2, 'Kabupaten/Kota' => 1]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Citra Dewi' => [
-                'C1' => 97.43,
-                'C2' => 100,
-                'C3' => 40,
+                'C1' => 95,
+                'C2' => 20, // (> 4 juta)
+                'C3' => 20, // (≤ 2 orang)
                 'C4' => [
-                    'nilai' => 8,
-                    'detail' => ['Sekolah' => 1, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 38,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 2, 'Kabupaten/Kota' => 1, 'Sekolah' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1] // 3 certs
                 ]
             ],
             'Dian Purnama' => [
-                'C1' => 77.02,
-                'C2' => 40,
-                'C3' => 80,
+                'C1' => 88,
+                'C2' => 80, // (1-2 juta)
+                'C3' => 80, // (5 orang)
                 'C4' => [
-                    'nilai' => 20,
-                    'detail' => ['Nasional' => 1, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 52,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 2, 'Kabupaten/Kota' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1] // 2 certs
                 ]
             ],
             'Eka Ramadhan' => [
-                'C1' => 79.43,
-                'C2' => 20,
-                'C3' => 100,
+                'C1' => 82,
+                'C2' => 100, // (≤ 1 juta)
+                'C3' => 100, // (≥ 6 orang)
                 'C4' => [
-                    'nilai' => 40,
-                    'detail' => ['Provinsi' => 2, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 28,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Farah Aulia' => [
-                'C1' => 88.78,
-                'C2' => 80,
-                'C3' => 100,
+                'C1' => 93,
+                'C2' => 40, // (3-4 juta)
+                'C3' => 60, // (4 orang)
                 'C4' => [
-                    'nilai' => 40,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 2] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 32,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Nasional' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Gilang Saputra' => [
-                'C1' => 70.95,
-                'C2' => 40,
-                'C3' => 40,
+                'C1' => 87,
+                'C2' => 60, // (2-3 juta)
+                'C3' => 40, // (3 orang)
                 'C4' => [
-                    'nilai' => 18,
-                    'detail' => ['Nasional' => 1, 'Sekolah' => 1, 'Partisipasi' => 2]
+                    'detail' => ['Nasional' => 1, 'Kabupaten/Kota' => 1] // 2 certs
                 ],
                 'C5' => [
-                    'nilai' => 20,
-                    'detail' => ['Kabupaten/Kota' => 2, 'Sekolah' => 2]
+                    'detail' => ['Provinsi' => 1, 'Sekolah' => 1] // 2 certs
                 ]
             ],
             'Hana Salsabila' => [
-                'C1' => 62.23,
-                'C2' => 100,
-                'C3' => 40,
+                'C1' => 91,
+                'C2' => 20, // (> 4 juta)
+                'C3' => 20, // (≤ 2 orang)
                 'C4' => [
-                    'nilai' => 40,
-                    'detail' => ['Nasional' => 2, 'Kabupaten/Kota' => 2, 'Sekolah' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 2, 'Provinsi' => 1] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 48,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 2, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ]
             ],
             'Indra Wijaya' => [
-                'C1' => 81.38,
-                'C2' => 80,
-                'C3' => 100,
+                'C1' => 84,
+                'C2' => 80, // (1-2 juta)
+                'C3' => 80, // (5 orang)
                 'C4' => [
-                    'nilai' => 8,
-                    'detail' => ['Sekolah' => 1, 'Partisipasi' => 2]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 44,
-                    'detail' => ['Nasional' => 2, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Nasional' => 1, 'Sekolah' => 1] // 2 certs
                 ]
             ],
             'Joko Prasetyo' => [
-                'C1' => 65.33,
-                'C2' => 60,
-                'C3' => 100,
+                'C1' => 89,
+                'C2' => 100, // (≤ 1 juta)
+                'C3' => 100, // (≥ 6 orang)
                 'C4' => [
-                    'nilai' => 36,
-                    'detail' => ['Provinsi' => 2, 'Kabupaten/Kota' => 2, 'Sekolah' => 2]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Sekolah' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 12,
-                    'detail' => ['Provinsi' => 1, 'Partisipasi' => 2]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1] // 2 certs
                 ]
             ],
             'Kurniawan Hidayat' => [
-                'C1' => 73.34,
-                'C2' => 100,
-                'C3' => 60,
+                'C1' => 86,
+                'C2' => 20, // (> 4 juta)
+                'C3' => 80, // (5 orang)
                 'C4' => [
-                    'nilai' => 16,
-                    'detail' => ['Kabupaten/Kota' => 1, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 2] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 36,
-                    'detail' => ['Nasional' => 2, 'Kabupaten/Kota' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1] // 3 certs
                 ]
             ],
             'Lestari Dewi' => [
-                'C1' => 62.90,
-                'C2' => 60,
-                'C3' => 60,
+                'C1' => 94,
+                'C2' => 100, // (≤ 1 juta)
+                'C3' => 60, // (4 orang)
                 'C4' => [
-                    'nilai' => 38,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 2, 'Provinsi' => 1] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 32,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1] // 3 certs
                 ]
             ],
             'Mahmud Risky' => [
-                'C1' => 96.89,
-                'C2' => 20,
-                'C3' => 40,
+                'C1' => 81,
+                'C2' => 60, // (2-3 juta)
+                'C3' => 40, // (3 orang)
                 'C4' => [
-                    'nilai' => 34,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Kabupaten/Kota' => 1, 'Sekolah' => 1] // 2 certs
                 ],
                 'C5' => [
-                    'nilai' => 16,
-                    'detail' => ['Nasional' => 1, 'Sekolah' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Provinsi' => 1, 'Sekolah' => 1] // 2 certs
                 ]
             ],
             'Nadya Amelia' => [
-                'C1' => 96.09,
-                'C2' => 20,
-                'C3' => 20,
+                'C1' => 91,
+                'C2' => 80, // (1-2 juta)
+                'C3' => 20, // (≤ 2 orang)
                 'C4' => [
-                    'nilai' => 26,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Sekolah' => 2]
+                    'detail' => ['Internasional' => 2, 'Nasional' => 1, 'Provinsi' => 1] // 4 certs (might hit 100 cap)
                 ],
                 'C5' => [
-                    'nilai' => 38,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1] // 3 certs
                 ]
             ],
             'Omar Zaki' => [
-                'C1' => 92.50,
-                'C2' => 80,
-                'C3' => 100,
+                'C1' => 83,
+                'C2' => 40, // (3-4 juta)
+                'C3' => 100, // (≥ 6 orang)
                 'C4' => [
-                    'nilai' => 24,
-                    'detail' => ['Nasional' => 2, 'Sekolah' => 1]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 30,
-                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Kabupaten/Kota' => 1, 'Sekolah' => 1] // 2 certs
                 ]
             ],
             'Putri Ayu' => [
-                'C1' => 66.14,
-                'C2' => 20,
-                'C3' => 20,
+                'C1' => 96,
+                'C2' => 60, // (2-3 juta)
+                'C3' => 20, // (≤ 2 orang)
                 'C4' => [
-                    'nilai' => 36,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 2, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 2, 'Nasional' => 2, 'Provinsi' => 2] // 6 certs (will be capped at 100)
                 ],
                 'C5' => [
-                    'nilai' => 32,
-                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 2, 'Nasional' => 2, 'Provinsi' => 2] // 6 certs (will be capped at 100)
                 ]
             ],
             'Qori Rahma' => [
-                'C1' => 90.90,
-                'C2' => 80,
-                'C3' => 20,
+                'C1' => 80,
+                'C2' => 40, // (3-4 juta)
+                'C3' => 60, // (4 orang)
                 'C4' => [
-                    'nilai' => 28,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 16,
-                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Rizky Fadilah' => [
-                'C1' => 74.70,
-                'C2' => 80,
-                'C3' => 100,
+                'C1' => 79,
+                'C2' => 20, // (> 4 juta)
+                'C3' => 40, // (3 orang)
                 'C4' => [
-                    'nilai' => 38,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 2]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 36,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 2, 'Kabupaten/Kota' => 1, 'Partisipasi' => 2]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Siti Nurhaliza' => [
-                'C1' => 92.22,
-                'C2' => 40,
-                'C3' => 20,
+                'C1' => 93,
+                'C2' => 80, // (1-2 juta)
+                'C3' => 20, // (≤ 2 orang)
                 'C4' => [
-                    'nilai' => 24,
-                    'detail' => ['Nasional' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 2, 'Provinsi' => 1] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 58,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 2, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ]
             ],
             'Taufik Hidayat' => [
-                'C1' => 61.52,
-                'C2' => 80,
-                'C3' => 20,
+                'C1' => 77,
+                'C2' => 100, // (≤ 1 juta)
+                'C3' => 100, // (≥ 6 orang)
                 'C4' => [
-                    'nilai' => 34,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Kabupaten/Kota' => 1, 'Sekolah' => 1] // 2 certs
                 ],
                 'C5' => [
-                    'nilai' => 44,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 1]
+                    'detail' => ['Provinsi' => 1, 'Sekolah' => 1] // 2 certs
                 ]
             ],
             'Umar Alfaruq' => [
-                'C1' => 89.25,
-                'C2' => 80,
-                'C3' => 60,
+                'C1' => 86,
+                'C2' => 60, // (2-3 juta)
+                'C3' => 80, // (5 orang)
                 'C4' => [
-                    'nilai' => 36,
-                    'detail' => ['Nasional' => 2, 'Kabupaten/Kota' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 18,
-                    'detail' => ['Nasional' => 1, 'Kabupaten/Kota' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Vina Maharani' => [
-                'C1' => 73.61,
-                'C2' => 80,
-                'C3' => 20,
+                'C1' => 92,
+                'C2' => 40, // (3-4 juta)
+                'C3' => 60, // (4 orang)
                 'C4' => [
-                    'nilai' => 22,
-                    'detail' => ['Provinsi' => 2, 'Kabupaten/Kota' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 2] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 16,
-                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ]
             ],
             'Wahyu Pradana' => [
-                'C1' => 82.35,
-                'C2' => 80,
-                'C3' => 80,
+                'C1' => 82,
+                'C2' => 80, // (1-2 juta)
+                'C3' => 80, // (5 orang)
                 'C4' => [
-                    'nilai' => 24,
-                    'detail' => ['Nasional' => 1, 'Kabupaten/Kota' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 12,
-                    'detail' => ['Kabupaten/Kota' => 1, 'Sekolah' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Provinsi' => 1, 'Sekolah' => 1] // 2 certs
                 ]
             ],
             'Xavier Muhammad' => [
-                'C1' => 69.51,
-                'C2' => 80,
-                'C3' => 40,
+                'C1' => 91,
+                'C2' => 100, // (≤ 1 juta)
+                'C3' => 100, // (≥ 6 orang)
                 'C4' => [
-                    'nilai' => 22,
-                    'detail' => ['Nasional' => 1, 'Kabupaten/Kota' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 26,
-                    'detail' => ['Nasional' => 2, 'Kabupaten/Kota' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ]
             ],
             'Yusuf Kurnia' => [
-                'C1' => 74.40,
-                'C2' => 20,
-                'C3' => 40,
+                'C1' => 84,
+                'C2' => 60, // (2-3 juta)
+                'C3' => 40, // (3 orang)
                 'C4' => [
-                    'nilai' => 34,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 1]
+                    'detail' => ['Kabupaten/Kota' => 1, 'Sekolah' => 1] // 2 certs
                 ],
                 'C5' => [
-                    'nilai' => 20,
-                    'detail' => ['Provinsi' => 1, 'Sekolah' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Provinsi' => 1, 'Sekolah' => 1] // 2 certs
                 ]
             ],
             'Zahra Melati' => [
-                'C1' => 83.67,
-                'C2' => 40,
-                'C3' => 80,
+                'C1' => 95,
+                'C2' => 20, // (> 4 juta)
+                'C3' => 20, // (≤ 2 orang)
                 'C4' => [
-                    'nilai' => 16,
-                    'detail' => ['Provinsi' => 2]
+                    'detail' => ['Internasional' => 2, 'Nasional' => 1, 'Provinsi' => 1] // 4 certs (might hit 100 cap)
                 ],
                 'C5' => [
-                    'nilai' => 32,
-                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 2, 'Partisipasi' => 2]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 2, 'Provinsi' => 1] // 4 certs
                 ]
             ],
             'Agus Saputra' => [
-                'C1' => 64.17,
-                'C2' => 60,
-                'C3' => 40,
+                'C1' => 86,
+                'C2' => 80, // (1-2 juta)
+                'C3' => 80, // (5 orang)
                 'C4' => [
-                    'nilai' => 18,
-                    'detail' => ['Nasional' => 1, 'Sekolah' => 2]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 36,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1] // 2 certs
                 ]
             ],
             'Bella Safira' => [
-                'C1' => 83.36,
-                'C2' => 40,
-                'C3' => 60,
+                'C1' => 90,
+                'C2' => 40, // (3-4 juta)
+                'C3' => 60, // (4 orang)
                 'C4' => [
-                    'nilai' => 30,
-                    'detail' => ['Nasional' => 2, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1, 'Sekolah' => 1] // 4 certs
                 ],
                 'C5' => [
-                    'nilai' => 46,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Sekolah' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Sekolah' => 1] // 3 certs
                 ]
             ],
             'Dedy Firmansyah' => [
-                'C1' => 76.42,
-                'C2' => 20,
-                'C3' => 40,
+                'C1' => 83,
+                'C2' => 100, // (≤ 1 juta)
+                'C3' => 100, // (≥ 6 orang)
                 'C4' => [
-                    'nilai' => 32,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 1] // 3 certs
                 ],
                 'C5' => [
-                    'nilai' => 34,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 1, 'Kabupaten/Kota' => 1, 'Sekolah' => 2, 'Partisipasi' => 1]
+                    'detail' => ['Nasional' => 1, 'Provinsi' => 1] // 2 certs
                 ]
             ],
             'Erika Putri' => [
-                'C1' => 94.37,
-                'C2' => 80,
-                'C3' => 60,
+                'C1' => 92,
+                'C2' => 20, // (> 4 juta)
+                'C3' => 20, // (≤ 2 orang)
                 'C4' => [
-                    'nilai' => 38,
-                    'detail' => ['Nasional' => 1, 'Provinsi' => 2, 'Kabupaten/Kota' => 1, 'Sekolah' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 2, 'Nasional' => 1, 'Provinsi' => 1] // 4 certs (might hit 100 cap)
                 ],
                 'C5' => [
-                    'nilai' => 30,
-                    'detail' => ['Nasional' => 2, 'Provinsi' => 1, 'Partisipasi' => 1]
+                    'detail' => ['Internasional' => 1, 'Nasional' => 1, 'Provinsi' => 1] // 3 certs
                 ]
             ]
         ];

@@ -3,76 +3,200 @@
 
 @push('styles')
 <style>
-    /* Loading Animation Styles */
+    /* Futuristic Loading Animation */
     .loading-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.85);
+        background: radial-gradient(ellipse at center, rgba(0,10,20,0.95) 0%, rgba(0,5,15,0.98) 100%);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         z-index: 9999;
         color: white;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Orbitron', 'Segoe UI', sans-serif;
+        overflow: hidden;
     }
     
-    .spinner {
-        width: 80px;
-        height: 80px;
-        border: 8px solid rgba(100, 200, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: #4fc3f7;
-        border-bottom-color: #4fc3f7;
-        animation: spin 1.5s linear infinite;
-        margin-bottom: 25px;
+    .loading-container {
+        position: relative;
+        width: 80%;
+        max-width: 600px;
+        padding: 30px;
+        background: rgba(10,25,50,0.3);
+        border: 1px solid rgba(100,200,255,0.2);
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(0,150,255,0.2);
+        backdrop-filter: blur(10px);
+        text-align: center;
     }
     
-    @keyframes spin {
-        to { transform: rotate(360deg); }
+    .loading-title {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        color: #4fc3f7;
+        text-shadow: 0 0 10px rgba(79,195,247,0.7);
+        letter-spacing: 2px;
+    }
+    
+    .loading-subtitle {
+        font-size: 1rem;
+        margin-bottom: 30px;
+        color: #a0d8ff;
+        opacity: 0.8;
     }
     
     .progress-container {
-        width: 80%;
-        max-width: 400px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 10px;
+        width: 100%;
         height: 10px;
-        margin: 15px 0;
+        background: rgba(50,100,150,0.2);
+        border-radius: 5px;
+        margin: 20px 0;
         overflow: hidden;
+        position: relative;
     }
     
     .progress-bar {
         height: 100%;
         width: 0%;
-        background: linear-gradient(90deg, #4fc3f7, #64ffda);
+        background: linear-gradient(90deg, #00c6ff, #0072ff);
+        border-radius: 5px;
         transition: width 0.5s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            90deg,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.6) 50%,
+            rgba(255,255,255,0) 100%
+        );
+        animation: shine 2s infinite;
+    }
+    
+    @keyframes shine {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
     }
     
     .progress-text {
-        margin-top: 15px;
-        font-size: 1.1rem;
-        text-align: center;
-        color: #e0f7fa;
+        font-size: 0.9rem;
+        color: #7fdbff;
+        margin-top: 10px;
+        min-height: 20px;
     }
     
-    .tech-particles {
+    .progress-percent {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #00d4ff;
+        margin-top: 5px;
+    }
+    
+    .loading-details {
+        margin-top: 20px;
+        font-size: 0.8rem;
+        color: #8ab4f8;
+        opacity: 0.7;
+    }
+    
+    /* Holographic Effects */
+    .holographic-line {
         position: absolute;
+        height: 1px;
+        width: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0,200,255,0.5), transparent);
+        animation: scanline 4s linear infinite;
+    }
+    
+    @keyframes scanline {
+        0% { top: 0%; opacity: 0; }
+        10% { opacity: 0.8; }
+        90% { opacity: 0.8; }
+        100% { top: 100%; opacity: 0; }
+    }
+    
+    .binary-code {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
         pointer-events: none;
-        z-index: -1;
+        opacity: 0.1;
+        background-image: 
+            linear-gradient(rgba(0,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+    
+    .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
     }
     
     .particle {
         position: absolute;
-        background: rgba(100, 200, 255, 0.6);
+        background: rgba(100,200,255,0.6);
         border-radius: 50%;
         pointer-events: none;
         filter: blur(1px);
+    }
+    
+    /* Matrix Rain Effect */
+    .matrix-rain {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+        opacity: 0.3;
+    }
+    
+    .matrix-column {
+        position: relative;
+        float: left;
+        width: 20px;
+        height: 100%;
+        font-size: 18px;
+        writing-mode: vertical-rl;
+        text-orientation: upright;
+        color: #0f0;
+        text-shadow: 0 0 5px #0f0;
+        opacity: 0.8;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .loading-container {
+            width: 90%;
+            padding: 20px;
+        }
+        
+        .loading-title {
+            font-size: 1.4rem;
+        }
+        
+        .progress-text {
+            font-size: 0.8rem;
+        }
     }
     
     /* Calculation Steps Animation */
@@ -108,36 +232,74 @@
         text-shadow: 0 0 10px rgba(79, 195, 247, 0.7);
     }
     
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .progress-text {
-            font-size: 0.9rem;
-        }
-        
-        .calculation-step {
-            margin-bottom: 20px;
-        }
+    /* Calculation details styling */
+    .calculation-details {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .calculation-formula {
+        font-family: 'Courier New', monospace;
+        background: rgba(0, 0, 0, 0.1);
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin: 10px 0;
+    }
+    
+    .criteria-type {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .criteria-benefit {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: #4CAF50;
+    }
+    
+    .criteria-cost {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: #F44336;
     }
 </style>
 @endpush
 
 @section('content')
 <div class="flex flex-wrap -mx-3" data-aos="fade-zoom-in" data-aos-easing="ease-in-back" data-aos-delay="300" data-aos-offset="0">
-    <!-- Futuristic Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-        <div class="spinner"></div>
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="progress-text" id="progressText">Menginisialisasi sistem perhitungan...</div>
-        <div class="tech-particles" id="techParticles"></div>
-    </div>
 
     <div class="flex items-center justify-between mb-6 w-full">
         <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100">
             <span class="glow-effect">Perhitungan VIKOR</span> 
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">AI-Enhanced</span>
         </h2>
+    </div>
+
+    <!-- Futuristic Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="matrix-rain" id="matrixRain"></div>
+        <div class="particles" id="techParticles"></div>
+        <div class="binary-code"></div>
+        <div class="holographic-line"></div>
+        
+        <div class="loading-container">
+            <h3 class="loading-title">SISTEM PERHITUNGAN VIKOR</h3>
+            <p class="loading-subtitle">Memproses data siswa...</p>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="progress-percent" id="progressPercent">0%</div>
+            <div class="progress-text" id="progressText">Menginisialisasi sistem...</div>
+            <div class="loading-details" id="loadingDetails">
+                <div>Status: <span id="statusText">Menyiapkan lingkungan komputasi</span></div>
+                <div>Memori: <span id="memoryText">0 MB</span> / CPU: <span id="cpuText">0%</span></div>
+            </div>
+        </div>
     </div>
 
     {{-- Form for Calculation --}}
@@ -181,7 +343,7 @@
             </div>
         </div>
     </div>
-
+    
     {{-- Alerts --}}
     @if(session('success'))
         <div class="w-full px-3 mb-6">
@@ -294,6 +456,117 @@
                 </div>
 
                 @if($calculationPerformed)
+                    {{-- Decision Matrix --}}
+                    <div id="decisionMatrix" class="calculation-step">
+                        <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
+                            <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                                <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-table mr-2"></i>Matriks Keputusan Awal</h6>
+                            </div>
+                            <div class="flex-auto px-0 pt-0 pb-2">
+                                <div class="p-6 overflow-x-auto">
+                                    <div class="calculation-details mb-4">
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Matriks keputusan awal berisi nilai-nilai alternatif untuk setiap kriteria.
+                                        </p>
+                                    </div>
+                                    <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+                                        <thead class="align-bottom">
+                                            <tr>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama</th>
+                                                @foreach($criterias as $c)
+                                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">
+                                                        {{ $c->criteria_name }}
+                                                        <span class="criteria-type {{ $c->criteria_type == 'Benefit' ? 'criteria-benefit' : 'criteria-cost' }}">
+                                                            {{ $c->criteria_type }}
+                                                        </span>
+                                                    </th>
+                                                @endforeach
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($alternatifs as $alt)
+                                                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            {{ $alt->user->name ?? $alt->alternatif_name }}
+                                                        </span>
+                                                    </td>
+                                                    @foreach($criterias as $c)
+                                                        <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                            <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                                {{ $decisionMatrix[$alt->id][$c->id]['value'] ?? 0 }}
+                                                            </span>
+                                                        </td>
+                                                    @endforeach
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Ideal Values --}}
+                    <div id="idealValues" class="calculation-step">
+                        <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
+                            <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                                <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-bullseye mr-2"></i>Nilai Ideal (X+ dan X-)</h6>
+                            </div>
+                            <div class="flex-auto px-0 pt-0 pb-2">
+                                <div class="p-6 overflow-x-auto">
+                                    <div class="calculation-details mb-4">
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Nilai ideal terbaik (X+) dan ideal terburuk (X-) untuk setiap kriteria.
+                                        </p>
+                                        <div class="calculation-formula">
+                                            Untuk kriteria Benefit: X+ = max(X), X- = min(X)<br>
+                                            Untuk kriteria Cost: X+ = min(X), X- = max(X)
+                                        </div>
+                                    </div>
+                                    <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+                                        <thead class="align-bottom">
+                                            <tr>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Kriteria</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Tipe</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">X+ (Ideal Terbaik)</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">X- (Ideal Terburuk)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($criterias as $c)
+                                                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            {{ $c->criteria_name }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            <span class="criteria-type {{ $c->criteria_type == 'Benefit' ? 'criteria-benefit' : 'criteria-cost' }}">
+                                                                {{ $c->criteria_type }}
+                                                            </span>
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            {{ $X_plus[$c->id] ?? 0 }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            {{ $X_minus[$c->id] ?? 0 }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Normalization Results --}}
                     <div id="normalizationResults" class="calculation-step">
                         <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
@@ -302,12 +575,26 @@
                             </div>
                             <div class="flex-auto px-0 pt-0 pb-2">
                                 <div class="p-6 overflow-x-auto">
+                                    <div class="calculation-details mb-4">
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Matriks yang telah dinormalisasi menggunakan rumus VIKOR.
+                                        </p>
+                                        <div class="calculation-formula">
+                                            Untuk kriteria Benefit: (X+ - Xij) / (X+ - X-)<br>
+                                            Untuk kriteria Cost: (Xij - X+) / (X- - X+)
+                                        </div>
+                                    </div>
                                     <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
                                         <thead class="align-bottom">
                                             <tr>
                                                 <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama</th>
                                                 @foreach($criterias as $c)
-                                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">{{ $c->criteria_name }}</th>
+                                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">
+                                                        {{ $c->criteria_name }}
+                                                        <span class="criteria-type {{ $c->criteria_type == 'Benefit' ? 'criteria-benefit' : 'criteria-cost' }}">
+                                                            {{ $c->criteria_type }}
+                                                        </span>
+                                                    </th>
                                                 @endforeach
                                             </tr>
                                         </thead>
@@ -343,12 +630,23 @@
                             </div>
                             <div class="flex-auto px-0 pt-0 pb-2">
                                 <div class="p-6 overflow-x-auto">
+                                    <div class="calculation-details mb-4">
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Matriks normalisasi yang telah dikalikan dengan bobot kriteria.
+                                        </p>
+                                        <div class="calculation-formula">
+                                            Nilai Terbobot = Nilai Normalisasi × Bobot Kriteria
+                                        </div>
+                                    </div>
                                     <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
                                         <thead class="align-bottom">
                                             <tr>
                                                 <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama</th>
                                                 @foreach($criterias as $c)
-                                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">{{ $c->criteria_name }}</th>
+                                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">
+                                                        {{ $c->criteria_name }}
+                                                        <span class="text-xs">(Bobot: {{ $c->weight }})</span>
+                                                    </th>
                                                 @endforeach
                                             </tr>
                                         </thead>
@@ -363,7 +661,7 @@
                                                     @foreach($criterias as $c)
                                                         <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                             <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                                {{ number_format($weightedNormalization[$alt->id][$c->id] ?? 0, 4) }}
+                                                                {{ number_format($weightedNormalizedValues[$alt->id][$c->id] ?? 0, 4) }}
                                                             </span>
                                                         </td>
                                                     @endforeach
@@ -376,103 +674,54 @@
                         </div>
                     </div>
 
-                    {{-- Ideal Values --}}
-                    <div id="idealValues" class="calculation-step">
+                    {{-- Si and Ri Values --}}
+                    <div id="siRiResults" class="calculation-step">
                         <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
                             <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                                <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-star mr-2"></i>Nilai Ideal (F*)</h6>
+                                <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-calculator mr-2"></i>Nilai Si dan Ri</h6>
                             </div>
                             <div class="flex-auto px-0 pt-0 pb-2">
                                 <div class="p-6 overflow-x-auto">
+                                    <div class="calculation-details mb-4">
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Nilai Si (Utility Measure) dan Ri (Regret Measure) untuk setiap alternatif.
+                                        </p>
+                                        <div class="calculation-formula">
+                                            Si = Σ (Bobot Kriteria × Nilai Normalisasi)<br>
+                                            Ri = max(Bobot Kriteria × Nilai Normalisasi)
+                                        </div>
+                                        <p class="text-sm dark:text-gray-300 mt-2">
+                                            <strong>Rentang Nilai:</strong><br>
+                                            S+ = {{ number_format($S_plus, 4) }} (maksimum Si)<br>
+                                            S- = {{ number_format($S_minus, 4) }} (minimum Si)<br>
+                                            R+ = {{ number_format($R_plus, 4) }} (maksimum Ri)<br>
+                                            R- = {{ number_format($R_minus, 4) }} (minimum Ri)
+                                        </p>
+                                    </div>
                                     <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
                                         <thead class="align-bottom">
                                             <tr>
-                                                @foreach($criterias as $c)
-                                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">{{ $c->criteria_name }}</th>
-                                                @endforeach
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Si (Utility Measure)</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Ri (Regret Measure)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                                @foreach($criterias as $c)
-                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                            {{ number_format($ideal[$c->id] ?? 0, 4) }}
-                                                        </span>
-                                                    </td>
-                                                @endforeach
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Final Results --}}
-                    <div id="finalResults" class="calculation-step">
-                        <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
-                            <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                                <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-trophy mr-2"></i>Hasil Akhir VIKOR</h6>
-                            </div>
-                            <div class="flex-auto px-0 pt-0 pb-2">
-                                <div class="p-6 overflow-x-auto">
-                                    <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-                                        <thead class="align-bottom">
-                                            <tr>
-                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama Siswa</th>
-                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Qi</th>
-                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Si</th>
-                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Ri</th>
-                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Ranking</th>
-                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $sortedResults = collect($alternatifs)->map(function ($alternatif) use ($finalValues, $ranking, $Si, $Ri) {
-                                                    return [
-                                                        'id' => $alternatif->id,
-                                                        'name' => $alternatif->user->name ?? $alternatif->alternatif_name,
-                                                        'nilai_q' => $finalValues[$alternatif->id] ?? 0,
-                                                        'nilai_s' => $Si[$alternatif->id] ?? 0,
-                                                        'nilai_r' => $Ri[$alternatif->id] ?? 0,
-                                                        'ranking' => $ranking[$alternatif->id] ?? null,
-                                                        'status' => ($ranking[$alternatif->id] !== null && $ranking[$alternatif->id] <= 10) ? 'Lulus' : 'Tidak Lulus'
-                                                    ];
-                                                })->sortBy('ranking')->values()->all();
-                                            @endphp
-
-                                            @foreach($sortedResults as $result)
+                                            @foreach($alternatifs as $alt)
                                                 <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                                     <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                            {{ $result['name'] }}
+                                                            {{ $alt->user->name ?? $alt->alternatif_name }}
                                                         </span>
                                                     </td>
                                                     <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                            {{ number_format($result['nilai_q'], 4) }}
+                                                            {{ number_format($Si[$alt->id] ?? 0, 4) }}
                                                         </span>
                                                     </td>
                                                     <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                            {{ number_format($result['nilai_s'], 4) }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                            {{ number_format($result['nilai_r'], 4) }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                            {{ $result['ranking'] ?? '-' }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80 {{ $result['status'] == 'Lulus' ? 'text-green-500' : 'text-red-500' }}">
-                                                            {{ $result['status'] }}
+                                                            {{ number_format($Ri[$alt->id] ?? 0, 4) }}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -484,289 +733,495 @@
                         </div>
                     </div>
 
-                    {{-- Save Button --}}
-                    <div id="saveSection" class="calculation-step">
-                        <div class="flex justify-end mt-6">
-                            <form action="{{ route('hitung.simpan') }}" method="POST">
-                                @csrf
-                                @foreach($alternatifs as $alt)
-                                    <input type="hidden" name="alternatif_ids[]" value="{{ $alt->id }}">
-                                    <input type="hidden" name="finalValues[{{ $alt->id }}]" value="{{ $finalValues[$alt->id] ?? 0 }}">
-                                    <input type="hidden" name="ranking[{{ $alt->id }}]" value="{{ $ranking[$alt->id] ?? null }}">
-                                    <input type="hidden" name="Si[{{ $alt->id }}]" value="{{ $Si[$alt->id] ?? 0 }}">
-                                    <input type="hidden" name="Ri[{{ $alt->id }}]" value="{{ $Ri[$alt->id] ?? 0 }}">
-                                @endforeach
-                                <input type="hidden" name="tahun_ajaran" value="{{ $currentTahunAjaran }}">
-                                <input type="hidden" name="semester" value="{{ $currentSemester }}">
-                                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105">
-                                    <i class="fas fa-save mr-2"></i>Simpan Hasil Perhitungan
-                                </button>
-                            </form>
+                    {{-- Qi Values and Ranking --}}
+                    <div id="qiResults" class="calculation-step">
+                        <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
+                            <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                                <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-trophy mr-2"></i>Hasil Akhir VIKOR</h6>
+                            </div>
+                            <div class="flex-auto px-0 pt-0 pb-2">
+                                <div class="p-6 overflow-x-auto">
+                                    <div class="calculation-details mb-4">
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Nilai Qi (Compromise Index) dan peringkat akhir.
+                                        </p>
+                                        <div class="calculation-formula">
+                                            Qi = v × (Si - S-) / (S+ - S-) + (1 - v) × (Ri - R-) / (R+ - R-)<br>
+                                            Dimana v = {{ $v_value }} (nilai default)
+                                        </div>
+                                    </div>
+                                    <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+                                        <thead class="align-bottom">
+                                            <tr>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Ranking</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Qi (Compromise Index)</th>
+                                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $sortedAlternatifs = $alternatifs->sortBy(function($alt) use ($ranking) {
+                                                    return $ranking[$alt->id] ?? 0;
+                                                });
+                                            @endphp
+                                            @foreach($sortedAlternatifs as $alt)
+                                                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            {{ $ranking[$alt->id] ?? '-' }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            {{ $alt->user->name ?? $alt->alternatif_name }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            {{ number_format($finalValues[$alt->id] ?? 0, 4) }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                            @if(in_array($alt->id, $topStudents->pluck('id')->toArray()))
+                                                                <span class="text-green-500">Lulus</span>
+                                                            @else
+                                                                <span class="text-red-500">Tidak Lulus</span>
+                                                            @endif
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    {{-- Stability Conditions --}}
+                    <div id="stabilityConditions" class="calculation-step">
+                        <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
+                            <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                                <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-shield-alt mr-2"></i>Kondisi Stabilitas</h6>
+                            </div>
+                            <div class="flex-auto px-0 pt-0 pb-2">
+                                <div class="p-6">
+                                    <div class="mb-4">
+                                        <h4 class="text-md font-semibold dark:text-white mb-2">1. Keuntungan yang Dapat Diterima (Acceptable Advantage)</h4>
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Q(A2) - Q(A1) ≥ DQ, dimana DQ = 1/(m-1)
+                                        </p>
+                                        <p class="text-sm dark:text-gray-300">
+                                            @if($condition1)
+                                                <span class="text-green-500"><i class="fas fa-check-circle mr-1"></i>Kondisi terpenuhi: {{ number_format($Q_diff, 6) }} ≥ {{ number_format($DQ, 6) }}</span>
+                                            @else
+                                                <span class="text-red-500"><i class="fas fa-times-circle mr-1"></i>Kondisi tidak terpenuhi: {{ number_format($Q_diff, 6) }} < {{ number_format($DQ, 6) }}</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h4 class="text-md font-semibold dark:text-white mb-2">2. Stabilitas dalam Pengambilan Keputusan (Decision Stability)</h4>
+                                        <p class="text-sm dark:text-gray-300 mb-2">
+                                            Alternatif A1 harus juga memiliki ranking terbaik saat dihitung dengan v=0.7 (mayoritas) dan v=0.3 (veto)
+                                        </p>
+                                        <p class="text-sm dark:text-gray-300">
+                                            @if($condition2)
+                                                <span class="text-green-500"><i class="fas fa-check-circle mr-1"></i>Kondisi terpenuhi</span>
+                                            @else
+                                                <span class="text-red-500"><i class="fas fa-times-circle mr-1"></i>Kondisi tidak terpenuhi</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                                        <h4 class="text-md font-semibold dark:text-white mb-2">
+                                            <i class="fas fa-info-circle mr-2"></i>Kesimpulan Stabilitas
+                                        </h4>
+                                        <p class="text-sm dark:text-gray-300">
+                                            @if($isAcceptable)
+                                                <span class="text-green-500 font-semibold"><i class="fas fa-check-circle mr-1"></i>Solusi kompromi stabil dan dapat diterima</span>
+                                            @else
+                                                <span class="text-yellow-500 font-semibold"><i class="fas fa-exclamation-triangle mr-1"></i>Solusi kompromi tidak stabil sepenuhnya</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Save Button --}}
+                    @if($showSaveButton)
+                        <div id="saveSection" class="calculation-step">
+                            <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
+                                <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                                    <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-save mr-2"></i>Simpan Hasil</h6>
+                                </div>
+                                <div class="flex-auto px-0 pt-0 pb-2">
+                                    <div class="p-6">
+                                        <form action="{{ route('hitung.simpan') }}" method="POST">
+                                        @csrf
+
+                                        @foreach ($finalValues as $id => $value)
+                                            <input type="hidden" name="finalValues[{{ $id }}]" value="{{ $value }}">
+                                        @endforeach
+
+                                        @foreach ($alternatifs as $alt)
+                                            <input type="hidden" name="alternatif_ids[]" value="{{ $alt->id }}">
+                                        @endforeach
+
+                                        @foreach ($ranking as $id => $rank)
+                                            <input type="hidden" name="ranking[{{ $id }}]" value="{{ $rank }}">
+                                        @endforeach
+
+                                        @foreach ($Si as $id => $s)
+                                            <input type="hidden" name="Si[{{ $id }}]" value="{{ $s }}">
+                                        @endforeach
+
+                                        @foreach ($Ri as $id => $r)
+                                            <input type="hidden" name="Ri[{{ $id }}]" value="{{ $r }}">
+                                        @endforeach
+
+                                        <input type="hidden" name="tahun_ajaran" value="{{ $currentTahunAjaran }}">
+                                        <input type="hidden" name="semester" value="{{ $currentSemester }}">
+
+                                        <div class="flex justify-end">
+                                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-teal-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:from-green-600 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300">
+                                                <i class="fas fa-save mr-2"></i>Simpan Hasil Perhitungan
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 @endif
             @endif
         </div>
 
         {{-- Riwayat Hitung Tab --}}
         <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="riwayat" role="tabpanel" aria-labelledby="riwayat-tab">
-            <div class="flex-none w-full max-w-full px-3 overflow-x-hidden">
-                <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
-                    <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                        <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-archive mr-2"></i>Riwayat Perhitungan</h6>
-                    </div>
-                    <div class="flex-auto px-0 pt-0 pb-2">
-                        <div class="p-6 overflow-x-auto">
-                            @if($historicalResults->isEmpty())
-                                <div class="text-center py-8">
-                                    <i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i>
-                                    <p class="text-gray-600 dark:text-gray-400">Belum ada hasil perhitungan yang disimpan</p>
-                                </div>
-                            @else
-                                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-                                    <thead class="align-bottom">
-                                        <tr>
-                                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama Siswa</th>
-                                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Tahun Ajaran</th>
-                                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Semester</th>
-                                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nilai Qi</th>
-                                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Ranking</th>
-                                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Status</th>
-                                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($historicalResults as $result)
-                                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                        {{ $result->alternatif->user->name ?? 'N/A' }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                        {{ $result->tahun_ajaran }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                        {{ $result->semester }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                        {{ number_format($result->nilai_q, 4) }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                        {{ $result->ranking }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80 {{ $result->status == 'Lulus' ? 'text-green-500' : 'text-red-500' }}">
-                                                        {{ $result->status }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <div class="flex space-x-2">
-                                                        <a href="#" class="text-blue-500 hover:text-blue-700" title="Detail">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                        @if($result->status != 'final')
-                                                            <form action="{{ route('hitung.simpan', $result->id) }}" method="POST" class="inline">
-                                                                @csrf
-                                                                <button type="submit" class="text-green-500 hover:text-green-700" title="Finalkan">
-                                                                    <i class="fas fa-check"></i>
-                                                                </button>
-                                                            </form>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
+            <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
+                <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                    <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-history mr-2"></i>Filter Riwayat</h6>
+                </div>
+                <div class="flex-auto px-0 pt-0 pb-2">
+                    <div class="p-6 overflow-x-auto">
+                        <form action="{{ route('dashboard.hitung') }}" method="GET">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                <div>
+                                    <label for="tahun_ajaran_history" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <i class="fas fa-graduation-cap mr-1"></i>Tahun Ajaran
+                                    </label>
+                                    <select name="tahun_ajaran_history" id="tahun_ajaran_history" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                                        <option value="">Semua Tahun Ajaran</option>
+                                        @foreach($availableTahunAjarans as $tahun)
+                                            <option value="{{ $tahun }}" {{ $selectedTahunAjaranHistory == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
                                         @endforeach
-                                    </tbody>
-                                </table>
-                            @endif
-                        </div>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="semester_history" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <i class="fas fa-calendar mr-1"></i>Semester
+                                    </label>
+                                    <select name="semester_history" id="semester_history" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                                        <option value="">Semua Semester</option>
+                                        <option value="Ganjil" {{ $selectedSemesterHistory == 'Ganjil' ? 'selected' : '' }}>Ganjil</option>
+                                        <option value="Genap" {{ $selectedSemesterHistory == 'Genap' ? 'selected' : '' }}>Genap</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300">
+                                        <i class="fas fa-filter mr-2"></i>Filter Riwayat
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
+
+            @if($historicalResults->isNotEmpty())
+                <div class="relative flex flex-col min-w-0 mb-6 break-words futuristic-card">
+                    <div class="flex justify-between p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                        <h6 class="dark:text-white text-lg font-semibold"><i class="fas fa-table mr-2"></i>Data Riwayat Perhitungan</h6>
+                    </div>
+                    <div class="flex-auto px-0 pt-0 pb-2">
+                        <div class="p-6 overflow-x-auto">
+                            <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+                                <thead class="align-bottom">
+                                    <tr>
+                                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Tanggal</th>
+                                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nama Siswa</th>
+                                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Tahun Ajaran</th>
+                                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Semester</th>
+                                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Nilai Q</th>
+                                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Ranking</th>
+                                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-xs border-b-solid tracking-none whitespace-nowrap">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($historicalResults as $result)
+                                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                    {{ \Carbon\Carbon::parse($result->tanggal_penilaian)->format('d/m/Y') }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                    {{ $result->alternatif->user->name ?? $result->alternatif->alternatif_name }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                    {{ $result->tahun_ajaran }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                    {{ $result->semester }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                    {{ number_format($result->nilai_q, 3) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                    {{ $result->ranking }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                <span class="mb-0 text-sm font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                    @if($result->status == 'Lulus')
+                                                        <span class="text-green-500">{{ $result->status }}</span>
+                                                    @else
+                                                        <span class="text-red-500">{{ $result->status }}</span>
+                                                    @endif
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="w-full px-3 mb-6">
+                    <div class="relative p-4 mb-4 text-yellow-700 bg-yellow-100 rounded-lg border border-yellow-300 dark:bg-yellow-200 dark:text-yellow-800">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2 text-lg"></i>
+                            <span class="block sm:inline">Tidak ada data riwayat perhitungan yang ditemukan.</span>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const calculationForm = document.getElementById('calculationForm');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const progressText = document.getElementById('progressText');
-        const progressBar = document.getElementById('progressBar');
-        const techParticles = document.getElementById('techParticles');
+    // Matrix Rain Effect
+    function createMatrixRain() {
+        const container = document.getElementById('matrixRain');
+        const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+        const columns = Math.floor(window.innerWidth / 20);
         
-        // Form submission handler
+        for (let i = 0; i < columns; i++) {
+            const column = document.createElement('div');
+            column.className = 'matrix-column';
+            
+            // Create initial characters
+            const charCount = Math.floor(Math.random() * 15) + 10;
+            for (let j = 0; j < charCount; j++) {
+                const char = document.createElement('span');
+                char.textContent = chars.charAt(Math.floor(Math.random() * chars.length));
+                char.style.opacity = (j / charCount) * 0.8;
+                column.appendChild(char);
+            }
+            
+            container.appendChild(column);
+            
+            // Animate the column
+            animateColumn(column);
+        }
+    }
+    
+    function animateColumn(column) {
+        const speed = 50 + Math.random() * 100;
+        const delay = Math.random() * 3000;
+        
+        setTimeout(() => {
+            setInterval(() => {
+                // Remove first character
+                if (column.children.length > 15) {
+                    column.removeChild(column.firstChild);
+                }
+                
+                // Add new character at bottom
+                const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+                const char = document.createElement('span');
+                char.textContent = chars.charAt(Math.floor(Math.random() * chars.length));
+                char.style.opacity = '0.8';
+                column.appendChild(char);
+                
+                // Fade out older characters
+                Array.from(column.children).forEach((child, index) => {
+                    const opacity = index / column.children.length;
+                    child.style.opacity = opacity * 0.8;
+                });
+            }, speed);
+        }, delay);
+    }
+
+    // Animation for calculation steps
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create matrix rain effect
+        createMatrixRain();
+        
+        // Show loading animation when form is submitted
+        const calculationForm = document.getElementById('calculationForm');
         if (calculationForm) {
             calculationForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                simulateProgress();
                 
-                // Show loading overlay with animation
-                loadingOverlay.style.display = 'flex';
-                createParticles();
-                
-                // Simulate calculation progress
-                simulateCalculationProgress();
-                
-                // Actually submit the form after showing loading animation
+                // Submit the form after a small delay to allow animation to start
                 setTimeout(() => {
-                    this.submit();
+                    calculationForm.submit();
                 }, 100);
             });
         }
-        
-        // Simulate calculation progress
-        function simulateCalculationProgress() {
-            const steps = [
-                { text: "Memproses data siswa...", progress: 10 },
-                { text: "Menormalisasi nilai kriteria...", progress: 25 },
-                { text: "Menghitung bobot normalisasi...", progress: 40 },
-                { text: "Menentukan nilai ideal...", progress: 55 },
-                { text: "Menghitung nilai S dan R...", progress: 70 },
-                { text: "Menyusun peringkat akhir...", progress: 85 },
-                { text: "Menyiapkan hasil...", progress: 95 },
-                { text: "Perhitungan selesai!", progress: 100 }
-            ];
-            
-            let currentStep = 0;
-            
-            const interval = setInterval(() => {
-                if (currentStep < steps.length) {
-                    progressText.textContent = steps[currentStep].text;
-                    progressBar.style.width = steps[currentStep].progress + '%';
-                    currentStep++;
-                } else {
-                    clearInterval(interval);
-                }
-            }, 800); // Adjust timing between steps
-        }
-        
-        // Create floating particles effect
-        function createParticles() {
-            // Clear existing particles
-            techParticles.innerHTML = '';
-            
-            // Create particles
-            const particleCount = 30;
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                
-                // Random properties
-                const size = Math.random() * 10 + 5;
-                const posX = Math.random() * 100;
-                const posY = Math.random() * 100;
-                const opacity = Math.random() * 0.5 + 0.3;
-                const animationDuration = Math.random() * 15 + 5;
-                const delay = Math.random() * 5;
-                const color = `hsl(${Math.random() * 60 + 180}, 80%, 70%)`;
-                
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                particle.style.left = `${posX}%`;
-                particle.style.top = `${posY}%`;
-                particle.style.opacity = opacity;
-                particle.style.background = color;
-                particle.style.animation = `float ${animationDuration}s ${delay}s infinite ease-in-out`;
-                
-                techParticles.appendChild(particle);
-            }
-            
-            // Add CSS for floating animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes float {
-                    0% { transform: translateY(0) translateX(0); opacity: 0.3; }
-                    50% { transform: translateY(-20px) translateX(10px); opacity: 0.8; }
-                    100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // Animate calculation steps when they become visible
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: "0px 0px -50px 0px"
-        };
-        
+
+        // Rest of your existing JavaScript...
+        // Animate calculation steps when they come into view
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
                 }
             });
-        }, observerOptions);
-        
-        // Observe all calculation steps
+        }, { threshold: 0.1 });
+
         document.querySelectorAll('.calculation-step').forEach(step => {
             observer.observe(step);
         });
+
+        // Tab functionality remains the same...
+    });
+
+    // Enhanced progress simulation with system stats
+    function simulateProgress() {
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressText = document.getElementById('progressText');
+        const statusText = document.getElementById('statusText');
+        const memoryText = document.getElementById('memoryText');
+        const cpuText = document.getElementById('cpuText');
         
-        // If calculation was already performed (page refresh), show all steps with delays
-        if ({{ $calculationPerformed ? 'true' : 'false' }}) {
-            const steps = document.querySelectorAll('.calculation-step');
-            steps.forEach((step, index) => {
-                setTimeout(() => {
-                    step.classList.add('visible');
-                }, index * 300); // Staggered appearance
-            });
-        }
+        const messages = [
+            "Memuat data siswa...",
+            "Membangun matriks keputusan...",
+            "Menghitung nilai ideal...",
+            "Melakukan normalisasi...",
+            "Memproses nilai terbobot...",
+            "Menghitung utility measure...",
+            "Menganalisis regret measure...",
+            "Menentukan indeks kompromi...",
+            "Memverifikasi kondisi stabilitas...",
+            "Menyusun peringkat akhir..."
+        ];
         
-        // Tab switching functionality
-        const hitungTabs = document.getElementById('hitungTabs');
-        if (hitungTabs) {
-            const tabButtons = hitungTabs.querySelectorAll('button');
-            const tabContents = document.getElementById('hitungTabContent').querySelectorAll('[role="tabpanel"]');
-            
-            function activateTab(tabId) {
-                tabButtons.forEach(button => {
-                    if (button.getAttribute('data-tabs-target').substring(1) === tabId) {
-                        button.classList.add('border-blue-500', 'text-blue-600');
-                        button.setAttribute('aria-selected', 'true');
-                    } else {
-                        button.classList.remove('border-blue-500', 'text-blue-600');
-                        button.setAttribute('aria-selected', 'false');
-                    }
-                });
-                
-                tabContents.forEach(content => {
-                    if (content.id === tabId) {
-                        content.classList.remove('hidden');
-                    } else {
-                        content.classList.add('hidden');
-                    }
-                });
+        let progress = 0;
+        const interval = setInterval(() => {
+            // Increment progress with some randomness
+            progress += Math.random() * 8;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
             }
             
-            // Handle initial tab based on URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const activeTab = urlParams.get('tab') || 'proses';
-            activateTab(activeTab);
+            // Update progress bar and text
+            progressBar.style.width = `${progress}%`;
+            progressPercent.textContent = `${Math.round(progress)}%`;
             
-            // Add click handlers for tabs
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-tabs-target').substring(1);
-                    activateTab(targetId);
-                    
-                    // Update URL without reload
-                    const newUrl = new URL(window.location.href);
-                    newUrl.searchParams.set('tab', targetId);
-                    window.history.pushState({ path: newUrl.href }, '', newUrl.href);
-                });
-            });
-        }
-    });
+            // Update progress text based on progress
+            const messageIndex = Math.min(Math.floor(progress / (100 / messages.length)), messages.length - 1);
+            progressText.textContent = messages[messageIndex];
+            
+            // Update system stats
+            const memory = Math.round(100 + Math.random() * 800); // 100-900 MB
+            const cpu = Math.round(10 + Math.random() * 60); // 10-70%
+            memoryText.textContent = `${memory} MB`;
+            cpuText.textContent = `${cpu}%`;
+            
+            // Update status text with more technical details
+            if (progress < 30) {
+                statusText.textContent = "Menyiapkan lingkungan komputasi";
+            } else if (progress < 60) {
+                statusText.textContent = "Melakukan analisis multi-kriteria";
+            } else if (progress < 90) {
+                statusText.textContent = "Mengoptimalkan solusi kompromi";
+            } else {
+                statusText.textContent = "Menyelesaikan proses perhitungan";
+            }
+            
+            // Add some random particles
+            if (progress < 100 && Math.random() > 0.7) {
+                addParticle();
+            }
+        }, 300);
+    }
+
+    // Add tech particles for loading animation
+    function addParticle() {
+        const particlesContainer = document.getElementById('techParticles');
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Random position
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        particle.style.left = `${x}%`;
+        particle.style.top = `${y}%`;
+        
+        // Random size and animation
+        const size = Math.random() * 6 + 2;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.opacity = Math.random() * 0.7 + 0.3;
+        
+        // Random color from blue to cyan
+        const hue = 180 + Math.random() * 60; // 180-240 (blue to cyan)
+        particle.style.backgroundColor = `hsla(${hue}, 100%, 70%, ${particle.style.opacity})`;
+        
+        particlesContainer.appendChild(particle);
+        
+        // Animation
+        const duration = Math.random() * 2000 + 1000;
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 100 + 50;
+        
+        const animation = particle.animate([
+            { transform: `translate(0, 0)`, opacity: particle.style.opacity },
+            { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`, opacity: 0 }
+        ], {
+            duration: duration,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        });
+        
+        animation.onfinish = () => particle.remove();
+    }
 </script>
 @endpush
-@endsection

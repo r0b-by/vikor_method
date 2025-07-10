@@ -141,9 +141,9 @@
             @forelse ($hasil as $item)
                 <tr>
                     <td>{{ $item->alternatif->user->name ?? $item->alternatif->alternatif_name ?? '-' }}</td>
-                    <td>{{ number_format($item->nilai_s, 4) }}</td>
-                    <td>{{ number_format($item->nilai_r, 4) }}</td>
-                    <td>{{ number_format($item->nilai_q, 4) }}</td>
+                    <td>{{ number_format($item->nilai_s, 3) }}</td>
+                    <td>{{ number_format($item->nilai_r, 3) }}</td>
+                    <td>{{ number_format($item->nilai_q, 3) }}</td>
                     <td>{{ $item->ranking }}</td>
                     <td>{{ $item->status }}</td>
                     <td>{{ \Carbon\Carbon::parse($item->tanggal_penilaian)->format('d-m-Y') }} {{ \Carbon\Carbon::parse($item->jam_penilaian)->format('H:i') }}</td> {{-- Displaying date and time --}}

@@ -272,18 +272,18 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            @if ($item->certificate_details)
-                                                <div class="flex flex-wrap gap-2">
-                                                    @foreach ($item->certificate_details as $cert)
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                                                            {{ $cert['level'] ?? 'N/A' }} ({{ $cert['count'] ?? 'N/A' }})
-                                                        </span>
-                                                    @endforeach
-                                                </div>
-                                            @else
-                                                <span class="text-sm text-gray-500 dark:text-slate-400">-</span>
-                                            @endif
-                                        </td>
+                                        @if ($item->certificate_details && is_array($item->certificate_details))
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach ($item->certificate_details as $cert)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                                                        {{ $cert['level'] ?? 'N/A' }} ({{ $cert['count'] ?? 'N/A' }})
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <span class="text-sm text-gray-500 dark:text-slate-400">-</span>
+                                        @endif
+                                    </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <form action="{{ route('penilaian.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus penilaian ini?');">
                                                 @csrf
@@ -357,69 +357,78 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                @foreach ($criterias as $c)
-                                    @php
-                                        $nilaiTerbaru = $penilaians
-                                            ->where('id_alternatif', $a->id)
-                                            ->where('id_criteria', $c->id)
-                                            ->first();
-                                            
-                                        $certificateDetails = $nilaiTerbaru ? $nilaiTerbaru->certificate_details : [];
-                                    @endphp
-                                    <div class="bg-gray-50/50 dark:bg-slate-700/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
-                                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                            {{ $c->criteria_code }} - {{ $c->nama_criteria }}
-                                        </label>
-                                        
-                                        @if(in_array($c->criteria_code, ['C4', 'C5']))
-                                            <input type="hidden" name="nilai[{{ $c->id }}]" 
-                                                   value="{{ $nilaiTerbaru ? $nilaiTerbaru->nilai : 0 }}">
-                                            
-                                            <div class="mt-3 space-y-2" id="certificate_inputs_{{ $a->id }}_{{ $c->id }}">
-                                                <label class="block text-sm font-medium text-gray-900 dark:text-white">Detail Sertifikat:</label>
-                                                <button type="button" onclick="addCertificateField('{{ $a->id }}', '{{ $c->id }}')" 
-                                                    class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                                                    Tambah Sertifikat
-                                                </button>
-                                                
-                                                @if (!empty($certificateDetails))
-                                                    @foreach ($certificateDetails as $index => $detail)
-                                                        <div class="flex gap-2 items-center certificate-row">
-                                                            <select name="certificate_level[{{ $c->id }}][]" 
-                                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                                    onchange="calculateCertificateScore('{{ $a->id }}', '{{ $c->id }}')">
-                                                                <option value="">Pilih Level</option>
-                                                                @foreach($c->subs as $sub)
-                                                                    <option value="{{ $sub->label }}" 
-                                                                            data-point="{{ $sub->point }}"
-                                                                            {{ ($detail['level'] ?? '') == $sub->label ? 'selected' : '' }}>
-                                                                        {{ $sub->label }} ({{ $sub->point }} poin)
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                            <input type="number" name="certificate_count[{{ $c->id }}][]" 
-                                                                   value="{{ $detail['count'] ?? 1 }}" min="1" 
-                                                                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                                   onchange="calculateCertificateScore('{{ $a->id }}', '{{ $c->id }}')">
-                                                            <button type="button" onclick="removeCertificateField(this, '{{ $a->id }}', '{{ $c->id }}')" class="text-red-500 hover:text-red-700 text-sm">
-                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    @endforeach
-                                                @endif
-                                            </div>
-                                        @else
-                                            <input type="number" min="0" step="0.01"
-                                                value="{{ $nilaiTerbaru ? $nilaiTerbaru->nilai : 0 }}"
-                                                name="nilai[{{ $c->id }}]"
-                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                required onchange="formatDecimal(this)">
-                                        @endif
-                                    </div>
-                                @endforeach
+    @foreach ($criterias as $c)
+        @php
+            $nilaiTerbaru = $penilaians
+                ->where('id_alternatif', $a->id)
+                ->where('id_criteria', $c->id)
+                ->first();
+
+            // Memastikan certificateDetails selalu array, meskipun dari database string
+            $certificateDetails = $nilaiTerbaru && is_string($nilaiTerbaru->certificate_details)
+                                ? json_decode($nilaiTerbaru->certificate_details, true)
+                                : ($nilaiTerbaru ? $nilaiTerbaru->certificate_details : []);
+
+            // Jika json_decode gagal atau hasilnya bukan array, pastikan tetap array kosong
+            if (!is_array($certificateDetails)) {
+                $certificateDetails = [];
+            }
+        @endphp
+        <div class="bg-gray-50/50 dark:bg-slate-700/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ $c->criteria_code }} - {{ $c->nama_criteria }}
+            </label>
+
+            @if(in_array($c->criteria_code, ['C4', 'C5']))
+                <input type="hidden" name="nilai[{{ $c->id }}]"
+                       value="{{ $nilaiTerbaru ? $nilaiTerbaru->nilai : 0 }}">
+
+                <div class="mt-3 space-y-2" id="certificate_inputs_{{ $a->id }}_{{ $c->id }}">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">Detail Sertifikat:</label>
+                    <button type="button" onclick="addCertificateField('{{ $a->id }}', '{{ $c->id }}')"
+                        class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                        Tambah Sertifikat
+                    </button>
+
+                    {{-- PERBAIKAN DI SINI: Tambahkan is_array() --}}
+                    @if (!empty($certificateDetails) && is_array($certificateDetails))
+                        @foreach ($certificateDetails as $index => $detail)
+                            <div class="flex gap-2 items-center certificate-row">
+                                <select name="certificate_level[{{ $c->id }}][]"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                        onchange="calculateCertificateScore('{{ $a->id }}', '{{ $c->id }}')">
+                                    <option value="">Pilih Level</option>
+                                    @foreach($c->subs as $sub)
+                                        <option value="{{ $sub->label }}"
+                                                data-point="{{ $sub->point }}"
+                                                {{ ($detail['level'] ?? '') == $sub->label ? 'selected' : '' }}>
+                                            {{ $sub->label }} ({{ $sub->point }} poin)
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <input type="number" name="certificate_count[{{ $c->id }}][]"
+                                       value="{{ $detail['count'] ?? 1 }}" min="1"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-20 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                       onchange="calculateCertificateScore('{{ $a->id }}', '{{ $c->id }}')">
+                                <button type="button" onclick="removeCertificateField(this, '{{ $a->id }}', '{{ $c->id }}')" class="text-red-500 hover:text-red-700 text-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
                             </div>
+                        @endforeach
+                    @endif
+                </div>
+            @else
+                <input type="number" min="0" step="0.01"
+                    value="{{ $nilaiTerbaru ? $nilaiTerbaru->nilai : 0 }}"
+                    name="nilai[{{ $c->id }}]"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    required onchange="formatDecimal(this)">
+            @endif
+        </div>
+    @endforeach
+</div>
                             
                             <div class="flex justify-end mt-4">
                                 <button type="submit"

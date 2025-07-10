@@ -52,6 +52,12 @@ return [
     */
 
     'channels' => [
+        'policy' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/policy.log'), // Path ke file log terpisah
+            'level' => 'debug',
+        ],
+        
         'stack' => [
             'driver' => 'stack',
             'channels' => ['single'],

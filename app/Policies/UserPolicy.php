@@ -23,8 +23,10 @@ class UserPolicy
     {
         // Jika pengguna yang terautentikasi memiliki peran 'admin',
         // mereka secara otomatis diizinkan untuk melakukan SEMUA kemampuan.
+        // Metode policy spesifik di bawah tidak akan dipanggil untuk admin
+        // kecuali metode 'before' ini mengembalikan `null`.
         if ($user->hasRole('admin')) {
-            return true; // Izinkan akses penuh
+            return true; // Izinkan akses penuh untuk admin
         }
 
         // Jika pengguna BUKAN admin, kembalikan null untuk memungkinkan
@@ -33,7 +35,22 @@ class UserPolicy
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the user can view any models (e.g., see a list of all users).
+     * Metode ini akan dipanggil HANYA jika 'before' mengembalikan null (yaitu, untuk non-admin).
+     *
+     * @param  \App\Models\User  $authenticatedUser
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+    public function viewAny(User $authenticatedUser): bool
+    {
+        // Non-admin secara umum tidak diizinkan melihat daftar semua pengguna.
+        // Jika ada peran lain yang diizinkan, tambahkan pengecekan permission di sini.
+        // Contoh: return $authenticatedUser->hasPermissionTo('view users list');
+        return false;
+    }
+
+    /**
+     * Determine whether the user can view the model (e.g., view a specific user's profile).
      * Metode ini akan dipanggil HANYA jika 'before' mengembalikan null.
      *
      * @param  \App\Models\User  $authenticatedUser
@@ -42,9 +59,25 @@ class UserPolicy
      */
     public function view(User $authenticatedUser, User $userToView): bool
     {
-        // Pengguna biasa dapat melihat profil mereka sendiri.
+        // Pengguna non-admin hanya dapat melihat profil mereka sendiri.
         return $authenticatedUser->id === $userToView->id;
         // Admin sudah ditangani oleh metode 'before'.
+    }
+
+    /**
+     * Determine whether the user can create new users.
+     * Metode ini akan dipanggil HANYA jika 'before' mengembalikan null.
+     * (Biasanya hanya admin yang dapat membuat pengguna baru, atau melalui proses pendaftaran.)
+     *
+     * @param  \App\Models\User  $authenticatedUser
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+    public function create(User $authenticatedUser): bool
+    {
+        // Non-admin secara default tidak diizinkan untuk membuat pengguna baru.
+        // Jika ada permission spesifik, cek di sini:
+        // return $authenticatedUser->hasPermissionTo('create users');
+        return false;
     }
 
     /**
@@ -57,7 +90,7 @@ class UserPolicy
      */
     public function update(User $authenticatedUser, User $userToUpdate): bool
     {
-        // Pengguna biasa dapat memperbarui profil mereka sendiri.
+        // Pengguna non-admin hanya dapat memperbarui profil mereka sendiri.
         return $authenticatedUser->id === $userToUpdate->id;
         // Admin sudah ditangani oleh metode 'before'.
     }
@@ -72,61 +105,57 @@ class UserPolicy
      */
     public function delete(User $authenticatedUser, User $userToDelete): bool
     {
-        // Pencegahan admin menghapus akunnya sendiri (meskipun 'before' mengizinkan admin menghapus orang lain)
+        // Pencegahan agar pengguna (termasuk admin yang lolos dari `before` jika logika diubah)
+        // tidak menghapus akunnya sendiri. Ini merupakan DENIAL yang kuat.
         if ($authenticatedUser->id === $userToDelete->id) {
             return Response::deny('Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
-        // Jika metode `before` sudah ada, ini hanya akan berlaku untuk non-admin.
-        // Jika non-admin mencoba menghapus, mereka tidak diizinkan.
+        // Untuk pengguna non-admin: Mereka tidak diizinkan menghapus pengguna lain.
+        // Admin sudah diizinkan menghapus pengguna lain oleh metode 'before'.
         return false;
     }
 
     /**
      * Determine whether the user can approve registrations.
+     * Metode ini akan dipanggil HANYA jika 'before' mengembalikan null.
      *
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function approveRegistrations(User $user): bool
     {
-        // Admin sudah ditangani oleh metode 'before'.
-        // Jika Anda ingin ini lebih eksplisit atau untuk peran lain, Anda bisa memeriksa izin di sini.
+        // Admin sudah diizinkan oleh metode 'before'.
+        // Untuk pengguna non-admin, cek apakah mereka memiliki permission spesifik.
         return $user->hasPermissionTo('approve registrations');
     }
 
     /**
      * Determine whether the user can reject registrations.
+     * Metode ini akan dipanggil HANYA jika 'before' mengembalikan null.
      *
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function rejectRegistrations(User $user): bool
     {
+        // Admin sudah diizinkan oleh metode 'before'.
+        // Untuk pengguna non-admin, cek apakah mereka memiliki permission spesifik.
         return $user->hasPermissionTo('reject registrations');
     }
 
     /**
-     * Determine whether the user can manage users.
-     * (Digunakan oleh `$this->authorize('manage users');` di destroy)
+     * Determine whether the user can manage users (e.g., view, create, update, delete others).
+     * Metode ini akan dipanggil HANYA jika 'before' mengembalikan null.
+     * (Digunakan oleh `$this->authorize('manage users');` di destroy/index/dll.)
      *
      * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function manageUsers(User $user): bool
     {
-         return $user->hasPermissionTo('manage users');
-    }
-
-    /**
-     * Determine whether the user can create new users.
-     * (Tambahkan ini jika Anda berencana memiliki metode 'create' dan 'store' di UserController)
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
-    public function create(User $user): bool
-    {
-        return $user->hasPermissionTo('create users');
+        // Admin sudah diizinkan oleh metode 'before'.
+        // Untuk pengguna non-admin, cek apakah mereka memiliki permission spesifik.
+        return $user->hasPermissionTo('manage users');
     }
 }

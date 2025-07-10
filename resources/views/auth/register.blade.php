@@ -10,14 +10,27 @@
 @endpush
 
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #7c3aed;
+        --dark-bg: #0f172a;
+        --card-bg: rgba(15, 23, 42, 0.9);
+        --text-color: #e2e8f0;
+        --input-bg: rgba(30, 41, 59, 0.7);
+        --input-border: rgba(148, 163, 184, 0.3);
+        --border-radius: 12px;
+    }
+
     html, body {
         margin: 0;
         padding: 0;
-        background-color: #0d0d0d !important;
-        color: #f1f1f1;
+        background-color: var(--dark-bg) !important;
+        color: var(--text-color);
         height: 100%;
         overflow-x: hidden;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Inter', sans-serif;
     }
 
     .register-page {
@@ -29,36 +42,35 @@
     }
 
     .register-card {
-        background: rgba(30, 30, 30, 0.9);
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(255, 102, 0, 0.2);
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
         max-width: 900px;
         width: 100%;
         overflow: hidden;
         display: flex;
         flex-wrap: wrap;
-        border: 1px solid #333;
-    }
-
-    .register-card:hover {
-        box-shadow: 0 25px 45px rgba(255, 102, 0, 0.3);
-        transform: translateY(-5px);
-        transition: all 0.3s ease-in-out;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
     .register-image {
-        background-color: #FC6600;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05));
         flex: 1 1 40%;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 2rem;
+        min-height: 200px;
     }
 
     .register-image img {
-        width: 80%;
+        width: 100%;
         max-width: 300px;
-        filter: drop-shadow(0 0 20px #fc6600);
+        min-width: 150px;
+        height: auto;
+        object-fit: contain;
+        filter: brightness(1.05);
+        transition: all 0.3s ease;
     }
 
     .form-section {
@@ -68,11 +80,12 @@
     }
 
     .form-section h4 {
-        font-weight: bold;
+        font-weight: 600;
         margin-bottom: 30px;
-        color: #FC6600;
+        color: var(--text-color);
         text-align: center;
         font-size: 1.8rem;
+        letter-spacing: -0.5px;
     }
 
     .form-group {
@@ -80,7 +93,7 @@
     }
 
     .form-label {
-        color: #f1f1f1;
+        color: var(--text-color);
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 500;
@@ -88,34 +101,56 @@
     }
 
     .form-control {
-        background-color: #1f1f1f;
-        color: #f1f1f1;
-        border: 1px solid #444;
+        background-color: var(--input-bg);
+        color: #ffffff !important; /* Putih solid untuk kontras maksimal */
+        caret-color: var(--primary-color)
+        border: 1px solid var(--input-border);
         border-radius: 8px;
         padding: 0.75rem 1rem;
         width: 100%;
         font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:not(:placeholder-shown) {
+        border-color: rgba(37, 99, 235, 0.5);
+    }
+
+    .form-control.is-typing {
+        background-color: rgba(30, 41, 59, 0.9);
     }
 
     .form-control::placeholder {
-        color: #aaa;
-        opacity: 1;
+        color: rgba(226, 232, 240, 0.5);
     }
 
     .form-control:focus {
-        background-color: #1f1f1f;
-        border-color: #FC6600;
-        box-shadow: 0 0 0 0.25rem rgba(252, 102, 0, 0.25);
-        color: #fff;
+        background-color: var(--input-bg);
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%232563eb' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 12px;
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
     }
 
     .btn-custom {
-        background-color: #FC6600;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
         border: none;
         color: white;
         padding: 0.75rem;
         border-radius: 8px;
-        font-weight: 600;
+        font-weight: 500;
         font-size: 1rem;
         width: 100%;
         margin-top: 0.5rem;
@@ -123,45 +158,55 @@
     }
 
     .btn-custom:hover {
-        background-color: #e05500;
+        opacity: 0.9;
         transform: translateY(-2px);
     }
 
     .login-link {
         font-size: 0.95rem;
-        color: #ccc;
+        color: rgba(226, 232, 240, 0.7);
         text-align: center;
         margin-top: 1.5rem;
     }
 
     .login-link a {
-        color: #FC6600;
-        font-weight: bold;
+        color: var(--primary-color);
+        font-weight: 500;
         text-decoration: none;
-    }
-
-    .login-link a:hover {
-        color: #ff9933;
-        text-decoration: underline;
     }
 
     .invalid-feedback {
         display: block;
         margin-top: 0.4rem;
         font-size: 0.85rem;
+        color: #f87171;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .register-image img {
+            max-width: 250px;
+        }
+        
+        .form-section {
+            padding: 2.5rem 2rem;
+        }
     }
 
     @media (max-width: 768px) {
         .register-card {
             flex-direction: column;
             max-width: 100%;
-            border-radius: 15px;
         }
 
         .register-image {
             flex: none;
-            height: 180px;
-            padding: 1.5rem;
+            height: auto;
+            padding: 2rem;
+        }
+
+        .register-image img {
+            max-width: 200px;
         }
 
         .form-section {
@@ -180,8 +225,30 @@
             padding: 1rem;
         }
         
+        .register-image {
+            padding: 1.5rem;
+        }
+        
+        .register-image img {
+            max-width: 180px;
+        }
+        
         .form-section {
             padding: 1.5rem 1rem;
+        }
+        
+        .form-section h4 {
+            font-size: 1.4rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .register-image img {
+            max-width: 150px;
+        }
+        
+        textarea.form-control {
+            min-height: 80px;
         }
     }
 </style>

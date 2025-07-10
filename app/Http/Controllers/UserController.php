@@ -25,10 +25,12 @@ class UserController extends Controller
     {
         $this->middleware('auth');
 
+        // Middleware 'role:admin' diterapkan HANYA untuk metode yang ditujukan
+        // untuk admin mengelola pengguna lain atau melakukan aksi admin-spesifik.
         $this->middleware('role:admin')->only([
             'index',
-            'update',
-            'destroy',
+            'update', // Ini untuk admin memperbarui pengguna lain
+            'destroy', // Ini untuk admin menghapus pengguna lain
             'pendingRegistrations',
             'approveRegistration',
             'rejectRegistration',
@@ -36,6 +38,9 @@ class UserController extends Controller
             'approveProfileUpdate',
             'rejectProfileUpdate',
         ]);
+        
+        // Metode 'editProfile' dan 'updateProfile' tidak masuk dalam 'role:admin'
+        // karena itu adalah untuk semua pengguna yang diautentikasi mengelola profil mereka sendiri.
     }
 
     /**
@@ -46,23 +51,25 @@ class UserController extends Controller
      */
     public function index(): Factory|View
     {
-        // Hanya tampilkan user yang statusnya 'active' atau 'rejected'
-        $users = User::whereIn('status', ['active', 'rejected'])->get();
+
+        $users = User::with('roles')
+           ->whereIn('status', ['active', 'rejected'])
+           ->paginate(10); // 10 items per page
         return view('dashboard.user-management', compact('users'));
     }
 
     /**
-     * Display the profile of the currently authenticated user.
-     * Menampilkan profil pengguna yang sedang login.
+     * Display the profile of a specific user.
+     * Menampilkan profil pengguna berdasarkan ID.
      *
      * @param   \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function show(User $user): View|Factory
     {
-        // Baris ini akan memeriksa kebijakan 'view' pada UserPolicy
-        // Pastikan UserPolicy Anda mengizinkan admin untuk melihat pengguna lain,
-        // dan pengguna untuk melihat profil mereka sendiri.
+        // Baris ini akan memeriksa kebijakan 'view' pada UserPolicy.
+        // Izin 'view' di UserPolicy Anda masih mengandalkan 'before' untuk admin,
+        // dan 'authenticatedUser->id === userToView->id' untuk non-admin melihat dirinya sendiri.
         $this->authorize('view', $user); 
         
         // For students, show with their alternatif data
@@ -77,6 +84,12 @@ class UserController extends Controller
         return view('users.show', compact('user'));
     }
 
+    /**
+     * Display the profile of the currently authenticated user.
+     * Menampilkan profil pengguna yang sedang login.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function showProfile(): View|Factory
     {
         $user = Auth::user();
@@ -92,35 +105,39 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for editing the specified user (for admin, guru, and siswa).
+     * Show the form for editing the specified user (for admin to edit other users).
      *
      * @param   \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function edit(User $user)
     {
-        // Hapus baris "$user = auth()->user();" di sini.
-        // Variabel $user sudah di-inject dari route model binding.
-        $this->authorize('update', $user); // Ini akan memanggil UserPolicy@update
-        $roles = Role::all();
+        // Ini adalah metode 'edit' untuk admin mengedit pengguna lain.
+        // Otorisasi melalui UserPolicy@update. Admin diizinkan oleh metode 'before' di Policy.
+        // Namun, jika Anda menggunakan permission spesifik untuk edit user lain, gunakan itu.
+        // Contoh: $this->authorize('user-edit', $user); // Memerlukan izin 'user-edit'
+        $this->authorize('update', $user); // Policy `update` akan memanggil `before` untuk admin, atau cek self-edit untuk non-admin.
+        $roles = Role::all(); // Admin mungkin perlu melihat dan mengubah peran
         return view('users.edit', compact('user', 'roles'));
     }
 
-
     /**
-    * Update the specified user.
-    *
-    * @param  \Illuminate\Http\Request  $request
-    * @param  \App\Models\User  $user
-    * @return \Illuminate\Http\Response
-    */
+     * Update the specified user by an admin.
+     * Metode ini untuk admin memperbarui data pengguna lain, termasuk status dan peran.
+     *
+     * @param   \Illuminate\Http\Request  $request
+     * @param   \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
     public function update(Request $request, User $user)
     {
-        // Hapus baris 'if ($authenticatedUser->hasRole('admin')) { return true; }'
-        // Karena otorisasi sudah ditangani oleh $this->authorize('update', $user);
-        // dan middleware 'role:admin' di constructor.
-        $this->authorize('update', $user); // Ini akan memanggil UserPolicy@update
-        
+        // Pastikan $user di sini adalah user dari route model binding (user yang akan diupdate),
+        // bukan user yang sedang login.
+        // GANTI INI: Gunakan izin granular yang Anda miliki!
+        $this->authorize('user-edit'); // Otorisasi admin untuk edit user lain.
+                                       // UserPolicy@before akan mengizinkan jika admin,
+                                       // atau Gate 'user-edit' yang mengizinkan.
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
@@ -128,40 +145,73 @@ class UserController extends Controller
             'kelas' => 'nullable|string|max:255',
             'jurusan' => 'nullable|string|max:255',
             'alamat' => 'nullable|string',
-            'status' => 'required|in:pending,active,inactive,rejected',
-            'roles' => 'required|array',
+            'status' => 'required|in:pending,active,inactive,rejected', // Hanya admin yang dapat mengubah status ini
+            'roles' => 'required|array', // Hanya admin yang dapat mengubah peran
         ]);
 
         $user->update($validated);
         $user->syncRoles($request->roles);
 
-         return redirect()->route('admin.users.edit', $user->id) // Pass the user's ID
-        ->with('success', 'User updated successfully');
+        return redirect()->route('admin.users.edit', $user->id)
+            ->with('success', 'User updated successfully');
     }
-
 
     /**
      * Show the form for editing the currently authenticated user's profile.
-     * Menangani permintaan pembaruan profil dari pengguna non-admin (atau admin untuk profilnya sendiri).
+     * Menampilkan form untuk pengguna yang sedang login mengedit profil mereka sendiri.
      *
      * @return \Illuminate\Http\Response
      */
-    public function editProfile()
+    public function editProfile(): Factory|View
     {
         $user = auth()->user(); // Get the currently authenticated user
-        $roles = Role::all(); // Only if you need roles for the form
         
-        // Make sure the user exists
+        // Pastikan pengguna ada
         if (!$user) {
             abort(404, 'User not found');
         }
         
-        return view('users.edit', compact('user', 'roles'));
+        // Tidak perlu $this->authorize('update', $user); di sini, karena form ini hanya untuk user itu sendiri
+        // dan otorisasi akan dilakukan di updateProfile method.
+        // Anda mungkin ingin membuat view terpisah untuk edit profil pengguna biasa agar tidak
+        // menampilkan opsi pengubahan role/status.
+        return view('users.edit', compact('user')); // Pastikan ada view users.edit-profile
     }
 
-    // CATATAN PENTING: Anda mungkin perlu menambahkan public function updateProfile(Request $request)
-    // untuk menangani pengiriman form dari editProfile() jika ingin memisahkannya dari method update() admin.
-    // Atau pastikan form editProfile() mengarah ke route update() yang benar dengan otorisasi yang sesuai.
+    /**
+     * Update the currently authenticated user's profile.
+     * Menangani pengiriman form dari editProfile() untuk pembaruan profil oleh pengguna itu sendiri.
+     *
+     * @param   \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $user = Auth::user(); // Ini adalah user yang sedang login
+        
+        // Otorisasi: Pastikan user yang sedang login diizinkan mengupdate profil ini.
+        // UserPolicy@update akan mengizinkan jika $user->id === $userToUpdate->id
+        $this->authorize('update', $user); 
+
+        // Validasi yang lebih terbatas untuk pembaruan profil oleh pengguna itu sendiri
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'nis' => 'nullable|string|max:20|unique:users,nis,'.$user->id,
+            'kelas' => 'nullable|string|max:255',
+            'jurusan' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            // 'status' dan 'roles' TIDAK BOLEH ada di sini, hanya admin yang bisa mengubahnya.
+        ]);
+
+        $user->update($validated);
+
+        // Jika Anda ingin notifikasi tentang perubahan profil, bisa tambahkan di sini
+        // Notification::send(User::role('admin')->get(), new ProfileUpdateSubmittedNotification($user, $validated));
+
+        return redirect()->route('profile.edit') // Arahkan kembali ke halaman edit profil
+            ->with('success', 'Profile updated successfully.');
+    }
 
     /**
      * Display a listing of pending user registrations (for admin).
@@ -171,8 +221,10 @@ class UserController extends Controller
      */
     public function pendingRegistrations(): Factory|View
     {
-       $pendingUsers = User::role('siswa')->where('status', 'pending')->get();
-       return view('admin.pending-users', compact('pendingUsers'));
+        // Metode ini sudah dilindungi oleh middleware 'role:admin' di constructor.
+        // Karena ada izin 'approval-list', Anda bisa menambahkan $this->authorize('approval-list'); jika mau.
+        $pendingUsers = User::role('siswa')->where('status', 'pending')->get();
+        return view('admin.pending-users', compact('pendingUsers'));
     }
 
     /**
@@ -180,10 +232,12 @@ class UserController extends Controller
      * Menyetujui pendaftaran pengguna yang tertunda.
      *
      * @param   int   $userId
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function approveRegistration($userId): RedirectResponse
     {
-        $this->authorize('approve registrations');
+        // GANTI INI: Gunakan izin granular yang Anda miliki!
+        $this->authorize('approval-approve');
 
         $user = User::find($userId);
 
@@ -204,8 +258,8 @@ class UserController extends Controller
                         'user_id' => $user->id,
                         'alternatif_code' => 'ALT-' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
                         'alternatif_name' => $user->name,
-                        'tahun_ajaran' => $user->tahun_ajaran, // Menambahkan tahun_ajaran dari user
-                        'semester' => $user->semester,       // Menambahkan semester dari user
+                        'tahun_ajaran' => $user->tahun_ajaran ?? null, // Menambahkan tahun_ajaran dari user
+                        'semester' => $user->semester ?? null,     // Menambahkan semester dari user
                         'status_perhitungan' => 'pending',
                     ]);
                 }
@@ -228,11 +282,12 @@ class UserController extends Controller
      * Menolak pendaftaran pengguna yang tertunda.
      *
      * @param   int   $userId
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function rejectRegistration($userId): RedirectResponse
     {
-        $this->authorize('reject registrations');
+        // GANTI INI: Gunakan izin granular yang Anda miliki!
+        $this->authorize('approval-reject');
 
         $user = User::find($userId);
 
@@ -262,7 +317,10 @@ class UserController extends Controller
      */
     public function pendingProfileUpdates(): Factory|View
     {
-        $this->authorize('approve registrations');
+        // Otorisasi eksplisit, meskipun ada middleware di constructor
+        // GANTI INI: Gunakan izin granular yang Anda miliki!
+        $this->authorize('approval-list'); // Jika ada izin khusus untuk melihat daftar approval
+        
         $pendingUpdates = PendingProfileUpdate::where('status', 'pending')->with('user', 'approver')
                                              ->orderBy('created_at', 'desc')
                                              ->get();
@@ -275,16 +333,16 @@ class UserController extends Controller
      *
      * @param   \Illuminate\Http\Request  $request
      * @param   \App\Models\PendingProfileUpdate  $pendingUpdate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function approveProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate): RedirectResponse
     {
-        // Metode ini dilindungi oleh middleware 'role:admin' di constructor.
-        // Tidak perlu $this->authorize() tambahan di sini kecuali Anda ingin pengecekan spesifik lainnya.
+        // Otorisasi eksplisit
+        // GANTI INI: Gunakan izin granular yang Anda miliki!
+        $this->authorize('approval-approve'); 
+
         if ($pendingUpdate->status === 'pending') {
-
             $user = $pendingUpdate->user;
-
             $proposedData = $pendingUpdate->proposed_data;
 
             $user->fill($proposedData);
@@ -310,11 +368,14 @@ class UserController extends Controller
      *
      * @param   \Illuminate\Http\Request  $request
      * @param   \App\Models\PendingProfileUpdate  $pendingUpdate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function rejectProfileUpdate(Request $request, PendingProfileUpdate $pendingUpdate): RedirectResponse
     {
-        // Metode ini dilindungi oleh middleware 'role:admin' di constructor.
+        // Otorisasi eksplisit
+        // GANTI INI: Gunakan izin granular yang Anda miliki!
+        $this->authorize('approval-reject'); 
+
         if ($pendingUpdate->status === 'pending') {
             $pendingUpdate->status = 'rejected';
             $pendingUpdate->approved_by = Auth::id();
@@ -338,17 +399,16 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
-        // Hapus baris 'if ($authenticatedUser->hasRole('admin')) { return true; }'
-        // Karena otorisasi sudah ditangani oleh $this->authorize('manage users');
-        // dan middleware 'role:admin' di constructor.
-        $this->authorize('manage users'); 
+        // GANTI INI: Gunakan izin granular yang Anda miliki!
+        // Anda memiliki izin 'user-delete' yang lebih spesifik.
+        $this->authorize('user-delete'); 
         
-        // Pencegahan agar admin tidak menghapus akunnya sendiri
+        // Pencegahan agar pengguna yang sedang login tidak menghapus akunnya sendiri
         if (Auth::id() === $user->id) {
             return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
         $user->delete();
-        return redirect()->route('user.management')->with('success', 'User deleted successfully.');
+        return redirect()->route('admin.user.management')->with('success', 'User deleted successfully.');
     }
 }

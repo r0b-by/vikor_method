@@ -4,7 +4,6 @@
 <div class="flex flex-wrap -mx-3" data-aos="fade-zoom-in" data-aos-easing="ease-in-back" data-aos-delay="300"
     data-aos-offset="0">
 
-    <!-- Futuristic Header -->
     <div class="flex items-center justify-between mb-6 w-full">
         <div>
             <h2 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
@@ -14,14 +13,26 @@
         </div>
     </div>
 
-    <!-- Futuristic Filter Card with Glass Morphism -->
     <div class="w-full px-3 mb-6">
         <div class="bg-white/80 dark:bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg p-6 border border-white/20 dark:border-slate-700/50">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
+                    {{-- Perbaikan: Menampilkan total alternatif dari paginator --}}
                     <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                        {{ count($alternatif) }} Alternatif
+                        {{ $alternatif->total() }} Alternatif
                     </span>
+                    
+                    <!-- Pagination Controls -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600 dark:text-gray-300">Items per page:</span>
+                        <select onchange="window.location.href = this.value" class="text-sm rounded border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-purple-500">
+                            <option value="{{ request()->fullUrlWithQuery(['perPage' => 5]) }}" {{ request('perPage', 10) == 5 ? 'selected' : '' }}>5</option>
+                            <option value="{{ request()->fullUrlWithQuery(['perPage' => 10]) }}" {{ request('perPage', 10) == 10 ? 'selected' : '' }}>10</option>
+                            <option value="{{ request()->fullUrlWithQuery(['perPage' => 25]) }}" {{ request('perPage') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="{{ request()->fullUrlWithQuery(['perPage' => 50]) }}" {{ request('perPage') == 50 ? 'selected' : '' }}>50</option>
+                            <option value="{{ request()->fullUrlWithQuery(['perPage' => 100]) }}" {{ request('perPage') == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                    </div>
                 </div>
                 
                 @role(['admin', 'guru'])
@@ -37,9 +48,7 @@
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="w-full px-3">
-        <!-- Futuristic Table Card -->
         <div class="bg-white/80 dark:bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 dark:border-slate-700/50 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
@@ -73,8 +82,9 @@
                     <tbody class="bg-white/50 dark:bg-slate-800/50 divide-y divide-gray-200 dark:divide-slate-700">
                         @forelse ($alternatif as $a)
                             <tr class="hover:bg-gray-50/80 dark:hover:bg-slate-700/80 transition-colors duration-150">
+                                {{-- Perbaikan penomoran agar berlanjut di setiap halaman --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ $loop->iteration }}
+                                    {{ ($alternatif->currentPage() - 1) * $alternatif->perPage() + $loop->iteration }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
@@ -148,23 +158,21 @@
                 </table>
             </div>
             
+            {{-- Perbaikan: Menampilkan tautan pagination dengan mempertahankan query parameter --}}
             @if($alternatif->hasPages())
             <div class="px-6 py-4 border-t border-gray-200/50 dark:border-slate-700/30">
-                {{ $alternatif->links() }}
+                {{ $alternatif->appends(request()->query())->links() }}
             </div>
             @endif
         </div>
     </div>
 </div>
 
-<!-- Add Alternatif Modal -->
 @role(['admin', 'guru'])
 <div id="add-alternatif" tabindex="-1" aria-hidden="true"
     class="hidden fixed inset-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto h-modal h-full backdrop-blur-sm">
     <div class="relative w-full h-full max-w-2xl mx-auto mt-10">
-        <!-- Modal content -->
         <div class="relative bg-white rounded-xl shadow-xl dark:bg-slate-800 border border-white/20 dark:border-slate-700/50">
-            <!-- Modal header -->
             <div class="flex items-center justify-between p-5 border-b rounded-t-xl dark:border-slate-700 bg-gradient-to-r from-blue-500 to-purple-600">
                 <h3 class="text-xl font-medium text-white">
                     Tambah Alternatif Baru
@@ -177,7 +185,6 @@
                     <span class="sr-only">Tutup modal</span>
                 </button>
             </div>
-            <!-- Modal body -->
             <form action="{{ route('alternatif.store') }}" method="POST">
                 @csrf
                 <div class="p-6 space-y-6">
@@ -209,7 +216,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Modal footer -->
                 <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b-xl dark:border-slate-700">
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                         Simpan
@@ -225,15 +231,12 @@
 </div>
 @endrole
 
-<!-- Edit Alternatif Modals -->
 @role(['admin', 'guru'])
 @foreach ($alternatif as $a)
 <div id="edit-alternatif-{{ $a->id }}" tabindex="-1" aria-hidden="true"
     class="hidden fixed inset-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto h-modal h-full backdrop-blur-sm">
     <div class="relative w-full h-full max-w-2xl mx-auto mt-10">
-        <!-- Modal content -->
         <div class="relative bg-white rounded-xl shadow-xl dark:bg-slate-800 border border-white/20 dark:border-slate-700/50">
-            <!-- Modal header -->
             <div class="flex items-center justify-between p-5 border-b rounded-t-xl dark:border-slate-700 bg-gradient-to-r from-blue-500 to-purple-600">
                 <h3 class="text-xl font-medium text-white">
                     Edit Alternatif
@@ -246,7 +249,6 @@
                     <span class="sr-only">Tutup modal</span>
                 </button>
             </div>
-            <!-- Modal body -->
             <form action="{{ route('alternatif.update', $a->id) }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -278,7 +280,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Modal footer -->
                 <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b-xl dark:border-slate-700">
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                         Perbarui

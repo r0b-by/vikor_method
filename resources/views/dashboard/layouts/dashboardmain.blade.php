@@ -98,7 +98,8 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     {{-- Ini adalah JS utama Argon Dashboard. Cukup gunakan versi minified-nya --}}
     <script src="{{ asset('assets/js/argon-dashboard-tailwind.min.js') }}"></script> 
-
+    <script src="{{ asset('js/.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ asset('assets/vendor/jquery-3.7.0.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/datatables.js') }}"></script>
     

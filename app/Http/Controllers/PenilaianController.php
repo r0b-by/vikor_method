@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\User; // Pastikan model User diimpor
 
 class PenilaianController extends Controller
 {
@@ -146,14 +147,100 @@ class PenilaianController extends Controller
         ));
     }
 
+    public function storeOrUpdateForStudent(Request $request)
+    {
+        // Add these lines for debugging the 403 error
+        // dd(Auth::check(), Auth::user() ? Auth::user()->roles->pluck('name')->toArray() : 'No user logged in');
+
+        $user = Auth::user();
+        $alternatif = $user->alternatif;
+
+        if (!$alternatif) {
+            return back()->with('error', 'Anda belum memiliki alternatif yang terdaftar.');
+        }
+
+        $validated = $request->validate([
+            'id_alternatif' => 'required|exists:alternatifs,id',
+            'nilai' => 'required|array',
+            'nilai.*' => 'required|numeric|min:0',
+            'certificate_level' => 'sometimes|array',
+            'certificate_level.*' => 'sometimes|array',
+            'certificate_level.*.*' => 'nullable|string',
+
+            'certificate_count' => 'sometimes|array',
+            'certificate_count.*' => 'sometimes|array',
+            'certificate_count.*.*' => 'nullable|integer|min:1',
+
+            'academic_period_id' => 'required|exists:academic_periods,id,is_active,1',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $currentDate = Carbon::now();
+            $alternatif = Alternatif::findOrFail($validated['id_alternatif']);
+
+            $academicPeriod = AcademicPeriod::findOrFail($validated['academic_period_id']);
+            if ($alternatif->tahun_ajaran !== $academicPeriod->tahun_ajaran ||
+                $alternatif->semester !== $academicPeriod->semester) {
+                throw new \Exception('Alternatif tidak sesuai dengan periode akademik yang dipilih.');
+            }
+
+            foreach ($validated['nilai'] as $criteriaId => $nilaiInput) {
+                $criteria = Criteria::with('subs')->findOrFail($criteriaId);
+                $nilai = 0;
+                $certificateDetails = null;
+
+                if ($criteria->input_type === 'poin') {
+                    $certificateDetails = $this->processPointBasedCriteria(
+                        $criteria,
+                        $validated,
+                        $criteriaId,
+                        $nilai
+                    );
+                } else {
+                    $nilai = $nilaiInput;
+                }
+
+                Penilaian::updateOrCreate(
+                    [
+                        'id_alternatif' => $alternatif->id,
+                        'id_criteria' => $criteriaId,
+                        'academic_period_id' => $academicPeriod->id
+                    ],
+                    [
+                        'nilai' => $nilai,
+                        'certificate_details' => $certificateDetails,
+                        'tanggal_penilaian' => $currentDate->toDateString(),
+                        'jam_penilaian' => $currentDate->toTimeString(),
+                    ]
+                );
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Penilaian berhasil disimpan!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menyimpan penilaian: ' . $e->getMessage());
+        }
+    }
+
     public function storeOrUpdate(Request $request)
     {
         $validated = $request->validate([
             'id_alternatif' => 'required|exists:alternatifs,id',
             'nilai' => 'required|array',
             'nilai.*' => 'required|numeric|min:0',
+            // Validasi untuk certificate_level dan certificate_count perlu diperbaiki agar lebih spesifik
+            // Misalnya: 'certificate_level.*.*' => 'nullable|string',
+            // Karena ini adalah array bertingkat (criteriaId => index => value)
             'certificate_level' => 'sometimes|array',
+            'certificate_level.*' => 'sometimes|array', // Array level per kriteria
+            'certificate_level.*.*' => 'nullable|string', // Level sertifikat itu sendiri (misal: 'Basic', 'Intermediate')
+
             'certificate_count' => 'sometimes|array',
+            'certificate_count.*' => 'sometimes|array', // Array count per kriteria
+            'certificate_count.*.*' => 'nullable|integer|min:1', // Jumlah sertifikat
+
             'academic_period_id' => 'required|exists:academic_periods,id,is_active,1', // Hanya boleh periode aktif
         ]);
 
@@ -172,24 +259,19 @@ class PenilaianController extends Controller
             foreach ($validated['nilai'] as $criteriaId => $nilaiInput) {
                 $criteria = Criteria::with('subs')->findOrFail($criteriaId);
                 $nilai = 0;
-                $certificateDetails = null;
+                $certificateDetails = null; // Inisialisasi sebagai null
 
-                if ($criteria->input_type === 'poin' && isset($validated['certificate_level'][$criteriaId])) {
-                    $certificateDetails = [];
-                    foreach ($validated['certificate_level'][$criteriaId] as $index => $level) {
-                        $count = $validated['certificate_count'][$criteriaId][$index] ?? 1;
-                        $sub = $criteria->subs->firstWhere('label', $level);
-                        $point = $sub ? $sub->point : 0;
-                        $nilai += $point * $count;
-
-                        $certificateDetails[] = [
-                            'level' => $level,
-                            'count' => $count,
-                            'point' => $point,
-                            'sub_total' => $point * $count
-                        ];
-                    }
-                } else {
+                if ($criteria->input_type === 'poin') { // Hanya masuk ke sini jika tipe input adalah 'poin'
+                    // Panggil helper function untuk memproses kriteria berbasis poin
+                    // Pastikan $validated['certificate_level'][$criteriaId] ada sebelum memanggil
+                    // processPointBasedCriteria jika itu hanya dipanggil untuk kriteria_id tertentu
+                    $certificateDetails = $this->processPointBasedCriteria(
+                        $criteria, 
+                        $validated, 
+                        $criteriaId, 
+                        $nilai // $nilai akan dimodifikasi di dalam fungsi ini
+                    );
+                } else { // Jika input_type bukan 'poin' (misal 'manual')
                     $nilai = $nilaiInput;
                 }
 
@@ -202,7 +284,9 @@ class PenilaianController extends Controller
                     ],
                     [
                         'nilai' => $nilai,
-                        'certificate_details' => $certificateDetails ? json_encode($certificateDetails) : null,
+                        // HAPUS json_encode() karena model Penilaian memiliki $casts = ['certificate_details' => 'array']
+                        // Laravel akan secara otomatis mengkonversi array PHP ke JSON string saat menyimpan
+                        'certificate_details' => $certificateDetails, 
                         'tanggal_penilaian' => $currentDate->toDateString(),
                         'jam_penilaian' => $currentDate->toTimeString(),
                     ]
@@ -224,57 +308,64 @@ class PenilaianController extends Controller
         return redirect()->back()->with('success', 'Penilaian berhasil dihapus!');
     }
 
-    protected function validateRequest(Request $request)
-    {
-        return $request->validate([
-            'id_alternatif' => 'sometimes|required|exists:alternatifs,id',
-            'nilai' => 'required|array',
-            'nilai.*' => 'required|numeric|min:0',
-            'certificate_level' => 'sometimes|array',
-            'certificate_count' => 'sometimes|array',
-            'academic_period_id' => 'sometimes|required|exists:academic_periods,id',
-        ]);
-    }
+    // Metode processAssessment dan validateRequest yang terpisah dari storeOrUpdate
+    // tidak digunakan dalam alur storeOrUpdate yang sekarang.
+    // Jika tidak digunakan di tempat lain, Anda bisa mempertimbangkan untuk menghapusnya
+    // agar kode lebih bersih, atau memastikan mereka dipanggil di tempat yang benar.
 
-    protected function processAssessment(array $validated, $alternatifId)
-    {
-        $currentDate = Carbon::now();
-        $academicPeriodId = $validated['academic_period_id'] ?? null;
+    // protected function validateRequest(Request $request)
+    // {
+    //     return $request->validate([
+    //         'id_alternatif' => 'sometimes|required|exists:alternatifs,id',
+    //         'nilai' => 'required|array',
+    //         'nilai.*' => 'required|numeric|min:0',
+    //         'certificate_level' => 'sometimes|array',
+    //         'certificate_count' => 'sometimes|array',
+    //         'academic_period_id' => 'sometimes|required|exists:academic_periods,id',
+    //     ]);
+    // }
 
-        foreach ($validated['nilai'] as $criteriaId => $nilaiInput) {
-            $criteria = Criteria::with('subs')->findOrFail($criteriaId);
-            $nilai = 0;
-            $certificateDetails = null;
+    // protected function processAssessment(array $validated, $alternatifId)
+    // {
+    //     $currentDate = Carbon::now();
+    //     $academicPeriodId = $validated['academic_period_id'] ?? null;
 
-            if ($criteria->input_type === 'manual') {
-                $nilai = $nilaiInput;
-            } elseif ($criteria->input_type === 'poin') {
-                $certificateDetails = $this->processPointBasedCriteria(
-                    $criteria, 
-                    $validated, 
-                    $criteriaId, 
-                    $nilai
-                );
-            }
+    //     foreach ($validated['nilai'] as $criteriaId => $nilaiInput) {
+    //         $criteria = Criteria::with('subs')->findOrFail($criteriaId);
+    //         $nilai = 0;
+    //         $certificateDetails = null;
 
-            Penilaian::create([
-                'id_alternatif' => $alternatifId,
-                'id_criteria' => $criteriaId,
-                'nilai' => $nilai,
-                'certificate_details' => $certificateDetails,
-                'academic_period_id' => $academicPeriodId,
-                'tanggal_penilaian' => $currentDate->toDateString(),
-                'jam_penilaian' => $currentDate->toTimeString(),
-            ]);
-        }
-    }
+    //         if ($criteria->input_type === 'manual') {
+    //             $nilai = $nilaiInput;
+    //         } elseif ($criteria->input_type === 'poin') {
+    //             $certificateDetails = $this->processPointBasedCriteria(
+    //                 $criteria, 
+    //                 $validated, 
+    //                 $criteriaId, 
+    //                 $nilai
+    //             );
+    //         }
+
+    //         Penilaian::create([
+    //             'id_alternatif' => $alternatifId,
+    //             'id_criteria' => $criteriaId,
+    //             'nilai' => $nilai,
+    //             'certificate_details' => $certificateDetails,
+    //             'academic_period_id' => $academicPeriodId,
+    //             'tanggal_penilaian' => $currentDate->toDateString(),
+    //             'jam_penilaian' => $currentDate->toTimeString(),
+    //         ]);
+    //     }
+    // }
 
     protected function processPointBasedCriteria($criteria, $validated, $criteriaId, &$nilai)
     {
         $certificateDetails = [];
         
-        if (isset($validated['certificate_level'][$criteriaId])) {
+        // Memastikan ada data certificate_level untuk criteriaId ini
+        if (isset($validated['certificate_level'][$criteriaId]) && is_array($validated['certificate_level'][$criteriaId])) {
             foreach ($validated['certificate_level'][$criteriaId] as $index => $level) {
+                // Pastikan certificate_count juga ada untuk index yang sama
                 $count = $validated['certificate_count'][$criteriaId][$index] ?? 1;
                 $sub = $criteria->subs->firstWhere('label', $level);
                 $point = $sub ? $sub->point : 0;
@@ -289,6 +380,8 @@ class PenilaianController extends Controller
             }
         }
         
-        return !empty($certificateDetails) ? $certificateDetails : null;
+        // Mengembalikan array kosong jika tidak ada detail sertifikat, bukan null.
+        // Ini lebih konsisten dengan tipe 'array' di $casts dan menghindari null string di DB.
+        return !empty($certificateDetails) ? $certificateDetails : []; 
     }
 }

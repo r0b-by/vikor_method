@@ -40,6 +40,8 @@ class PermissionsSeeder extends Seeder
             'criteria-create',
             'criteria-edit',
             'criteria-delete',
+            'edit-own-criteria',  // Penting untuk kebijakan 'update' dan 'edit' kriteria milik sendiri
+            'delete-own-criteria',
             'alternatif-list',
             'alternatif-create',
             'alternatif-edit',
@@ -59,21 +61,24 @@ class PermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            // Use firstOrCreate to prevent "PermissionAlreadyExists" if run multiple times
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Create roles or retrieve existing ones if UserSeeder already created them
-        // This is the key change: Use firstOrCreate instead of create
+        // --- INI ADALAH BAGIAN KRUSIAL YANG HARUS MENGGUNAKAN firstOrCreate ---
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $teacherRole = Role::firstOrCreate(['name' => 'guru', 'guard_name' => 'web']);
         $studentRole = Role::firstOrCreate(['name' => 'siswa', 'guard_name' => 'web']);
 
-        // Assign all permissions to the admin role
         $adminRole->givePermissionTo(Permission::all());
 
         // Assign specific permissions to the teacher role
         $teacherRole->givePermissionTo([
+            'criteria-list',
+            'criteria-create',
+            'criteria-edit',
+            'criteria-delete',
+            'edit-own-criteria',
+            'delete-own-criteria',
             'penilaian-list',
             'penilaian-edit',
             'hasil-vikor-list',
@@ -86,7 +91,6 @@ class PermissionsSeeder extends Seeder
             'approval-reject',
         ]);
 
-        // Assign specific permissions to the student role
         $studentRole->givePermissionTo([
             'penilaian-list',
             'penilaian-create',
@@ -94,11 +98,6 @@ class PermissionsSeeder extends Seeder
             'hasil-vikor-list',
         ]);
 
-        // Assign roles to existing users
-        // Ensure these users exist before assigning roles.
-        // It's generally better to assign roles in UserSeeder if users are created there.
-        // However, if you run PermissionsSeeder separately or after UserSeeder,
-        // this block ensures roles are assigned.
         $admin = \App\Models\User::where('email', 'robby.admin@vikor.com')->first();
         if ($admin) {
             $admin->assignRole('admin');
@@ -106,7 +105,7 @@ class PermissionsSeeder extends Seeder
 
         $teachers = \App\Models\User::whereHas('roles', function($query) {
             $query->where('name', 'guru');
-        }, '=', 0)->where('kelas', 'Guru')->get(); // Only assign if they don't already have the 'guru' role
+        }, '=', 0)->where('kelas', 'Guru')->get();
         foreach ($teachers as $teacher) {
             $teacher->assignRole('guru');
         }
@@ -114,8 +113,8 @@ class PermissionsSeeder extends Seeder
         $students = \App\Models\User::whereHas('roles', function($query) {
             $query->where('name', 'siswa');
         }, '=', 0)->where('kelas', '!=', 'Guru')
-                                   ->where('email', '!=', 'robby.admin@vikor.com') // Corrected admin email
-                                   ->get(); // Only assign if they don't already have the 'siswa' role
+                                        ->where('email', '!=', 'robby.admin@vikor.com')
+                                        ->get();
         foreach ($students as $student) {
             $student->assignRole('siswa');
         }
