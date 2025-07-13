@@ -10,11 +10,11 @@ services:
       - key: APP_ENV
         value: local
       - key: APP_KEY
-        value: base64:Zdehf/hGFZ8HjK0ZpcjulDewCUklS4m0wQUTL9d3ZPo=
+        value: base64:MO0Okzp0OFVBOxcp5feVTgOELMG4Eb9Zg35psp3OBVc=
       - key: APP_DEBUG
         value: true
       - key: APP_URL
-        value: https://vikor-method.onrender.com
+        value: https://vikor-method-2lgv.onrender.com
 
       # ✅ SQLite config (file ini disiapkan di Dockerfile)
       - key: DB_CONNECTION
