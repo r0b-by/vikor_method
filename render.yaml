@@ -4,18 +4,20 @@ services:
     env: docker
     plan: free
     branch: main
-    buildCommand: ""       # Build ditangani oleh Dockerfile
-    startCommand: ""       # Apache otomatis start di Dockerfile
+    buildCommand: ""        # Build ditangani sepenuhnya di Dockerfile
+    startCommand: ""        # Apache auto-start (CMD di Dockerfile)
     envVars:
-      # ✅ Environment
+      # ✅ Laravel Environment
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        value: base64:MO0Okzp0OFVBOxcp5feVTgOELMG4Eb9Zg35psp3OBVc=
+        value: base64:jMPGWVH3n9kMt45SWLcEx3zAIdIeviBM0TwryxnkImU=
       - key: APP_DEBUG
         value: false
       - key: APP_URL
         value: https://vikor-method-2lgv.onrender.com
+      - key: APP_TIMEZONE
+        value: Asia/Jakarta
 
       # ✅ PostgreSQL (Neon.tech)
       - key: DB_CONNECTION
@@ -33,23 +35,19 @@ services:
       - key: DB_SSLMODE
         value: require
 
-      # ✅ File-based session, queue, cache
+      # ✅ Log, Cache, Session, Queue (lokal file-based)
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_LEVEL
+        value: debug
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_DRIVER
         value: file
       - key: QUEUE_CONNECTION
         value: sync
-      - key: LOG_CHANNEL
-        value: stack
-      - key: LOG_LEVEL
-        value: debug
 
-      # ✅ Timezone
-      - key: APP_TIMEZONE
-        value: Asia/Jakarta
-
-      # ✅ Mail (log only)
+      # ✅ Email (log mode - nonaktifkan pengiriman email real)
       - key: MAIL_MAILER
         value: log
       - key: MAIL_FROM_ADDRESS
@@ -57,6 +55,6 @@ services:
       - key: MAIL_FROM_NAME
         value: "VikorMethod"
 
-      # ✅ Vite asset (tidak wajib di Render, tapi aman ditambahkan)
+      # ✅ Vite (untuk asset path - tidak wajib tapi aman)
       - key: VITE_APP_URL
         value: https://vikor-method-2lgv.onrender.com
