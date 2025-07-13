@@ -20,6 +20,8 @@ services:
         value: Asia/Jakarta
 
       # ✅ PostgreSQL (Neon.tech)
+      - key: DB_DATABASE_URL
+        value : "postgresql://neondb_owner:npg_CPTrxwl78HsQ@ep-proud-water-afz2m2wb-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
