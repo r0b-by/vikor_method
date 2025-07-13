@@ -4,34 +4,48 @@ services:
     env: docker
     plan: free
     branch: main
+    buildCommand: ""       # Build dilakukan di Dockerfile
+    startCommand: ""       # Apache akan berjalan otomatis
     envVars:
       - key: APP_ENV
-        value: production
+        value: local
       - key: APP_KEY
         value: base64:Zdehf/hGFZ8HjK0ZpcjulDewCUklS4m0wQUTL9d3ZPo=
       - key: APP_DEBUG
-        value: false
+        value: true
       - key: APP_URL
         value: https://vikor-method.onrender.com
 
-      # ✅ Database SQLite
+      # ✅ SQLite config (file ini disiapkan di Dockerfile)
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
         value: /var/www/html/database/database.sqlite
 
-      # ✅ File-based session/cache/log
-      - key: SESSION_DRIVER
-        value: file
+      # ✅ Log dan session pakai file
       - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
         value: file
       - key: QUEUE_CONNECTION
         value: sync
       - key: LOG_CHANNEL
         value: stack
+      - key: LOG_LEVEL
+        value: debug
 
       # ✅ Timezone
       - key: APP_TIMEZONE
         value: Asia/Jakarta
+
+      # ✅ Mail Dev (log saja, tidak kirim email)
+      - key: MAIL_MAILER
+        value: log
+      - key: MAIL_FROM_ADDRESS
+        value: robbyadiyasaputra@gmail.com
+      - key: MAIL_FROM_NAME
+        value: "VikorMethod Dev"
+
+      # ✅ Vite Dev Config (untuk Vite asset URL)
       - key: VITE_APP_URL
         value: https://vikor-method.onrender.com
