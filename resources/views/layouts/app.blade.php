@@ -142,7 +142,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     
     <!-- Application Scripts -->
-    <script src="{{ asset('js/app.js') }}" defer></script>
+    @vite('resources/js/app.js')
     <script src="{{ asset('js/wellcome.js') }}"></script>
     
     @stack('scripts')

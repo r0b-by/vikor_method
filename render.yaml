@@ -4,28 +4,39 @@ services:
     env: docker
     plan: free
     branch: main
-    buildCommand: ""       # Build dilakukan di Dockerfile
-    startCommand: ""       # Apache akan berjalan otomatis
+    buildCommand: ""       # Build ditangani oleh Dockerfile
+    startCommand: ""       # Apache otomatis start di Dockerfile
     envVars:
+      # ✅ Environment
       - key: APP_ENV
-        value: local
+        value: production
       - key: APP_KEY
         value: base64:MO0Okzp0OFVBOxcp5feVTgOELMG4Eb9Zg35psp3OBVc=
       - key: APP_DEBUG
-        value: true
+        value: false
       - key: APP_URL
         value: https://vikor-method-2lgv.onrender.com
 
-      # ✅ SQLite config (file ini disiapkan di Dockerfile)
+      # ✅ PostgreSQL (Neon.tech)
       - key: DB_CONNECTION
-        value: sqlite
+        value: pgsql
+      - key: DB_HOST
+        value: ep-proud-water-afz2m2wb-pooler.c-2.us-west-2.aws.neon.tech
+      - key: DB_PORT
+        value: 5432
       - key: DB_DATABASE
-        value: /var/www/html/database/database.sqlite
+        value: neondb
+      - key: DB_USERNAME
+        value: neondb_owner
+      - key: DB_PASSWORD
+        value: npg_CPTrxwl78HsQ
+      - key: DB_SSLMODE
+        value: require
 
-      # ✅ Log dan session pakai file
-      - key: CACHE_DRIVER
-        value: file
+      # ✅ File-based session, queue, cache
       - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_DRIVER
         value: file
       - key: QUEUE_CONNECTION
         value: sync
@@ -38,14 +49,14 @@ services:
       - key: APP_TIMEZONE
         value: Asia/Jakarta
 
-      # ✅ Mail Dev (log saja, tidak kirim email)
+      # ✅ Mail (log only)
       - key: MAIL_MAILER
         value: log
       - key: MAIL_FROM_ADDRESS
         value: robbyadiyasaputra@gmail.com
       - key: MAIL_FROM_NAME
-        value: "VikorMethod Dev"
+        value: "VikorMethod"
 
-      # ✅ Vite Dev Config (untuk Vite asset URL)
+      # ✅ Vite asset (tidak wajib di Render, tapi aman ditambahkan)
       - key: VITE_APP_URL
-        value: https://vikor-method.onrender.com
+        value: https://vikor-method-2lgv.onrender.com
