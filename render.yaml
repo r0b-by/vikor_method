@@ -1,51 +1,20 @@
 services:
   - type: web
-    name: vikor-method
-    env: docker
+    name: laravel-app
+    env: php
+    region: oregon
     plan: free
-    branch: main
-    buildCommand: ""       # Build dilakukan di Dockerfile
-    startCommand: ""       # Apache akan berjalan otomatis
+    buildCommand: |
+      composer install --no-dev
+      php artisan key:generate
+      php artisan migrate --force
+    startCommand: php artisan serve --host 0.0.0.0 --port 10000
     envVars:
       - key: APP_ENV
-        value: local
+        value: production
       - key: APP_KEY
-        value: base64:Zdehf/hGFZ8HjK0ZpcjulDewCUklS4m0wQUTL9d3ZPo=
+        generateValue: true
       - key: APP_DEBUG
-        value: true
-      - key: APP_URL
-        value: https://vikor-method.onrender.com
-
-      # ✅ SQLite config (file ini disiapkan di Dockerfile)
+        value: false
       - key: DB_CONNECTION
         value: sqlite
-      - key: DB_DATABASE
-        value: /var/www/html/database/database.sqlite
-
-      # ✅ Log dan session pakai file
-      - key: CACHE_DRIVER
-        value: file
-      - key: SESSION_DRIVER
-        value: file
-      - key: QUEUE_CONNECTION
-        value: sync
-      - key: LOG_CHANNEL
-        value: stack
-      - key: LOG_LEVEL
-        value: debug
-
-      # ✅ Timezone
-      - key: APP_TIMEZONE
-        value: Asia/Jakarta
-
-      # ✅ Mail Dev (log saja, tidak kirim email)
-      - key: MAIL_MAILER
-        value: log
-      - key: MAIL_FROM_ADDRESS
-        value: robbyadiyasaputra@gmail.com
-      - key: MAIL_FROM_NAME
-        value: "VikorMethod Dev"
-
-      # ✅ Vite Dev Config (untuk Vite asset URL)
-      - key: VITE_APP_URL
-        value: https://vikor-method.onrender.com
